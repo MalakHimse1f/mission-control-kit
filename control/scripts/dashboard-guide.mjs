@@ -66,9 +66,10 @@ export function renderUserGuideDisclosure() {
         <p>Kit updates refresh orchestrator docs and skills. Your <code>features/</code> specs and journals are <strong>never</strong> overwritten.</p>
         <ul class="guide-list">
           <li><code>/mc-upgrade</code> — safe upgrade in chat</li>
-          <li><code>node mission-control-kit/scripts/mc-upgrade.mjs . --check</code> — see if update available</li>
+          <li><code>node mission-control-kit/scripts/mc-upgrade.mjs . --check --fetch</code> — compare install stamp to GitHub Releases</li>
           <li><code>--dry-run</code> — preview what would sync</li>
         </ul>
+        <p class="guide-note">The dashboard version strip checks <strong>GitHub Releases</strong> via <code>dashboard-server.mjs</code>, or run <code>generate-dashboard.mjs --check-remote</code> to embed a one-off check in static HTML.</p>
       </section>
 
       <section class="guide-section">

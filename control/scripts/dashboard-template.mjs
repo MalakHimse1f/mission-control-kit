@@ -6,6 +6,7 @@ import {
   CONTROL_PANEL_CSS,
   CONTROL_PANEL_CLIENT_JS,
 } from "./dashboard-control-panel.mjs";
+import { renderKitVersionStrip, KIT_VERSION_CLIENT_JS } from "./dashboard-kit-version.mjs";
 
 export const DASHBOARD_CSS = `
 :root { color-scheme: dark; --bg: #0a0a0a; --panel: #141414; --border: #2a2a2a; --muted: #888; --accent: #6a8caf; }
@@ -554,17 +555,6 @@ export const DASHBOARD_CLIENT_JS = `
 })();
 `;
 
-function renderKitVersionStrip(kitVersion) {
-  if (!kitVersion?.installed && !kitVersion?.latest) return "";
-  const installed = kitVersion.installed ?? "not installed";
-  const latest = kitVersion.latest ?? installed;
-  const cls = kitVersion.updateAvailable ? "kit-version-strip update-available" : "kit-version-strip";
-  const updateHint = kitVersion.updateAvailable
-    ? `<span class="kit-update-hint">Update available (${installed} → ${latest}). Run <code>/mc-upgrade</code> or <code>node ${escapeHtml(kitVersion.kitFolder ?? "mission-control-kit")}/scripts/mc-upgrade.mjs .</code> — your specs are preserved.</span>`
-    : `<span class="muted">Kit up to date.</span>`;
-  return `<div class="${cls}"><span class="kit-version-badge">Mission Control ${escapeHtml(String(installed))}</span>${updateHint}</div>`;
-}
-
 export function buildDashboardHtml({
   generatedAt,
   handoff,
@@ -586,7 +576,7 @@ export function buildDashboardHtml({
       ? `<p class="notice">Tech stack not established — run <code>/mc-init</code> for an existing codebase, or <code>/mc-start</code> for a brand-new product.</p>`
       : "";
 
-  const versionStrip = renderKitVersionStrip(kitVersion);
+  const versionStrip = renderKitVersionStrip(kitVersion, escapeHtml);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -728,6 +718,7 @@ export function buildDashboardHtml({
   <script>window.MC_ITEMS = ${JSON.stringify(rows)};window.MC_DEFAULT_SORT = ${JSON.stringify(defaultSort)};</script>
   <script>${DASHBOARD_CLIENT_JS}</script>
   <script>${CONTROL_PANEL_CLIENT_JS}</script>
+  <script>${KIT_VERSION_CLIENT_JS}</script>
 </body>
 </html>`;
 }

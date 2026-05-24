@@ -172,7 +172,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 <body>
   <h1>Mission Control v4</h1>
   <p class="subtitle">Orchestrator-driven pipeline — Project START and Add Feature. Drill into a card for spec, plans, mocks, journal, and tasks.</p>
-  <p class="top-meta">Generated 2026-05-24T19:50:13.293Z · All content embedded — open this file directly, no external links required.</p>
+  <p class="top-meta">Generated 2026-05-24T19:57:29.576Z · All content embedded — open this file directly, no external links required.</p>
 
   
 
@@ -265,9 +265,10 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
         <p>Kit updates refresh orchestrator docs and skills. Your <code>features/</code> specs and journals are <strong>never</strong> overwritten.</p>
         <ul class="guide-list">
           <li><code>/mc-upgrade</code> — safe upgrade in chat</li>
-          <li><code>node mission-control-kit/scripts/mc-upgrade.mjs . --check</code> — see if update available</li>
+          <li><code>node mission-control-kit/scripts/mc-upgrade.mjs . --check --fetch</code> — compare install stamp to GitHub Releases</li>
           <li><code>--dry-run</code> — preview what would sync</li>
         </ul>
+        <p class="guide-note">The dashboard version strip checks <strong>GitHub Releases</strong> via <code>dashboard-server.mjs</code>, or run <code>generate-dashboard.mjs --check-remote</code> to embed a one-off check in static HTML.</p>
       </section>
 
       <section class="guide-section">
@@ -880,6 +881,56 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
       .then(renderStatus)
       .catch(function () {});
   }
+})();
+</script>
+  <script>
+(function () {
+  if (window.location.protocol === "file:") return;
+  const strip = document.querySelector(".kit-version-strip");
+  if (!strip) return;
+
+  function esc(s) {
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderHint(hintEl, kv) {
+    const installed = kv.installed ?? "not installed";
+    const folder = esc(kv.kitFolder ?? "mission-control-kit");
+    if (kv.updateAvailable) {
+      const target = kv.updateSource === "github" ? kv.remoteVersion : kv.latest;
+      const src = kv.updateSource === "github" ? "GitHub" : "local kit folder";
+      hintEl.innerHTML =
+        'Update on ' + src + ' (' + esc(installed) + " → " + esc(target) +
+        '). Run <code>/mc-upgrade</code> or <code>node ' + folder +
+        '/scripts/mc-upgrade.mjs . --fetch</code> — your specs are preserved.';
+      hintEl.className = "kit-update-hint";
+      strip.classList.add("update-available");
+      return;
+    }
+    let msg = "Kit up to date";
+    if (kv.remoteVersion) {
+      msg += " · GitHub " + esc(kv.remoteVersion);
+      if (kv.remoteFromCache) msg += " (cached)";
+    } else if (kv.remoteError) {
+      msg += " · GitHub check failed";
+    }
+    msg += ".";
+    hintEl.className = "muted";
+    hintEl.textContent = msg;
+    strip.classList.remove("update-available");
+  }
+
+  fetch("/api/kit-version")
+    .then(function (r) { return r.json(); })
+    .then(function (kv) {
+      const hint = strip.querySelector(".kit-update-hint, .muted");
+      if (hint) renderHint(hint, kv);
+    })
+    .catch(function () {});
 })();
 </script>
 </body>

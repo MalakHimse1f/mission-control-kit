@@ -42,7 +42,7 @@ node docs/superpowers/control/scripts/dashboard-server.mjs
 - **Orchestrator controls** — auto-advance build queue, ralph loop resume (saved to `.mc/orchestrator-controls.json` for agents)
 - **Portfolio view** — what to build next across multiple features
 - **Tech stack & project docs** — linked from one place
-- **Version & upgrade hints** — stay current without losing your specs
+- **Version & upgrade hints** — compares install stamp to GitHub Releases (via dashboard server) and local kit folder
 
 No login. No SaaS. It's static HTML generated from the same files your agents read.
 

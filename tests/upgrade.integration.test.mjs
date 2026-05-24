@@ -27,7 +27,7 @@ describe('safe upgrade integration', () => {
   it('writes install stamp on first install', () => {
     const stamp = readInstallStamp(path.join(tmpProject, 'docs/superpowers/control'));
     assert.ok(stamp);
-    assert.equal(stamp.kitVersion, '4.4.0');
+    assert.equal(stamp.kitVersion, '4.4.1');
   });
 
   it('preserves user feature spec across upgrade', () => {

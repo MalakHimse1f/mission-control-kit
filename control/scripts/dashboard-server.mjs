@@ -16,6 +16,7 @@ import {
   canAutoAdvance,
 } from '../lib/orchestrator-controls.mjs';
 import { pickNextFeature } from '../lib/pick-next-feature.mjs';
+import { resolveKitVersionInfo } from '../lib/kit-version-info.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,7 +31,7 @@ function regenerateDashboard(controlRoot) {
     const child = spawn(process.execPath, [script], {
       cwd: controlRoot,
       stdio: 'inherit',
-      env: { ...process.env, MC_DASHBOARD_SERVE: '1' },
+      env: { ...process.env, MC_DASHBOARD_SERVE: '1', MC_CHECK_REMOTE_RELEASE: '1' },
     });
     child.on('exit', (code) => {
       if (code === 0) resolve();
@@ -68,11 +69,25 @@ export function buildControlsApiPayload(controlRoot) {
   return { controls, gate, nextPick };
 }
 
-export function createDashboardServer(controlRoot, { port = 9470 } = {}) {
+export async function buildKitVersionPayload(controlRoot, { forceRefresh = false, fetchFn } = {}) {
+  return resolveKitVersionInfo(controlRoot, { fetchRemote: true, forceRefresh, fetchFn });
+}
+
+export function createDashboardServer(controlRoot, { port = 9470, fetchFn } = {}) {
   const dashboardPath = path.join(controlRoot, 'dashboard.html');
 
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+
+    if (req.method === 'GET' && url.pathname === '/api/kit-version') {
+      try {
+        const force = url.searchParams.get('refresh') === '1';
+        const payload = await buildKitVersionPayload(controlRoot, { forceRefresh: force, fetchFn });
+        return jsonResponse(res, 200, payload);
+      } catch (err) {
+        return jsonResponse(res, 500, { error: err.message });
+      }
+    }
 
     if (req.method === 'GET' && url.pathname === '/api/orchestrator-controls') {
       return jsonResponse(res, 200, buildControlsApiPayload(controlRoot));

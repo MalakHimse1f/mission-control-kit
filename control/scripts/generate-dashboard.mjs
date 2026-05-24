@@ -15,20 +15,7 @@ import {
   canAutoAdvance,
 } from "../lib/orchestrator-controls.mjs";
 import { pickNextFeature } from "../lib/pick-next-feature.mjs";
-
-function parseVersion(v) {
-  return String(v || "0.0.0").replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
-}
-
-function compareVersions(a, b) {
-  const va = parseVersion(a);
-  const vb = parseVersion(b);
-  for (let i = 0; i < 3; i += 1) {
-    if (va[i] < vb[i]) return -1;
-    if (va[i] > vb[i]) return 1;
-  }
-  return 0;
-}
+import { resolveKitVersionInfo } from "../lib/kit-version-info.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONTROL = join(__dirname, "..");
@@ -43,27 +30,23 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-function readKitVersionInfo(controlDir) {
-  const stampPath = join(controlDir, ".mc/install.json");
-  const stamp = readJson(stampPath);
-  const projectRoot = join(controlDir, "..", "..", "..");
-  const kitFolder = stamp?.kitPath ?? "mission-control-kit";
-  const manifestPath = join(projectRoot, kitFolder, "kit-manifest.json");
-  const manifest = readJson(manifestPath);
-  const installed = stamp?.kitVersion ?? null;
-  const latest = manifest?.kitVersion ?? installed;
-  const updateAvailable =
-    installed && latest && compareVersions(installed, latest) < 0;
-  return { installed, latest, updateAvailable, kitFolder };
+function wantsRemoteCheck(argv) {
+  return (
+    argv.includes("--check-remote") ||
+    process.env.MC_CHECK_REMOTE_RELEASE === "1" ||
+    process.env.MC_DASHBOARD_SERVE === "1"
+  );
 }
 
-function main() {
+async function main() {
   const global = readJson(join(CONTROL, "state.json")) ?? {};
   const handoff = readText(join(CONTROL, "HANDOFF.md"));
   const stack = readStackSummary(CONTROL);
   const rows = collectAllRows(CONTROL, global);
   const orderSummary = collectOrderSummary(global, rows);
-  const kitVersion = readKitVersionInfo(CONTROL);
+  const kitVersion = await resolveKitVersionInfo(CONTROL, {
+    fetchRemote: wantsRemoteCheck(process.argv),
+  });
   ensureOrchestratorControls(CONTROL);
   const controls = readOrchestratorControls(CONTROL);
   const gate = canAutoAdvance(global, controls);
@@ -88,4 +71,7 @@ function main() {
   console.log(`Wrote ${out} (${rows.length} items)`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

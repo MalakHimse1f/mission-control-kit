@@ -55,30 +55,49 @@ function runGenerate(controlRoot) {
   });
 }
 
+const mockReleaseFetch = async () => ({
+  ok: true,
+  json: async () => ({ tag_name: 'mc-kit-v4.4.1', html_url: 'https://example.com/release' }),
+});
+
 describe('dashboard-server', () => {
-  let tmp;
+  let projectTmp;
+  let controlRoot;
   let server;
   let port;
 
   beforeEach(async () => {
-    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-dash-srv-'));
-    const controlSrc = path.join(kitRoot, 'control');
-    fs.cpSync(controlSrc, tmp, { recursive: true });
-    fs.writeFileSync(path.join(tmp, 'state.json'), JSON.stringify({
+    projectTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-dash-srv-'));
+    controlRoot = path.join(projectTmp, 'docs/superpowers/control');
+    fs.cpSync(path.join(kitRoot, 'control'), controlRoot, { recursive: true });
+    fs.mkdirSync(path.join(projectTmp, 'mission-control-kit'), { recursive: true });
+    fs.writeFileSync(
+      path.join(projectTmp, 'mission-control-kit', 'kit-manifest.json'),
+      JSON.stringify({
+        kitVersion: '4.4.1',
+        release: { github: 'acme/mission-control-kit' },
+      }),
+    );
+    fs.mkdirSync(path.join(controlRoot, '.mc'), { recursive: true });
+    fs.writeFileSync(
+      path.join(controlRoot, '.mc/install.json'),
+      JSON.stringify({ kitVersion: '4.3.1', kitPath: 'mission-control-kit' }),
+    );
+    fs.writeFileSync(path.join(controlRoot, 'state.json'), JSON.stringify({
       buildOrder: ['alpha'],
       portfolioReviewStatus: 'approved',
       activeFeature: 'alpha',
     }));
-    writeFeature(tmp, 'alpha');
-    await runGenerate(tmp);
+    writeFeature(controlRoot, 'alpha');
+    await runGenerate(controlRoot);
     port = 9500 + Math.floor(Math.random() * 200);
-    ({ server } = createDashboardServer(tmp, { port }));
+    ({ server } = createDashboardServer(controlRoot, { port, fetchFn: mockReleaseFetch }));
     await new Promise((resolve) => server.listen(port, '127.0.0.1', resolve));
   });
 
   afterEach(async () => {
     if (server) await new Promise((resolve) => server.close(resolve));
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(projectTmp, { recursive: true, force: true });
   });
 
   it('GET /api/orchestrator-controls returns payload', async () => {
@@ -88,6 +107,15 @@ describe('dashboard-server', () => {
     assert.ok('gate' in res.body);
   });
 
+  it('GET /api/kit-version checks GitHub release', async () => {
+    const res = await request(port, 'GET', '/api/kit-version');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.installed, '4.3.1');
+    assert.equal(res.body.remoteVersion, '4.4.1');
+    assert.equal(res.body.updateAvailable, true);
+    assert.equal(res.body.updateSource, 'github');
+  });
+
   it('POST /api/orchestrator-controls persists toggles', async () => {
     const res = await request(port, 'POST', '/api/orchestrator-controls', {
       advanceToNextFeature: true,
@@ -95,7 +123,7 @@ describe('dashboard-server', () => {
     });
     assert.equal(res.status, 200);
     assert.equal(res.body.ok, true);
-    const onDisk = readOrchestratorControls(tmp);
+    const onDisk = readOrchestratorControls(controlRoot);
     assert.equal(onDisk.advanceToNextFeature, true);
     assert.equal(onDisk.ralphLoop.enabled, true);
   });
