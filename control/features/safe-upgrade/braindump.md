@@ -9,7 +9,7 @@ Publish Mission Control Kit v4 as a tool others can install. Users need a **prog
 
 ## Target codebase
 
-- `mission-control-kit-v4/` (this repo — kit source and dogfood target)
+- `mission-control-kit/` (this repo — kit source and dogfood target)
 - Installed projects: `docs/superpowers/control/` + `.claude/skills/` + kit folder in project root
 
 ## Requirements (from product discussion)

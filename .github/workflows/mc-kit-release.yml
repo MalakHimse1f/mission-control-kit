@@ -41,18 +41,18 @@ jobs:
             Mission Control Kit v${{ steps.version.outputs.version }}
 
             ## Install
-            1. Download `mission-control-kit-v4-${{ steps.version.outputs.version }}.tar.gz`
-            2. Extract into your project (creates `mission-control-kit-v4/`)
+            1. Download `mission-control-kit-${{ steps.version.outputs.version }}.tar.gz`
+            2. Extract into your project (creates `mission-control-kit/`)
             3. Run `install.sh`, `Run-Installer.command`, or `Run-Installer.hta`
 
-            Or clone this repo into your project as `mission-control-kit-v4/` and run `./install.sh .`
+            Or clone this repo into your project as `mission-control-kit/` and run `./install.sh ..`
 
             ## Upgrade
             - `/mc-upgrade` or `Run-Updater.command` / `Run-Updater.hta`
-            - Fetch: `node mission-control-kit-v4/scripts/mc-upgrade.mjs . --fetch`
+            - Fetch: `node mission-control-kit/scripts/mc-upgrade.mjs . --fetch`
 
             User specs and `features/` are never overwritten.
           files: |
-            dist/mission-control-kit-v4-${{ steps.version.outputs.version }}.tar.gz
+            dist/mission-control-kit-${{ steps.version.outputs.version }}.tar.gz
           draft: false
           prerelease: false

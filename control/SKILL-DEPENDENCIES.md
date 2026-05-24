@@ -53,7 +53,7 @@ MC subagents (`mc-explore`, `mc-prd`, `mc-mock`, etc.) still run — vendor skil
 
 ### mc-setup-skills subtask
 
-1. Run `bash mission-control-kit-v4/scripts/bundle-vendor-skills.sh {projectRoot} project`
+1. Run `bash mission-control-kit/scripts/bundle-vendor-skills.sh {projectRoot} project`
 2. For Claude Code plugin users, also document plugin install commands from `vendor/manifest.json`
 3. Re-run check script; journal `vendor-setup.md` with versions/commits
 4. Return control to orchestrator

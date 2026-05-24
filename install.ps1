@@ -41,7 +41,7 @@ function Publish-UserGuide {
   $content = $content -replace 'href="Run-Installer\.command"', "href=`"$kitName/Run-Installer.command`""
   $content = $content -replace 'href="Run-Updater\.command"', "href=`"$kitName/Run-Updater.command`""
   $content = $content -replace 'href="Run-Updater\.hta"', "href=`"$kitName/Run-Updater.hta`""
-  $content = $content -replace 'data-kit-folder="mission-control-kit-v4"', "data-kit-folder=`"$kitName`""
+  $content = $content -replace 'data-kit-folder="mission-control-kit"', "data-kit-folder=`"$kitName`""
   [System.IO.File]::WriteAllText($dest, $content)
   Write-Host 'Created User-Guide.html at project root'
 }

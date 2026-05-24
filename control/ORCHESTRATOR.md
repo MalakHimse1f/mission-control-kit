@@ -75,7 +75,7 @@ node docs/superpowers/control/scripts/check-vendor-skills.mjs . add-feature
 
 If exit code ≠ 0 → dispatch `mc-setup-skills` → re-check → continue.
 
-Kit copy of scripts: `{project}/mission-control-kit-v4/scripts/` or installed into control via kit update.
+Kit copy of scripts: `{project}/mission-control-kit/scripts/` or installed into control via kit update.
 
 ---
 

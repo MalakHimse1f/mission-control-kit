@@ -18,7 +18,7 @@ Upgrade Mission Control kit runtime while **preserving** user workspace:
 
 ## Steps
 
-1. Resolve project root and kit path (`mission-control-kit-v4/` or `install.json` → `kitPath`).
+1. Resolve project root and kit path (`mission-control-kit/` or `install.json` → `kitPath`).
 2. Run:
    ```bash
    node "{kit}/scripts/mc-upgrade.mjs" "{projectRoot}"

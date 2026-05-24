@@ -1,4 +1,4 @@
-# Explore — mission-control-kit-v4
+# Explore — mission-control-kit
 
 ## Current install (`install.sh`)
 
@@ -25,7 +25,7 @@
 ## Kit layout
 
 ```
-mission-control-kit-v4/
+mission-control-kit/
   control/          → sync to project (with preserve rules)
   claude-skills/    → .claude/skills/
   skills/           → .cursor/skills/

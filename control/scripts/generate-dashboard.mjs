@@ -41,7 +41,7 @@ function readKitVersionInfo(controlDir) {
   const stampPath = join(controlDir, ".mc/install.json");
   const stamp = readJson(stampPath);
   const projectRoot = join(controlDir, "..", "..", "..");
-  const kitFolder = stamp?.kitPath ?? "mission-control-kit-v4";
+  const kitFolder = stamp?.kitPath ?? "mission-control-kit";
   const manifestPath = join(projectRoot, kitFolder, "kit-manifest.json");
   const manifest = readJson(manifestPath);
   const installed = stamp?.kitVersion ?? null;

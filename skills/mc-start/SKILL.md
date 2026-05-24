@@ -19,7 +19,7 @@ $ARGUMENTS
 
 ## Part 0 — Vendor skills
 
-1. Run `node mission-control-kit-v4/scripts/check-vendor-skills.mjs . project-start` (or kit path)
+1. Run `node mission-control-kit/scripts/check-vendor-skills.mjs . project-start` (or kit path)
 2. If missing → dispatch `mc-setup-skills` for `startup-skill` → re-check
 3. **BLOCKED** if still missing after setup attempt
 

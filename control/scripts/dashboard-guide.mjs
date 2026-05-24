@@ -66,7 +66,7 @@ export function renderUserGuideDisclosure() {
         <p>Kit updates refresh orchestrator docs and skills. Your <code>features/</code> specs and journals are <strong>never</strong> overwritten.</p>
         <ul class="guide-list">
           <li><code>/mc-upgrade</code> — safe upgrade in chat</li>
-          <li><code>node mission-control-kit-v4/scripts/mc-upgrade.mjs . --check</code> — see if update available</li>
+          <li><code>node mission-control-kit/scripts/mc-upgrade.mjs . --check</code> — see if update available</li>
           <li><code>--dry-run</code> — preview what would sync</li>
         </ul>
       </section>

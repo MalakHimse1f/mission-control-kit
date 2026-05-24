@@ -23,4 +23,4 @@
 | `scripts/check-vendor-skills.mjs` | Verify vendor bundles |
 | `scripts/check-setup.mjs` | Setup validation |
 
-Kit vendor installer: `{project}/mission-control-kit-v4/scripts/bundle-vendor-skills.sh`
+Kit vendor installer: `{project}/mission-control-kit/scripts/bundle-vendor-skills.sh`

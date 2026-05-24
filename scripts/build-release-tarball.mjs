@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Build a publishable Mission Control Kit tarball for GitHub Releases.
- * Output: dist/mission-control-kit-v4-{version}.tar.gz
+ * Output: dist/mission-control-kit-{version}.tar.gz
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(kitRoot, 'kit-manifest.json'), 'utf8'));
 const version = manifest.kitVersion;
-const folderName = manifest.kitFolder ?? 'mission-control-kit-v4';
+const folderName = manifest.kitFolder ?? 'mission-control-kit';
 const outDir = path.join(kitRoot, 'dist');
 const archiveName = `${folderName}-${version}.tar.gz`;
 const archivePath = path.join(outDir, archiveName);

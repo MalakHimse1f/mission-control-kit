@@ -4,7 +4,7 @@ Mission Control v4 — **safe upgrade** (refresh kit without overwriting your sp
 
 Invoke skill: `mc-upgrade`
 
-Runs `node mission-control-kit-v4/scripts/mc-upgrade.mjs` with user-data preserve rules.
+Runs `node mission-control-kit/scripts/mc-upgrade.mjs` with user-data preserve rules.
 
 Options: `--check` (update available?), `--dry-run` (preview changes).
 

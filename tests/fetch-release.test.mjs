@@ -8,9 +8,9 @@ import {
 
 describe('fetch-kit-release helpers', () => {
   it('parses owner/repo', () => {
-    assert.deepEqual(parseGitHubRepo('acme/mission-control-kit-v4'), {
+    assert.deepEqual(parseGitHubRepo('acme/mission-control-kit'), {
       owner: 'acme',
-      name: 'mission-control-kit-v4',
+      name: 'mission-control-kit',
     });
   });
 
@@ -33,11 +33,11 @@ describe('fetch-kit-release helpers', () => {
       {
         assets: [
           { name: 'checksums.txt', browser_download_url: 'x' },
-          { name: 'mission-control-kit-v4-4.2.0.tar.gz', browser_download_url: 'y' },
+          { name: 'mission-control-kit-4.2.0.tar.gz', browser_download_url: 'y' },
         ],
       },
       'mission-control-kit',
     );
-    assert.equal(asset.name, 'mission-control-kit-v4-4.2.0.tar.gz');
+    assert.equal(asset.name, 'mission-control-kit-4.2.0.tar.gz');
   });
 });

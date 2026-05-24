@@ -25,7 +25,7 @@
     .tip { border-left: 3px solid #555; padding-left: 0.75rem; color: #999; font-size: 0.9rem; }
   </style>
 </head>
-<body data-kit-folder="mission-control-kit-v4">
+<body data-kit-folder="mission-control-kit">
 
   <h1>Mission Control v4</h1>
   <p class="subtitle">Install, upgrade, and run the orchestrator. Works with <strong>Cursor</strong> and <strong>Claude Code</strong>.</p>
@@ -44,7 +44,7 @@
   <div class="card">
     <p><strong>Typical layout:</strong></p>
     <pre><code>your-project/
-  mission-control-kit-v4/   ← this folder
+  mission-control-kit/   ← this folder
   …your app…</code></pre>
   </div>
 
@@ -57,14 +57,14 @@
     <div class="card">
       <h3>Windows</h3>
       <p>Double-click <code>Run-Installer.hta</code> (Install or Update) or run PowerShell:</p>
-      <code>&amp; ".\mission-control-kit-v4\install.ps1" -ProjectRoot .</code>
+      <code>&amp; ".\mission-control-kit\install.ps1" -ProjectRoot .</code>
       <p style="margin-top:0.5rem"><a class="install-launch secondary" href="Run-Updater.hta">Update only</a></p>
     </div>
   </div>
 
   <div class="card">
     <h3>Terminal (Mac / Linux)</h3>
-    <code>chmod +x mission-control-kit-v4/install.sh &amp;&amp; mission-control-kit-v4/install.sh .</code>
+    <code>chmod +x mission-control-kit/install.sh &amp;&amp; mission-control-kit/install.sh .</code>
   </div>
 
   <h2 id="update">Update (safe upgrade)</h2>
@@ -84,7 +84,7 @@
 
   <div class="card">
     <h3>Terminal</h3>
-    <p><code>node mission-control-kit-v4/scripts/mc-upgrade.mjs .</code></p>
+    <p><code>node mission-control-kit/scripts/mc-upgrade.mjs .</code></p>
     <p>Check only: <code>--check</code> · Preview: <code>--dry-run</code> · Fetch release: <code>--fetch</code></p>
   </div>
 

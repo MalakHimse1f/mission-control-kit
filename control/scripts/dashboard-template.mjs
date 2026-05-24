@@ -554,7 +554,7 @@ function renderKitVersionStrip(kitVersion) {
   const latest = kitVersion.latest ?? installed;
   const cls = kitVersion.updateAvailable ? "kit-version-strip update-available" : "kit-version-strip";
   const updateHint = kitVersion.updateAvailable
-    ? `<span class="kit-update-hint">Update available (${installed} → ${latest}). Run <code>/mc-upgrade</code> or <code>node ${escapeHtml(kitVersion.kitFolder ?? "mission-control-kit-v4")}/scripts/mc-upgrade.mjs .</code> — your specs are preserved.</span>`
+    ? `<span class="kit-update-hint">Update available (${installed} → ${latest}). Run <code>/mc-upgrade</code> or <code>node ${escapeHtml(kitVersion.kitFolder ?? "mission-control-kit")}/scripts/mc-upgrade.mjs .</code> — your specs are preserved.</span>`
     : `<span class="muted">Kit up to date.</span>`;
   return `<div class="${cls}"><span class="kit-version-badge">Mission Control ${escapeHtml(String(installed))}</span>${updateHint}</div>`;
 }

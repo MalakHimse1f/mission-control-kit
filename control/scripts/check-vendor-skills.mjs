@@ -11,7 +11,7 @@ const workflow = process.argv[3] || 'all';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const manifestCandidates = [
-  path.join(projectRoot, 'mission-control-kit-v4', 'vendor', 'manifest.json'),
+  path.join(projectRoot, 'mission-control-kit', 'vendor', 'manifest.json'),
   path.join(projectRoot, 'docs', 'superpowers', 'control', 'vendor', 'manifest.json'),
   path.join(here, '..', 'vendor', 'manifest.json'),
   path.join(here, '..', '..', 'vendor', 'manifest.json'),

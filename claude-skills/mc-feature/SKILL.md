@@ -20,7 +20,7 @@ $ARGUMENTS
 ## Part 0 — Gates
 
 1. `techStackStatus` established — else STOP → `/mc-init` or complete Project START
-2. Vendor check: `node mission-control-kit-v4/scripts/check-vendor-skills.mjs . add-feature`
+2. Vendor check: `node mission-control-kit/scripts/check-vendor-skills.mjs . add-feature`
 3. Missing → dispatch `mc-setup-skills` → re-check
 
 ## Part A — Braindump

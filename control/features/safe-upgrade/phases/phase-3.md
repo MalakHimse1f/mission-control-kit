@@ -7,7 +7,7 @@
 
 ### Task 3.1: Release tarball builder
 
-`scripts/build-release-tarball.mjs` → `dist/mission-control-kit-v4-{version}.tar.gz`
+`scripts/build-release-tarball.mjs` → `dist/mission-control-kit-{version}.tar.gz`
 
 Excludes vendor clones, caches, sample-project skill copies.
 

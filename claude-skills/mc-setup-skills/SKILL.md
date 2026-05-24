@@ -11,7 +11,7 @@ description: Subagent — install and verify Mission Control v4 vendor skill bun
 
 - Project root absolute path
 - Workflow: `project-start` | `add-feature` | `both`
-- Kit path (default: `{project}/mission-control-kit-v4`)
+- Kit path (default: `{project}/mission-control-kit`)
 
 ## Steps
 

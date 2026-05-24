@@ -31,12 +31,12 @@ describe('release bundle excludes', () => {
   it('builds tarball with kit-manifest at root', () => {
     execSync('node scripts/build-release-tarball.mjs', { cwd: kitRoot, stdio: 'pipe' });
     const manifest = JSON.parse(fs.readFileSync(path.join(kitRoot, 'kit-manifest.json'), 'utf8'));
-    const archive = path.join(kitRoot, 'dist', `mission-control-kit-v4-${manifest.kitVersion}.tar.gz`);
+    const archive = path.join(kitRoot, 'dist', `mission-control-kit-${manifest.kitVersion}.tar.gz`);
     assert.ok(fs.existsSync(archive));
 
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-release-'));
     execSync(`tar -xzf "${archive}" -C "${tmp}"`, { stdio: 'pipe' });
-    const extracted = path.join(tmp, 'mission-control-kit-v4', 'kit-manifest.json');
+    const extracted = path.join(tmp, 'mission-control-kit', 'kit-manifest.json');
     assert.ok(fs.existsSync(extracted));
     fs.rmSync(tmp, { recursive: true, force: true });
   });

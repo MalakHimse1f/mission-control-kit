@@ -21,28 +21,29 @@ Also: `/mc-init`, `/mc`, `/mc-portfolio`, `/mc-handoff`, `/mc-upgrade`
 
 ### Option A — Release tarball (recommended)
 
-1. Download `mission-control-kit-v4-{version}.tar.gz` from [Releases](https://github.com/MalakHimse1f/mission-control-kit/releases)
-2. Extract into your project root (creates `mission-control-kit-v4/`)
+1. Download `mission-control-kit-{version}.tar.gz` from [Releases](https://github.com/MalakHimse1f/mission-control-kit/releases)
+2. Extract into your project root (creates `mission-control-kit/`)
 3. Install:
 
 ```bash
-chmod +x mission-control-kit-v4/install.sh
-./mission-control-kit-v4/install.sh . both
+chmod +x mission-control-kit/install.sh
+./mission-control-kit/install.sh . both
 ```
 
 Windows: double-click `Run-Installer.hta` or:
 
 ```powershell
-& ".\mission-control-kit-v4\install.ps1" -ProjectRoot .
+& ".\mission-control-kit\install.ps1" -ProjectRoot .
 ```
 
-### Option B — Clone this repo
+### Option B — Clone this repo into your project
 
 ```bash
-git clone https://github.com/MalakHimse1f/mission-control-kit.git mission-control-kit-v4
-cd mission-control-kit-v4
+cd /path/to/your-project
+git clone https://github.com/MalakHimse1f/mission-control-kit.git mission-control-kit
+cd mission-control-kit
 chmod +x install.sh
-./install.sh /path/to/your-project both
+./install.sh .. both
 ```
 
 Install copies the control plane to `docs/superpowers/control/`, skills/commands to `.cursor/` and `.claude/`, and bundles vendor skills.
@@ -54,21 +55,23 @@ Install copies the control plane to `docs/superpowers/control/`, skills/commands
 User `features/`, specs, journals, and `state.json` are **never overwritten**.
 
 ```bash
-node mission-control-kit-v4/scripts/mc-upgrade.mjs .           # upgrade
-node mission-control-kit-v4/scripts/mc-upgrade.mjs . --check     # update available?
-node mission-control-kit-v4/scripts/mc-upgrade.mjs . --fetch   # download latest release
+node mission-control-kit/scripts/mc-upgrade.mjs .           # upgrade
+node mission-control-kit/scripts/mc-upgrade.mjs . --check   # update available?
+node mission-control-kit/scripts/mc-upgrade.mjs . --fetch     # download latest release
 ```
 
 Or in chat: **`/mc-upgrade`**
 
 Non-developer: `Run-Updater.command` (Mac), `Run-Updater.hta` (Windows), or **User-Guide.html**.
 
+> **Legacy folder:** Upgrades still find `mission-control-kit-v4/` if present. Rename to `mission-control-kit/` when convenient.
+
 ---
 
 ## What's in the kit
 
 ```
-mission-control-kit-v4/          ← folder name when installed in a project
+mission-control-kit/     ← folder name in your project (no version in path)
 ├── control/           → docs/superpowers/control/
 ├── commands/          → .cursor/commands/
 ├── skills/            → .cursor/skills/
@@ -83,6 +86,8 @@ Key control docs: `ROUTER.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `B
 ---
 
 ## Development
+
+Clone this repo to `~/Documents/mission-control-kit` (or anywhere outside your app repo):
 
 ```bash
 npm test
