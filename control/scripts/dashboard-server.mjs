@@ -24,6 +24,10 @@ import {
   resolveDashboardPort,
   writeDashboardServerState,
 } from '../lib/dashboard-server-port.mjs';
+import {
+  projectRootFromControlRoot,
+  runKitUpgradeCli,
+} from '../lib/dashboard-kit-upgrade.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -103,7 +107,36 @@ export function buildServerInfoPayload(controlRoot, port) {
   };
 }
 
-export function createDashboardServer(controlRoot, { port = DEFAULT_DASHBOARD_PORT, fetchFn } = {}) {
+export async function buildKitUpgradePayload(controlRoot, {
+  runUpgrade = runKitUpgradeCli,
+  regenerate = regenerateDashboard,
+  versionInfo = buildKitVersionPayload,
+  fetchFn,
+} = {}) {
+  const before = await versionInfo(controlRoot, { forceRefresh: true, fetchFn });
+  if (!before.updateAvailable) {
+    return {
+      ok: true,
+      status: 'up-to-date',
+      fromVersion: before.installed,
+      toVersion: before.installed,
+      kitVersion: before,
+    };
+  }
+  const projectRoot = projectRootFromControlRoot(controlRoot);
+  await runUpgrade(projectRoot, controlRoot);
+  await regenerate(controlRoot);
+  const after = await versionInfo(controlRoot, { forceRefresh: true, fetchFn });
+  return {
+    ok: true,
+    status: 'upgraded',
+    fromVersion: before.installed,
+    toVersion: after.installed,
+    kitVersion: after,
+  };
+}
+
+export function createDashboardServer(controlRoot, { port = DEFAULT_DASHBOARD_PORT, fetchFn, runUpgrade = runKitUpgradeCli } = {}) {
   const dashboardPath = path.join(controlRoot, 'dashboard.html');
 
   function currentPort() {
@@ -128,6 +161,18 @@ export function createDashboardServer(controlRoot, { port = DEFAULT_DASHBOARD_PO
       } catch (err) {
         debugLog('kit-version:error', err.message);
         return jsonResponse(res, 500, { error: err.message });
+      }
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/kit-upgrade') {
+      try {
+        debugLog('kit-upgrade:start', { controlRoot });
+        const payload = await buildKitUpgradePayload(controlRoot, { runUpgrade, fetchFn });
+        debugLog('kit-upgrade:done', { status: payload.status, toVersion: payload.toVersion });
+        return jsonResponse(res, 200, payload);
+      } catch (err) {
+        debugLog('kit-upgrade:error', err.message);
+        return jsonResponse(res, 400, { ok: false, error: err.message });
       }
     }
 

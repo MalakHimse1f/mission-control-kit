@@ -157,8 +157,10 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .kit-version-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; font-size: 0.84rem; margin-bottom: 1rem; padding: 0.65rem 0.85rem; background: #141820; border: 1px solid #334; border-radius: 8px; }
 .kit-version-strip.update-available { border-color: #6a5a3a; background: #1a1810; }
 .kit-version-badge { font-weight: 600; color: var(--accent); }
-.kit-update-hint { color: #cc9; font-size: 0.82rem; }
+.kit-update-hint { color: #cc9; font-size: 0.82rem; flex: 1 1 12rem; }
 .kit-update-hint code { font-size: 0.78rem; }
+.kit-upgrade-btn { font-size: 0.82rem; padding: 0.35rem 0.75rem; white-space: nowrap; }
+.kit-upgrade-msg { font-size: 0.8rem; color: var(--muted); }
 ${CONTROL_PANEL_CSS}
 ${WORKFLOW_PANEL_CSS}
 @media (max-width: 720px) {

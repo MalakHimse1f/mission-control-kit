@@ -6,7 +6,7 @@ import http from 'node:http';
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createDashboardServer } from '../control/scripts/dashboard-server.mjs';
+import { createDashboardServer, buildKitUpgradePayload } from '../control/scripts/dashboard-server.mjs';
 import { readOrchestratorControls } from '../control/lib/orchestrator-controls.mjs';
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -91,7 +91,11 @@ describe('dashboard-server', () => {
     writeFeature(controlRoot, 'alpha');
     await runGenerate(controlRoot);
     port = 9500 + Math.floor(Math.random() * 200);
-    ({ server } = createDashboardServer(controlRoot, { port, fetchFn: mockReleaseFetch }));
+    ({ server } = createDashboardServer(controlRoot, {
+      port,
+      fetchFn: mockReleaseFetch,
+      runUpgrade: async () => ({ output: 'mock upgrade' }),
+    }));
     await new Promise((resolve) => server.listen(port, '127.0.0.1', resolve));
   });
 
@@ -145,5 +149,34 @@ describe('dashboard-server', () => {
     assert.equal(onDisk.buildWorkflow.mode, 'tdd-lite');
     assert.equal(onDisk.buildWorkflow.reviewChain, 'none');
     assert.equal(onDisk.planWorkflow.mode, 'executing-plans');
+  });
+
+  it('POST /api/kit-upgrade runs fetch upgrade when update available', async () => {
+    const res = await request(port, 'POST', '/api/kit-upgrade');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.ok, true);
+    assert.ok(['upgraded', 'up-to-date'].includes(res.body.status));
+  });
+
+  it('buildKitUpgradePayload uses injected upgrade runner', async () => {
+    let called = false;
+    let pass = 0;
+    const payload = await buildKitUpgradePayload(controlRoot, {
+      versionInfo: async () => {
+        pass += 1;
+        if (pass === 1) {
+          return { installed: '4.5.0', updateAvailable: true, remoteVersion: '4.5.1' };
+        }
+        return { installed: '4.5.1', updateAvailable: false, remoteVersion: '4.5.1' };
+      },
+      runUpgrade: async () => {
+        called = true;
+      },
+      regenerate: async () => {},
+    });
+    assert.equal(called, true);
+    assert.equal(payload.ok, true);
+    assert.equal(payload.status, 'upgraded');
+    assert.equal(payload.toVersion, '4.5.1');
   });
 });
