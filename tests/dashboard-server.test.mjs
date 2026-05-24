@@ -100,6 +100,13 @@ describe('dashboard-server', () => {
     fs.rmSync(projectTmp, { recursive: true, force: true });
   });
 
+  it('GET /api/server-info returns control root and port', async () => {
+    const res = await request(port, 'GET', '/api/server-info');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.port, port);
+    assert.equal(path.resolve(res.body.controlRoot), path.resolve(controlRoot));
+  });
+
   it('GET /api/orchestrator-controls returns payload', async () => {
     const res = await request(port, 'GET', '/api/orchestrator-controls');
     assert.equal(res.status, 200);
@@ -126,5 +133,17 @@ describe('dashboard-server', () => {
     const onDisk = readOrchestratorControls(controlRoot);
     assert.equal(onDisk.advanceToNextFeature, true);
     assert.equal(onDisk.ralphLoop.enabled, true);
+  });
+
+  it('POST /api/orchestrator-controls persists workflow routing toggles', async () => {
+    const res = await request(port, 'POST', '/api/orchestrator-controls', {
+      buildWorkflow: { mode: 'tdd-lite', reviewChain: 'none' },
+      planWorkflow: { mode: 'executing-plans' },
+    });
+    assert.equal(res.status, 200);
+    const onDisk = readOrchestratorControls(controlRoot);
+    assert.equal(onDisk.buildWorkflow.mode, 'tdd-lite');
+    assert.equal(onDisk.buildWorkflow.reviewChain, 'none');
+    assert.equal(onDisk.planWorkflow.mode, 'executing-plans');
   });
 });

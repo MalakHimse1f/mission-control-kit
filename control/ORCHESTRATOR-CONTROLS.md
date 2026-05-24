@@ -6,7 +6,8 @@ The dashboard **control panel** writes this file via the local server:
 
 ```bash
 node docs/superpowers/control/scripts/dashboard-server.mjs
-# Open http://127.0.0.1:9470/
+# Open the URL printed in the terminal (default http://127.0.0.1:9470/)
+# Multiple projects: each server auto-picks the next free port; see .mc/dashboard-server.json
 ```
 
 Opening `dashboard.html` as `file://` shows controls read-only — use the server to save.

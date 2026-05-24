@@ -1,4 +1,4 @@
-import { escapeHtml } from "./dashboard-helpers.mjs";
+import { escapeHtml, safeJsonForScriptEmbed } from "./dashboard-helpers.mjs";
 import { renderBuildOrderPanel } from "./dashboard-order.mjs";
 import { renderUserGuideDisclosure } from "./dashboard-guide.mjs";
 import {
@@ -199,6 +199,10 @@ export const DASHBOARD_CLIENT_JS = `
     return "badge badge-" + (key || "braindump");
   }
 
+  function esc(s) {
+    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+  }
+
   function escSrcdoc(html) {
     return String(html || "")
       .replace(/&/g, "&amp;")
@@ -334,10 +338,6 @@ export const DASHBOARD_CLIENT_JS = `
         "</div>" +
       "</details>";
     }).join("") + "</div>";
-  }
-
-  function esc(s) {
-    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
   }
 
   function filteredItems() {
@@ -723,7 +723,7 @@ export function buildDashboardHtml({
 
   <p class="footer">${isMock ? "Preview file — " : ""}Regenerate: <code>node docs/superpowers/control/scripts/generate-dashboard.mjs</code> · Control panel: <code>node docs/superpowers/control/scripts/dashboard-server.mjs</code></p>
 
-  <script>window.MC_ITEMS = ${JSON.stringify(rows)};window.MC_DEFAULT_SORT = ${JSON.stringify(defaultSort)};</script>
+  <script>window.MC_ITEMS = ${safeJsonForScriptEmbed(rows)};window.MC_DEFAULT_SORT = ${safeJsonForScriptEmbed(defaultSort)};</script>
   <script>${DASHBOARD_CLIENT_JS}</script>
   <script>${CONTROL_PANEL_CLIENT_JS}</script>
   <script>${WORKFLOW_PANEL_CLIENT_JS}</script>

@@ -76,8 +76,8 @@ export function renderUserGuideDisclosure() {
         <h3>Orchestrator controls &amp; ralph loop</h3>
         <p>Run the dashboard server to save unattended-run toggles (agents read <code>.mc/orchestrator-controls.json</code>):</p>
         <ol class="guide-steps">
-          <li><code>node docs/superpowers/control/scripts/dashboard-server.mjs</code></li>
-          <li>Open <code>http://127.0.0.1:9470/</code></li>
+          <li><code>node docs/superpowers/control/scripts/dashboard-server.mjs</code> — starts at port 9470; if another project is using it, the server picks the next free port and saves it in <code>.mc/dashboard-server.json</code></li>
+          <li>Open the URL printed in the terminal (e.g. <code>http://127.0.0.1:9470/</code> or <code>9471</code> for a second project)</li>
           <li>Enable <strong>Advance to next feature</strong> after <code>/mc-portfolio</code> locks build order</li>
           <li>Optional: enable <strong>Ralph loop</strong> + wire <code>hooks/mc-ralph-on-stop.example.json</code> + run <code>scripts/mc-ralph-loop.sh</code></li>
         </ol>

@@ -9,6 +9,11 @@ export function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
+/** JSON safe to embed in <script> — prevents </script> and <!-- from breaking HTML. */
+export function safeJsonForScriptEmbed(value) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 export function sortFeaturesByBuildOrder(features, buildOrder) {
   if (!buildOrder?.length) return [...features].sort();
   const rank = new Map(buildOrder.map((slug, i) => [slug, i]));

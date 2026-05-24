@@ -17,7 +17,7 @@ export const CONTROL_PANEL_CSS = `
 export function renderControlPanel({ controls, gate, nextPick, serveMode = false }) {
   const offline = serveMode
     ? ''
-    : `<div class="control-offline">Control panel saves require the dashboard server. Run <code>node docs/superpowers/control/scripts/dashboard-server.mjs</code> and open <code>http://127.0.0.1:9470/</code></div>`;
+    : `<div class="control-offline">Control panel saves require the dashboard server. Run <code>node docs/superpowers/control/scripts/dashboard-server.mjs</code> from this project and open the URL it prints (default <code>http://127.0.0.1:9470/</code>; auto-increments if that port is taken).</div>`;
 
   const statusClass = gate.allowed && nextPick.slug ? 'ok' : 'warn';
   const nextLine = nextPick.slug
@@ -56,9 +56,51 @@ export const CONTROL_PANEL_CLIENT_JS = `
   const panel = document.getElementById("orchestrator-control-panel");
   if (!panel) return;
 
+  const DEBUG = window.location.search.includes("debug=1")
+    || localStorage.getItem("mcDashboardDebug") === "1";
+  function dbg(label, detail) {
+    if (!DEBUG) return;
+    if (detail === undefined) console.debug("[mc-controls]", label);
+    else console.debug("[mc-controls]", label, detail);
+  }
+
   const saveBtn = document.getElementById("ctl-save");
   const saveMsg = document.getElementById("ctl-save-msg");
   const statusEl = document.getElementById("ctl-status");
+
+  function esc(s) {
+    return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  }
+
+  const servedByDashboardServer =
+    window.location.protocol === "http:" || window.location.protocol === "https:";
+
+  function enableControlsWhenServed() {
+    if (!servedByDashboardServer) return;
+    panel.querySelectorAll(".control-offline").forEach(function (el) {
+      el.style.display = "none";
+    });
+    panel.querySelectorAll("input, select, button").forEach(function (el) {
+      el.disabled = false;
+    });
+    const wf = document.getElementById("workflow-controls-panel");
+    if (wf) {
+      wf.querySelectorAll("input, select").forEach(function (el) {
+        el.disabled = false;
+      });
+    }
+    dbg("enabled controls (http)", { origin: window.location.origin });
+  }
+
+  enableControlsWhenServed();
+
+  dbg("init", {
+    protocol: window.location.protocol,
+    origin: window.location.origin,
+    servedByDashboardServer: servedByDashboardServer,
+    saveDisabled: !!(saveBtn && saveBtn.disabled),
+    hasEsc: typeof esc === "function",
+  });
 
   function collectPatch() {
     const buildMode = document.getElementById("ctl-build-mode")?.value ?? "sdd+tdd";
@@ -84,6 +126,7 @@ export const CONTROL_PANEL_CLIENT_JS = `
   }
 
   function renderStatus(payload) {
+    dbg("renderStatus", payload);
     const gate = payload.gate || {};
     const next = payload.nextPick || {};
     let html = "";
@@ -100,28 +143,42 @@ export const CONTROL_PANEL_CLIENT_JS = `
   async function saveControls() {
     if (!saveBtn || saveBtn.disabled) return;
     saveMsg.textContent = "Saving…";
+    const patch = collectPatch();
+    dbg("save:start", patch);
     try {
       const res = await fetch("/api/orchestrator-controls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(collectPatch()),
+        body: JSON.stringify(patch),
       });
+      dbg("save:response", { status: res.status, ok: res.ok });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Save failed");
       renderStatus(data);
       saveMsg.textContent = "Saved " + (data.controls?.updatedAt || "");
+      dbg("save:done", { updatedAt: data.controls?.updatedAt });
       setTimeout(function () { saveMsg.textContent = ""; }, 2500);
     } catch (err) {
+      dbg("save:error", { message: err.message, stack: err.stack });
       saveMsg.textContent = err.message || "Save failed";
     }
   }
 
-  if (saveBtn && !saveBtn.disabled) {
+  const canSave = saveBtn && (servedByDashboardServer || !saveBtn.disabled);
+  if (canSave) {
+    if (servedByDashboardServer) saveBtn.disabled = false;
     saveBtn.addEventListener("click", saveControls);
     fetch("/api/orchestrator-controls")
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        dbg("load:response", { status: r.status });
+        return r.json();
+      })
       .then(renderStatus)
-      .catch(function () {});
+      .catch(function (err) {
+        dbg("load:error", { message: err && err.message });
+      });
+  } else {
+    dbg("save:skipped", { reason: saveBtn ? "button disabled (file://)" : "no save button" });
   }
 })();
 `;

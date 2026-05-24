@@ -32,6 +32,18 @@ describe('orchestrator-controls', () => {
     assert.equal(merged.advanceToNextFeature, true);
     assert.equal(merged.ralphLoop.enabled, true);
     assert.equal(merged.ralphLoop.spawnFreshSession, true);
+    assert.deepEqual(merged.buildWorkflow, DEFAULT_ORCHESTRATOR_CONTROLS.buildWorkflow);
+    assert.deepEqual(merged.planWorkflow, DEFAULT_ORCHESTRATOR_CONTROLS.planWorkflow);
+  });
+
+  it('merges nested buildWorkflow and planWorkflow patches', () => {
+    const merged = mergeOrchestratorControls(DEFAULT_ORCHESTRATOR_CONTROLS, {
+      buildWorkflow: { mode: 'sdd', reviewChain: 'spec-only' },
+      planWorkflow: { mode: 'executing-plans' },
+    });
+    assert.equal(merged.buildWorkflow.mode, 'sdd');
+    assert.equal(merged.buildWorkflow.reviewChain, 'spec-only');
+    assert.equal(merged.planWorkflow.mode, 'executing-plans');
   });
 
   it('writes and reads controls file under .mc', () => {
