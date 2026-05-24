@@ -26,6 +26,7 @@ Every session that touches Mission Control **must** read first:
 | `{CONTROL_ROOT}/tech-stack/*/` (exclude `_template`, `stack.json`) | Setup items on disk |
 | `{CONTROL_ROOT}/tech-stack/stack.json` | Established stack context |
 | `{CONTROL_ROOT}/state.json` | Merge global state; do not replace with defaults |
+| `{CONTROL_ROOT}/.mc/orchestrator-controls.json` | Merge user orchestrator toggles; never reset to wipe auto-advance settings |
 | `{CONTROL_ROOT}/HANDOFF.md` | Preserve cross-feature context |
 | Active feature's `status.json` | Patch fields; do not reset tasks |
 
@@ -118,6 +119,7 @@ Ordering is **dependency-based** — analyzed and approved via **`/mc-portfolio`
 |------|--------|
 | **Never edit by hand** | Agents must not rewrite dashboard HTML in the editor |
 | **Always regenerate** | Run `node {CONTROL_ROOT}scripts/generate-dashboard.mjs` |
+| **Control panel saves** | User toggles via `dashboard-server.mjs` only — writes `.mc/orchestrator-controls.json` |
 | **Embedded content** | Spec, plans, braindump, explore docs, journal entries, wireframes (srcdoc), and e2e screenshots (base64) are embedded at generation time — dashboard works standalone without file links |
 | **Source of truth** | The script reads **all** folders under `features/` — regeneration includes every feature on disk |
 

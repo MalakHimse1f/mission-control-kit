@@ -72,6 +72,18 @@ export function renderUserGuideDisclosure() {
       </section>
 
       <section class="guide-section">
+        <h3>Orchestrator controls &amp; ralph loop</h3>
+        <p>Run the dashboard server to save unattended-run toggles (agents read <code>.mc/orchestrator-controls.json</code>):</p>
+        <ol class="guide-steps">
+          <li><code>node docs/superpowers/control/scripts/dashboard-server.mjs</code></li>
+          <li>Open <code>http://127.0.0.1:9470/</code></li>
+          <li>Enable <strong>Advance to next feature</strong> after <code>/mc-portfolio</code> locks build order</li>
+          <li>Optional: enable <strong>Ralph loop</strong> + wire <code>hooks/mc-ralph-on-stop.example.json</code> + run <code>scripts/mc-ralph-loop.sh</code></li>
+        </ol>
+        <p class="guide-note">Auto-advance is build-queue only (plan must exist). Clarify questions always pause — the agent never guesses.</p>
+      </section>
+
+      <section class="guide-section">
         <h3>Resume &amp; mid-build</h3>
         <ul class="guide-list">
           <li><code>/mc</code> — reads <code>state.json</code> and active <code>pipelineStage</code></li>

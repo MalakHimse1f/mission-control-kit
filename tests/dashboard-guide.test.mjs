@@ -15,5 +15,7 @@ describe('dashboard user guide', () => {
     assert.ok(html.includes('Build a feature'));
     assert.ok(html.includes('prd-generator'));
     assert.ok(html.includes('/mc-upgrade'));
+    assert.ok(html.includes('dashboard-server'));
+    assert.ok(html.includes('Orchestrator controls'));
   });
 });

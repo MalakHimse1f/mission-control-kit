@@ -18,6 +18,7 @@ READ disk → ROUTE workflow → CHECK vendor skills → PACKET context → DISP
 
 - `ROUTER.md`
 - `ORCHESTRATOR.md` (this file)
+- `ORCHESTRATOR-CONTROLS.md` — user toggles in `.mc/orchestrator-controls.json`
 - `SKILL-DEPENDENCIES.md`
 - `CONTEXT-PACKETS.md`
 - `BUILD-GATES.md`
@@ -47,7 +48,7 @@ READ disk → ROUTE workflow → CHECK vendor skills → PACKET context → DISP
 | Clarify — waiting for user | AskQuestion; resume same session |
 | BLOCKED — subagent or vendor setup failed | Report; stop |
 | User pause | Stop |
-| Workflow done | Report success |
+| Workflow done | Report success; if `advanceToNextFeature` in orchestrator controls → advance build queue or ralph prompt |
 
 ---
 
@@ -100,5 +101,7 @@ Structured ask tool only. See `USER-QUESTIONS.md`.
 ## Recovery
 
 `/mc` reads `HANDOFF.md` + active pipeline stage and continues — same continuous-run rules.
+
+**Orchestrator controls:** read `.mc/orchestrator-controls.json` on every resume. See `ORCHESTRATOR-CONTROLS.md`.
 
 Pickup prompt starts with: **"You are the Orchestrator v4. Route workflow. Packet context. Dispatch subagents. Do not implement."**

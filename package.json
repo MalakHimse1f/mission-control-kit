@@ -1,10 +1,11 @@
 {
   "name": "mission-control-kit",
-  "version": "4.3.2",
+  "version": "4.4.0",
   "private": false,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
+    "dashboard": "node control/scripts/dashboard-server.mjs",
     "test:routing": "node --test tests/routing.test.mjs",
     "test:integration": "node --test tests/sample-project.integration.test.mjs",
     "test:upgrade": "node --test tests/upgrade.test.mjs tests/upgrade.integration.test.mjs",

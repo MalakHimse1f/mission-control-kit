@@ -1,4 +1,5 @@
 dist/
+**/.mc/
 vendor/.cache-*/
 vendor/superpowers/
 vendor/startup-skill/

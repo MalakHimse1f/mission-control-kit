@@ -9,6 +9,12 @@ import { fileURLToPath } from "url";
 import { collectAllRows, readStackSummary } from "./dashboard-data.mjs";
 import { collectOrderSummary, defaultDashboardSort } from "./dashboard-order.mjs";
 import { buildDashboardHtml } from "./dashboard-template.mjs";
+import {
+  ensureOrchestratorControls,
+  readOrchestratorControls,
+  canAutoAdvance,
+} from "../lib/orchestrator-controls.mjs";
+import { pickNextFeature } from "../lib/pick-next-feature.mjs";
 
 function parseVersion(v) {
   return String(v || "0.0.0").replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
@@ -58,6 +64,11 @@ function main() {
   const rows = collectAllRows(CONTROL, global);
   const orderSummary = collectOrderSummary(global, rows);
   const kitVersion = readKitVersionInfo(CONTROL);
+  ensureOrchestratorControls(CONTROL);
+  const controls = readOrchestratorControls(CONTROL);
+  const gate = canAutoAdvance(global, controls);
+  const nextPick = pickNextFeature(CONTROL, global, controls);
+  const serveMode = process.env.MC_DASHBOARD_SERVE === "1";
   const html = buildDashboardHtml({
     generatedAt: new Date().toISOString(),
     handoff,
@@ -67,6 +78,10 @@ function main() {
     orderSummary,
     defaultSort: defaultDashboardSort(global),
     kitVersion,
+    controls,
+    gate,
+    nextPick,
+    serveMode,
   });
   const out = join(CONTROL, "dashboard.html");
   writeFileSync(out, html, "utf8");

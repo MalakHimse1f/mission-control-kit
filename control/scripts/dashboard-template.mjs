@@ -1,6 +1,11 @@
 import { escapeHtml } from "./dashboard-helpers.mjs";
 import { renderBuildOrderPanel } from "./dashboard-order.mjs";
 import { renderUserGuideDisclosure } from "./dashboard-guide.mjs";
+import {
+  renderControlPanel,
+  CONTROL_PANEL_CSS,
+  CONTROL_PANEL_CLIENT_JS,
+} from "./dashboard-control-panel.mjs";
 
 export const DASHBOARD_CSS = `
 :root { color-scheme: dark; --bg: #0a0a0a; --panel: #141414; --border: #2a2a2a; --muted: #888; --accent: #6a8caf; }
@@ -148,6 +153,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .kit-version-badge { font-weight: 600; color: var(--accent); }
 .kit-update-hint { color: #cc9; font-size: 0.82rem; }
 .kit-update-hint code { font-size: 0.78rem; }
+${CONTROL_PANEL_CSS}
 @media (max-width: 720px) {
   .work-grid { grid-template-columns: 1fr; }
   .order-columns { grid-template-columns: 1fr; }
@@ -559,7 +565,21 @@ function renderKitVersionStrip(kitVersion) {
   return `<div class="${cls}"><span class="kit-version-badge">Mission Control ${escapeHtml(String(installed))}</span>${updateHint}</div>`;
 }
 
-export function buildDashboardHtml({ generatedAt, handoff, stack, global, rows, isMock = false, orderSummary = null, defaultSort = "lastUpdated", kitVersion = null }) {
+export function buildDashboardHtml({
+  generatedAt,
+  handoff,
+  stack,
+  global,
+  rows,
+  isMock = false,
+  orderSummary = null,
+  defaultSort = "lastUpdated",
+  kitVersion = null,
+  controls = null,
+  gate = null,
+  nextPick = null,
+  serveMode = false,
+}) {
   const buildingCount = rows.filter((r) => r.stageKey === "build").length;
   const initNotice =
     stack.techStackStatus !== "established"
@@ -582,6 +602,8 @@ export function buildDashboardHtml({ generatedAt, handoff, stack, global, rows, 
   <p class="top-meta">${isMock ? "<strong>Preview mock</strong> · " : ""}Generated ${escapeHtml(generatedAt)} · All content embedded — open this file directly, no external links required.</p>
 
   ${versionStrip}
+
+  ${controls ? renderControlPanel({ controls, gate: gate ?? {}, nextPick: nextPick ?? {}, serveMode }) : ""}
 
   ${renderUserGuideDisclosure()}
 
@@ -701,10 +723,11 @@ export function buildDashboardHtml({ generatedAt, handoff, stack, global, rows, 
     </div>
   </div>
 
-  <p class="footer">${isMock ? "Preview file — " : ""}Regenerate: <code>node docs/superpowers/control/scripts/generate-dashboard.mjs</code></p>
+  <p class="footer">${isMock ? "Preview file — " : ""}Regenerate: <code>node docs/superpowers/control/scripts/generate-dashboard.mjs</code> · Control panel: <code>node docs/superpowers/control/scripts/dashboard-server.mjs</code></p>
 
   <script>window.MC_ITEMS = ${JSON.stringify(rows)};window.MC_DEFAULT_SORT = ${JSON.stringify(defaultSort)};</script>
   <script>${DASHBOARD_CLIENT_JS}</script>
+  <script>${CONTROL_PANEL_CLIENT_JS}</script>
 </body>
 </html>`;
 }

@@ -18,6 +18,7 @@ Disk is the source of truth. Every subagent writes a journal file.
 - `{CONTROL_ROOT}BUILD-GATES.md`
 - `{CONTROL_ROOT}JOURNAL-RULES.md`
 - `{CONTROL_ROOT}AGENT-DATA-RULES.md`
+- `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md` (when using dashboard control panel)
 - Active pipeline: `PROJECT-START-PIPELINE.md` or `ADD-FEATURE-PIPELINE.md`
 
 ## Paths
@@ -60,6 +61,8 @@ Build tasks require lint, compile, test, and build evidence per `BUILD-GATES.md`
 ## Continuous run
 
 One session runs the full active pipeline until done, BLOCKED, or user pause. Never tell the user to start a new chat between stages.
+
+When `.mc/orchestrator-controls.json` has `advanceToNextFeature: true` and portfolio is approved, advance to the next build-queue feature after validate passes — see `ORCHESTRATOR-CONTROLS.md`.
 
 ## Never
 

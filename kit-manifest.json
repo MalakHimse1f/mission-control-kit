@@ -1,8 +1,8 @@
 {
-  "kitVersion": "4.3.2",
+  "kitVersion": "4.4.0",
   "schemaVersion": 1,
   "kitFolder": "mission-control-kit",
-  "migrations": ["4.0.0-baseline", "4.1.0-install-stamp", "4.2.0-custom-dir", "4.3.1-kit-folder"],
+  "migrations": ["4.0.0-baseline", "4.1.0-install-stamp", "4.2.0-custom-dir", "4.3.1-kit-folder", "4.4.0-orchestrator-controls"],
   "release": {
     "github": "MalakHimse1f/mission-control-kit",
     "assetPattern": "mission-control-kit"

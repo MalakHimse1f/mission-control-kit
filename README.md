@@ -31,9 +31,15 @@ Each stage has a **defined prompt, scope, and deliverable**. Subagents receive t
 
 ### A visual dashboard
 
-Open `docs/superpowers/control/dashboard.html` in any browser:
+Open `docs/superpowers/control/dashboard.html` in any browser (read-only), or run the **control panel server** to save orchestrator toggles:
+
+```bash
+node docs/superpowers/control/scripts/dashboard-server.mjs
+# http://127.0.0.1:9470/
+```
 
 - **Every feature at a glance** — pipeline stage, spec status, build phase, open tasks
+- **Orchestrator controls** — auto-advance build queue, ralph loop resume (saved to `.mc/orchestrator-controls.json` for agents)
 - **Portfolio view** — what to build next across multiple features
 - **Tech stack & project docs** — linked from one place
 - **Version & upgrade hints** — stay current without losing your specs
