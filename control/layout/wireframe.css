@@ -1,0 +1,42 @@
+/* Mission Control layout wireframes — structure only. Black / white / gray. No brand styling. */
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: #f5f5f5; color: #111; font-size: 14px; line-height: 1.4;
+}
+.wf-page { max-width: 100%; min-height: 100vh; background: #fff; border: 2px solid #111; }
+.wf-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  color: #666; background: #eee; padding: 2px 6px; display: inline-block;
+}
+.wf-region {
+  border: 2px dashed #999; background: #fafafa; padding: 12px; position: relative;
+}
+.wf-region > .wf-label { position: absolute; top: 4px; left: 4px; }
+.wf-region-body { margin-top: 20px; min-height: 24px; color: #444; }
+.wf-bar { background: #e5e5e5; border-bottom: 2px solid #111; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+.wf-bar-dark { background: #222; color: #fff; }
+.wf-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #111; background: #ccc; }
+.wf-dot-close { background: #888; }
+.wf-nav-item { padding: 6px 10px; border: 1px solid #666; background: #fff; font-size: 12px; }
+.wf-nav-item-active { background: #ddd; font-weight: 600; }
+.wf-tab-bar { display: flex; border-top: 2px solid #111; background: #eee; }
+.wf-tab { flex: 1; text-align: center; padding: 10px 4px; border-right: 1px solid #999; font-size: 11px; }
+.wf-tab:last-child { border-right: none; }
+.wf-tab-active { background: #ccc; font-weight: 600; }
+.wf-sidebar { width: 200px; border-right: 2px solid #111; background: #f0f0f0; padding: 12px; flex-shrink: 0; }
+.wf-main { flex: 1; padding: 16px; overflow: auto; }
+.wf-row { display: flex; min-height: 100vh; }
+.wf-stack { display: flex; flex-direction: column; min-height: 100vh; }
+.wf-phone { max-width: 390px; margin: 0 auto; min-height: 100vh; border-left: 2px solid #111; border-right: 2px solid #111; }
+.wf-desktop { min-height: 100vh; }
+.wf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wf-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.wf-hero { border: 2px solid #111; padding: 32px 24px; background: #eee; text-align: center; }
+.wf-hero h1 { font-size: 1.5rem; font-weight: 700; color: #111; }
+.wf-hero p { color: #555; margin-top: 8px; }
+.wf-card { border: 1px solid #666; padding: 12px; background: #fff; }
+.wf-btn { display: inline-block; padding: 8px 16px; border: 2px solid #111; background: #fff; font-size: 13px; }
+.wf-btn-primary { background: #333; color: #fff; }
+.wf-slot { border: 1px dotted #888; padding: 8px; min-height: 40px; color: #777; font-size: 12px; }

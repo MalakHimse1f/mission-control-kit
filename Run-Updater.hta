@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>Mission Control — Update</title>
+<HTA:APPLICATION
+  ID="MissionControlUpdater"
+  APPLICATIONNAME="Mission Control Updater"
+  BORDER="none"
+  CAPTION="no"
+  SHOWINTASKBAR="no"
+  SINGLEINSTANCE="yes"
+  SYSMENU="no"
+  SCROLL="no"
+  WINDOWSTATE="minimize"
+/>
+<script language="VBScript">
+  Sub Window_OnLoad
+    On Error Resume Next
+    Dim fso, shell, kitDir, path, cmd
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set shell = CreateObject("WScript.Shell")
+    path = Replace(document.location.pathname, "/", "\")
+    If Left(path, 1) = "\" Then path = Mid(path, 2)
+    path = unescape(path)
+    kitDir = fso.GetParentFolderName(path)
+    If Not fso.FileExists(kitDir & "\upgrade.bat") Then
+      MsgBox "Could not find upgrade.bat in:" & vbCrLf & kitDir, vbCritical, "Mission Control"
+      window.close
+      Exit Sub
+    End If
+    cmd = "cmd /c """ & kitDir & "\upgrade.bat"""
+    shell.Run cmd, 1, False
+    window.setTimeout "window.close()", 800
+  End Sub
+</script>
+</head>
+<body><p>Running safe update…</p></body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "mission-control-v4",
+  "version": "4.0.0",
+  "description": "Mission Control v4 — Project START and Add Feature orchestration with bundled startup-skill and designer-skills vendor paths.",
+  "author": {
+    "name": "Lane"
+  },
+  "keywords": ["mission-control", "orchestration", "startup-skill", "designer-skills"],
+  "homepage": "https://github.com/ferdinandobons/startup-skill",
+  "repository": "https://github.com/Owl-Listener/designer-skills"
+}

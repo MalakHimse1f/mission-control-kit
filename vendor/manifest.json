@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "bundles": [
+    {
+      "id": "startup-skill",
+      "repo": "https://github.com/ferdinandobons/startup-skill.git",
+      "ref": "main",
+      "installPath": "vendor/startup-skill",
+      "projectSkillsPath": ".claude/skills/vendor/startup-skill",
+      "requiredFor": ["project-start"],
+      "requiredSkills": [
+        "startup-design",
+        "startup-competitors",
+        "startup-positioning",
+        "startup-pitch"
+      ],
+      "pluginInstall": "claude plugin marketplace add ferdinandobons/startup-skill && claude plugin install startup@startup-skill"
+    },
+    {
+      "id": "designer-skills",
+      "repo": "https://github.com/Owl-Listener/designer-skills.git",
+      "ref": "main",
+      "installPath": "vendor/designer-skills",
+      "projectSkillsPath": ".claude/skills/vendor/designer-skills",
+      "requiredFor": ["add-feature"],
+      "requiredPlugins": [
+        "design-research",
+        "ux-strategy",
+        "interaction-design",
+        "visual-critique"
+      ],
+      "requiredSkills": [
+        "design-research",
+        "ux-strategy",
+        "interaction-design",
+        "visual-critique"
+      ],
+      "pluginInstall": "/plugin marketplace add Owl-Listener/designer-skills"
+    },
+    {
+      "id": "prd-generator",
+      "repo": "https://github.com/jamesrochabrun/skills.git",
+      "ref": "main",
+      "sourceSubpath": "skills/prd-generator",
+      "installPath": "vendor/prd-generator",
+      "projectSkillsPath": ".claude/skills/vendor/prd-generator",
+      "requiredFor": ["add-feature"],
+      "requiredSkills": ["prd-generator"],
+      "sourceUrl": "https://github.com/jamesrochabrun/skills/blob/main/skills/prd-generator/SKILL.md"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "workflowType": null,
+  "projectStartStage": null,
+  "activeFeature": null,
+  "activeTechSlug": null,
+  "activeWorkstream": null,
+  "phase": "idle",
+  "currentTaskId": null,
+  "branch": null,
+  "projectMode": null,
+  "techStackStatus": null,
+  "buildOrder": [],
+  "techStackOrder": [],
+  "portfolioReviewStatus": null,
+  "portfolioReviewAt": null,
+  "devServers": [],
+  "backgroundShells": [],
+  "lastUpdatedAt": null,
+  "orchestratorRotations": 0,
+  "captureE2eScreenshots": null
+}

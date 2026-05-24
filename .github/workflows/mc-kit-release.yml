@@ -1,0 +1,58 @@
+name: Mission Control Kit Release
+
+on:
+  push:
+    tags:
+      - 'mc-kit-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run kit tests
+        run: npm test
+
+      - name: Build release tarball
+        run: node scripts/build-release-tarball.mjs
+
+      - name: Extract version from manifest
+        id: version
+        run: |
+          VERSION=$(node -p "require('./kit-manifest.json').kitVersion")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Upload GitHub Release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Mission Control Kit v${{ steps.version.outputs.version }}
+          body: |
+            Mission Control Kit v${{ steps.version.outputs.version }}
+
+            ## Install
+            1. Download `mission-control-kit-v4-${{ steps.version.outputs.version }}.tar.gz`
+            2. Extract into your project (creates `mission-control-kit-v4/`)
+            3. Run `install.sh`, `Run-Installer.command`, or `Run-Installer.hta`
+
+            Or clone this repo into your project as `mission-control-kit-v4/` and run `./install.sh .`
+
+            ## Upgrade
+            - `/mc-upgrade` or `Run-Updater.command` / `Run-Updater.hta`
+            - Fetch: `node mission-control-kit-v4/scripts/mc-upgrade.mjs . --fetch`
+
+            User specs and `features/` are never overwritten.
+          files: |
+            dist/mission-control-kit-v4-${{ steps.version.outputs.version }}.tar.gz
+          draft: false
+          prerelease: false

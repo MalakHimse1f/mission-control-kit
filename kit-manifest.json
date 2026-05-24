@@ -1,0 +1,10 @@
+{
+  "kitVersion": "4.3.0",
+  "schemaVersion": 1,
+  "kitFolder": "mission-control-kit-v4",
+  "migrations": ["4.0.0-baseline", "4.1.0-install-stamp", "4.2.0-custom-dir"],
+  "release": {
+    "github": "MalakHimse1f/mission-control-kit",
+    "assetPattern": "mission-control-kit"
+  }
+}

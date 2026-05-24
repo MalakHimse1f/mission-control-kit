@@ -1,0 +1,8 @@
+{
+  "name": "habit-tracker-sample",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Sample app for Mission Control v4 integration tests",
+  "type": "module",
+  "main": "src/index.js"
+}

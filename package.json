@@ -1,0 +1,15 @@
+{
+  "name": "mission-control-kit-v4",
+  "version": "4.3.0",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:routing": "node --test tests/routing.test.mjs",
+    "test:integration": "node --test tests/sample-project.integration.test.mjs",
+    "test:upgrade": "node --test tests/upgrade.test.mjs tests/upgrade.integration.test.mjs",
+    "simulate": "node scripts/simulate-pipeline.mjs",
+    "upgrade": "node scripts/mc-upgrade.mjs",
+    "build:release": "node scripts/build-release-tarball.mjs"
+  }
+}

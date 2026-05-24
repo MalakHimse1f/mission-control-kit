@@ -1,0 +1,71 @@
+<html>
+<head>
+<title>Mission Control — Install or Update</title>
+<HTA:APPLICATION
+  ID="MissionControlLauncher"
+  APPLICATIONNAME="Mission Control"
+  BORDER="dialog"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  SCROLL="no"
+  WINDOWSTATE="normal"
+  INNERWIDTH="420"
+  INNERHEIGHT="220"
+/>
+<style>
+  body { font-family: Segoe UI, sans-serif; background: #0a0a0a; color: #e5e5e5; margin: 1.25rem; }
+  h1 { font-size: 1.1rem; margin: 0 0 0.75rem; }
+  p { font-size: 0.9rem; color: #bbb; line-height: 1.45; }
+  .actions { margin-top: 1.25rem; display: flex; gap: 0.65rem; flex-wrap: wrap; }
+  button {
+    padding: 0.55rem 1rem; border-radius: 6px; border: 1px solid #666;
+    background: #2a3544; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  }
+  button.secondary { background: #2a2a2a; }
+  button:hover { border-color: #888; }
+</style>
+<script language="VBScript">
+  Dim kitDir
+
+  Sub Window_OnLoad
+    Dim fso, path
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    path = Replace(document.location.pathname, "/", "\")
+    If Left(path, 1) = "\" Then path = Mid(path, 2)
+    path = unescape(path)
+    kitDir = fso.GetParentFolderName(path)
+    If Not fso.FileExists(kitDir & "\install.ps1") Then
+      MsgBox "Could not find install.ps1 in:" & vbCrLf & kitDir, vbCritical, "Mission Control"
+      window.close
+    End If
+  End Sub
+
+  Sub RunInstall
+    RunBatch "install.bat"
+  End Sub
+
+  Sub RunUpdate
+    RunBatch "upgrade.bat"
+  End Sub
+
+  Sub RunBatch(batchName)
+    Dim shell, cmd
+    Set shell = CreateObject("WScript.Shell")
+    cmd = "cmd /c """ & kitDir & "\" & batchName & """"
+    shell.Run cmd, 1, False
+    window.close
+  End Sub
+</script>
+</head>
+<body>
+  <h1>Mission Control v4</h1>
+  <p><strong>Install</strong> — first time setup into your project folder.</p>
+  <p><strong>Update</strong> — safe upgrade. Your feature specs and journals are preserved.</p>
+  <div class="actions">
+    <button onclick="RunInstall">Install</button>
+    <button class="secondary" onclick="RunUpdate">Update</button>
+  </div>
+</body>
+</html>

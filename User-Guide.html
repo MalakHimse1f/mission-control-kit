@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mission Control v4 — User Guide</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0a0a0a; color: #e5e5e5; margin: 0; padding: 1.5rem; line-height: 1.55; max-width: 52rem; }
+    h1 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+    h2 { font-size: 1.1rem; margin: 2rem 0 0.75rem; border-bottom: 1px solid #333; padding-bottom: 0.35rem; }
+    p, li { color: #bbb; }
+    .subtitle { color: #888; margin-bottom: 1.5rem; }
+    .nav { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    a { color: #ccc; }
+    .card { background: #141414; border: 1px solid #333; border-radius: 8px; padding: 1rem 1.15rem; margin: 1rem 0; }
+    .install-grid { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 640px) { .install-grid { grid-template-columns: 1fr; } }
+    .install-launch { display: inline-block; margin-top: 0.5rem; margin-right: 0.5rem; padding: 0.55rem 1rem; border-radius: 6px; background: #2a3544; border: 1px solid #6a8caf; color: #fff !important; font-weight: 600; text-decoration: none; font-size: 0.88rem; }
+    .install-launch.secondary { background: #2a2a2a; border-color: #666; }
+    code, .cmd { font-family: ui-monospace, monospace; font-size: 0.85em; background: #1f1f1f; padding: 0.15rem 0.4rem; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.75rem 0; }
+    th, td { border-bottom: 1px solid #2a2a2a; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { color: #999; }
+    .tip { border-left: 3px solid #555; padding-left: 0.75rem; color: #999; font-size: 0.9rem; }
+  </style>
+</head>
+<body data-kit-folder="mission-control-kit-v4">
+
+  <h1>Mission Control v4</h1>
+  <p class="subtitle">Install, upgrade, and run the orchestrator. Works with <strong>Cursor</strong> and <strong>Claude Code</strong>.</p>
+
+  <nav class="nav">
+    <a href="#install">Install</a>
+    <a href="#update">Update</a>
+    <a href="control/dashboard.html">Dashboard</a>
+    <a href="#commands">Commands</a>
+    <a href="control/INDEX.md">Docs index</a>
+  </nav>
+
+  <h2 id="install">Install (first time)</h2>
+  <p>Put this kit folder inside your project, then install. Requires <strong>Node.js</strong>.</p>
+
+  <div class="card">
+    <p><strong>Typical layout:</strong></p>
+    <pre><code>your-project/
+  mission-control-kit-v4/   ← this folder
+  …your app…</code></pre>
+  </div>
+
+  <div class="install-grid">
+    <div class="card">
+      <h3>Mac — double-click</h3>
+      <p>Opens a folder picker, then installs safely.</p>
+      <a class="install-launch" href="Run-Installer.command">Run installer</a>
+    </div>
+    <div class="card">
+      <h3>Windows</h3>
+      <p>Double-click <code>Run-Installer.hta</code> (Install or Update) or run PowerShell:</p>
+      <code>&amp; ".\mission-control-kit-v4\install.ps1" -ProjectRoot .</code>
+      <p style="margin-top:0.5rem"><a class="install-launch secondary" href="Run-Updater.hta">Update only</a></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Terminal (Mac / Linux)</h3>
+    <code>chmod +x mission-control-kit-v4/install.sh &amp;&amp; mission-control-kit-v4/install.sh .</code>
+  </div>
+
+  <h2 id="update">Update (safe upgrade)</h2>
+  <p class="tip">Updates refresh orchestrator docs and skills. Your <code>features/</code> specs, journals, and <code>custom/</code> overrides are <strong>never</strong> overwritten.</p>
+
+  <div class="install-grid">
+    <div class="card">
+      <h3>Mac — double-click</h3>
+      <a class="install-launch" href="Run-Updater.command">Run updater</a>
+    </div>
+    <div class="card">
+      <h3>Chat</h3>
+      <p>In Cursor or Claude Code:</p>
+      <code>/mc-upgrade</code>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Terminal</h3>
+    <p><code>node mission-control-kit-v4/scripts/mc-upgrade.mjs .</code></p>
+    <p>Check only: <code>--check</code> · Preview: <code>--dry-run</code> · Fetch release: <code>--fetch</code></p>
+  </div>
+
+  <h2 id="commands">Commands</h2>
+  <table>
+    <thead><tr><th>Command</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><code>/mc-start</code></td><td>New product</td></tr>
+      <tr><td><code>/mc-init</code></td><td>Existing codebase — set tech stack once</td></tr>
+      <tr><td><code>/mc-feature</code></td><td>New feature in established product</td></tr>
+      <tr><td><code>/mc</code></td><td>Resume from disk</td></tr>
+      <tr><td><code>/mc-upgrade</code></td><td>Safe kit update</td></tr>
+      <tr><td><code>/mc-portfolio</code></td><td>Multi-feature build order</td></tr>
+    </tbody>
+  </table>
+
+  <p class="tip">Open <a href="control/dashboard.html">dashboard.html</a> after install — it includes a getting-started guide and version strip.</p>
+
+</body>
+</html>

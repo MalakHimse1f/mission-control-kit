@@ -1,0 +1,10 @@
+{
+  "feature": "{feature-slug}",
+  "specStatus": "draft",
+  "layoutStatus": null,
+  "currentPhase": null,
+  "currentTaskId": null,
+  "branch": null,
+  "lastUpdatedAt": null,
+  "tasks": []
+}

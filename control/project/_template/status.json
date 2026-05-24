@@ -1,0 +1,16 @@
+{
+  "workflowType": "project-start",
+  "projectStartStage": "braindump",
+  "steps": [
+    { "id": "vendor-setup", "label": "Vendor skills", "status": "pending" },
+    { "id": "braindump", "label": "Product braindump", "status": "pending" },
+    { "id": "validate", "label": "Market validation", "status": "pending" },
+    { "id": "compete", "label": "Competitors", "status": "pending" },
+    { "id": "position", "label": "Positioning", "status": "pending" },
+    { "id": "platforms", "label": "Platform matrix", "status": "pending" },
+    { "id": "stack", "label": "Tech stack", "status": "pending" },
+    { "id": "portfolio", "label": "Feature portfolio", "status": "pending" },
+    { "id": "launch-prep", "label": "Launch checklist", "status": "pending" },
+    { "id": "done", "label": "Project START complete", "status": "pending" }
+  ]
+}

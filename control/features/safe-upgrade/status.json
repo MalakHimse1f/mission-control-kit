@@ -1,0 +1,26 @@
+{
+  "feature": "safe-upgrade",
+  "workflowType": "add-feature",
+  "pipelineStage": "done",
+  "specStatus": "approved",
+  "layoutStatus": null,
+  "currentPhase": "phase-3",
+  "currentTaskId": null,
+  "branch": null,
+  "lastUpdatedAt": "2026-05-24T18:00:00.000Z",
+  "tasks": [
+    { "id": "1.1", "title": "Upgrade manifest and preserve rules", "status": "done", "updatedAt": "2026-05-24T12:00:00.000Z" },
+    { "id": "1.2", "title": "Upgrade engine CLI", "status": "done", "updatedAt": "2026-05-24T12:00:00.000Z" },
+    { "id": "1.3", "title": "Wire install.sh and mc-upgrade skill", "status": "done", "updatedAt": "2026-05-24T12:00:00.000Z" },
+    { "id": "1.4", "title": "Dashboard version strip", "status": "done", "updatedAt": "2026-05-24T12:00:00.000Z" },
+    { "id": "1.5", "title": "Integration test spec survives upgrade", "status": "done", "updatedAt": "2026-05-24T12:00:00.000Z" },
+    { "id": "2.1", "title": "Remote fetch from GitHub Releases", "status": "done", "updatedAt": "2026-05-24T15:00:00.000Z" },
+    { "id": "2.2", "title": "Run-Updater and upgrade.sh", "status": "done", "updatedAt": "2026-05-24T15:00:00.000Z" },
+    { "id": "2.3", "title": "Custom overlay dir + command cleanup", "status": "done", "updatedAt": "2026-05-24T15:00:00.000Z" },
+    { "id": "3.1", "title": "Release tarball builder", "status": "done", "updatedAt": "2026-05-24T18:00:00.000Z" },
+    { "id": "3.2", "title": "GitHub Actions release workflow", "status": "done", "updatedAt": "2026-05-24T18:00:00.000Z" },
+    { "id": "3.3", "title": "Windows Install vs Update HTA", "status": "done", "updatedAt": "2026-05-24T18:00:00.000Z" },
+    { "id": "3.4", "title": "PUBLISH.md + manifest repo config", "status": "done", "updatedAt": "2026-05-24T18:00:00.000Z" },
+    { "id": "3.5", "title": "Release bundle tests", "status": "done", "updatedAt": "2026-05-24T18:00:00.000Z" }
+  ]
+}

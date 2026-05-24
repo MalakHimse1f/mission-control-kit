@@ -1,0 +1,6 @@
+dist/
+vendor/.cache-*/
+vendor/startup-skill/
+vendor/designer-skills/
+vendor/prd-generator/
+node_modules/
