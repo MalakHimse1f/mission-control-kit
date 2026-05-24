@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { readInstallStamp, shouldPreserveControlPath } from '../lib/mc-upgrade.mjs';
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const kitVersion = JSON.parse(fs.readFileSync(path.join(kitRoot, 'kit-manifest.json'), 'utf8')).kitVersion;
 let tmpProject;
 
 function run(cmd, cwd = kitRoot) {
@@ -27,7 +28,7 @@ describe('safe upgrade integration', () => {
   it('writes install stamp on first install', () => {
     const stamp = readInstallStamp(path.join(tmpProject, 'docs/superpowers/control'));
     assert.ok(stamp);
-    assert.equal(stamp.kitVersion, '4.5.0');
+    assert.equal(stamp.kitVersion, kitVersion);
   });
 
   it('preserves user feature spec across upgrade', () => {
