@@ -61,12 +61,21 @@ export const CONTROL_PANEL_CLIENT_JS = `
   const statusEl = document.getElementById("ctl-status");
 
   function collectPatch() {
+    const buildMode = document.getElementById("ctl-build-mode")?.value ?? "sdd+tdd";
+    const reviewChain = document.getElementById("ctl-review-chain")?.value ?? "full";
     return {
       advanceToNextFeature: document.getElementById("ctl-advance").checked,
       pauseOnPortfolioDraft: document.getElementById("ctl-portfolio-gate").checked,
       ralphLoop: {
         enabled: document.getElementById("ctl-ralph").checked,
         spawnFreshSession: true,
+      },
+      buildWorkflow: {
+        mode: buildMode,
+        reviewChain: buildMode === "tdd-lite" ? "none" : reviewChain,
+      },
+      planWorkflow: {
+        mode: document.getElementById("ctl-plan-mode")?.value ?? "subagent-driven",
       },
       autoAdvanceScope: "build-only",
       pauseOnClarify: true,

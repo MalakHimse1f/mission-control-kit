@@ -6,6 +6,11 @@ import {
   CONTROL_PANEL_CSS,
   CONTROL_PANEL_CLIENT_JS,
 } from "./dashboard-control-panel.mjs";
+import {
+  renderWorkflowPanel,
+  WORKFLOW_PANEL_CSS,
+  WORKFLOW_PANEL_CLIENT_JS,
+} from "./dashboard-workflow-panel.mjs";
 import { renderKitVersionStrip, KIT_VERSION_CLIENT_JS } from "./dashboard-kit-version.mjs";
 
 export const DASHBOARD_CSS = `
@@ -155,6 +160,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .kit-update-hint { color: #cc9; font-size: 0.82rem; }
 .kit-update-hint code { font-size: 0.78rem; }
 ${CONTROL_PANEL_CSS}
+${WORKFLOW_PANEL_CSS}
 @media (max-width: 720px) {
   .work-grid { grid-template-columns: 1fr; }
   .order-columns { grid-template-columns: 1fr; }
@@ -595,6 +601,8 @@ export function buildDashboardHtml({
 
   ${controls ? renderControlPanel({ controls, gate: gate ?? {}, nextPick: nextPick ?? {}, serveMode }) : ""}
 
+  ${controls ? renderWorkflowPanel({ controls, serveMode }) : ""}
+
   ${renderUserGuideDisclosure()}
 
   ${initNotice}
@@ -718,6 +726,7 @@ export function buildDashboardHtml({
   <script>window.MC_ITEMS = ${JSON.stringify(rows)};window.MC_DEFAULT_SORT = ${JSON.stringify(defaultSort)};</script>
   <script>${DASHBOARD_CLIENT_JS}</script>
   <script>${CONTROL_PANEL_CLIENT_JS}</script>
+  <script>${WORKFLOW_PANEL_CLIENT_JS}</script>
   <script>${KIT_VERSION_CLIENT_JS}</script>
 </body>
 </html>`;

@@ -19,6 +19,7 @@ Disk is the source of truth. Every subagent writes a journal file.
 - `{CONTROL_ROOT}JOURNAL-RULES.md`
 - `{CONTROL_ROOT}AGENT-DATA-RULES.md`
 - `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md` (when using dashboard control panel)
+- `{CONTROL_ROOT}WORKFLOW-CONTROLS.md` (build/plan routing from dashboard)
 - Active pipeline: `PROJECT-START-PIPELINE.md` or `ADD-FEATURE-PIPELINE.md`
 
 ## Paths

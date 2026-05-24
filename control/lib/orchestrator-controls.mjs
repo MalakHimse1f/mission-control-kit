@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const CONTROLS_SCHEMA_VERSION = 1;
+export const CONTROLS_SCHEMA_VERSION = 2;
 
 export const DEFAULT_ORCHESTRATOR_CONTROLS = {
   version: CONTROLS_SCHEMA_VERSION,
@@ -13,6 +13,13 @@ export const DEFAULT_ORCHESTRATOR_CONTROLS = {
     enabled: false,
     spawnFreshSession: true,
     maxSessionsPerDay: 12,
+  },
+  buildWorkflow: {
+    mode: 'sdd+tdd',
+    reviewChain: 'full',
+  },
+  planWorkflow: {
+    mode: 'subagent-driven',
   },
   continuousWithinFeature: true,
   pauseOnClarify: true,
@@ -42,6 +49,14 @@ export function mergeOrchestratorControls(base, patch) {
     ralphLoop: {
       ...base.ralphLoop,
       ...(patch?.ralphLoop ?? {}),
+    },
+    buildWorkflow: {
+      ...base.buildWorkflow,
+      ...(patch?.buildWorkflow ?? {}),
+    },
+    planWorkflow: {
+      ...base.planWorkflow,
+      ...(patch?.planWorkflow ?? {}),
     },
   };
   merged.version = CONTROLS_SCHEMA_VERSION;

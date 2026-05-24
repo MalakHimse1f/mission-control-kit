@@ -17,6 +17,8 @@ import {
   collectEmbeddedScreenshots,
   buildStepTimeline,
 } from "./dashboard-content.mjs";
+import { readOrchestratorControls } from "../lib/orchestrator-controls.mjs";
+import { buildWorkflowPromptLines, buildBuildStagePickupLines } from "../lib/workflow-controls.mjs";
 
 function readJson(path) {
   if (!existsSync(path)) return null;
@@ -62,7 +64,7 @@ function nextCommand(stage) {
   return "/mc";
 }
 
-export function buildPickupPrompt({ workstream, slug, stage, status, global }) {
+export function buildPickupPrompt({ workstream, slug, stage, status, global, controls = null }) {
   const ws = workstream === "tech-stack" ? "tech setup" : "UX feature";
   const base = workstream === "tech-stack" ? "tech-stack" : "features";
   const pipelineStage = status?.pipelineStage ?? stage.key;
@@ -80,6 +82,8 @@ export function buildPickupPrompt({ workstream, slug, stage, status, global }) {
     `- docs/superpowers/control/PIPELINE.md`,
     `- docs/superpowers/control/JOURNAL-RULES.md`,
     `- docs/superpowers/control/HANDOFF.md`,
+    `- docs/superpowers/control/WORKFLOW-CONTROLS.md`,
+    `- docs/superpowers/control/.mc/orchestrator-controls.json`,
     `- docs/superpowers/control/${base}/${slug}/status.json`,
     `- docs/superpowers/control/${base}/${slug}/journal/ (latest entries)`,
     "",
@@ -106,8 +110,16 @@ export function buildPickupPrompt({ workstream, slug, stage, status, global }) {
     lines.push("", "Dispatch ONE mc-mock subagent. Output: layout/wireframes/*.html + journal.");
   }
 
+  if (controls) {
+    lines.push(...buildWorkflowPromptLines(controls));
+  }
+
   if (pipelineStage === "plan") {
+    const planMode = controls?.planWorkflow?.mode ?? "subagent-driven";
     lines.push("", "Dispatch ONE mc-platform-plan subagent for ALL platforms (consistent naming). Output: phases/*.md + tasks[] + journal.");
+    if (planMode === "executing-plans") {
+      lines.push("planWorkflow.mode is executing-plans — user may run a parallel session with executing-plans after plan approval.");
+    }
   }
 
   if (pipelineStage === "build") {
@@ -123,14 +135,7 @@ export function buildPickupPrompt({ workstream, slug, stage, status, global }) {
     if (task?.id) {
       lines.push(`Next task: ${task.id}${task.title ? ` — ${task.title}` : ""}`);
     }
-    lines.push(
-      "",
-      "Invoke superpowers:subagent-driven-development.",
-      "Per task: implementer → spec reviewer → quality reviewer → tests → commit → journal/NNN-build-{task-id}.md",
-      "After last task: phase-end e2e per layoutTarget (E2E-TOOLS.md). Fresh subagent per platform.",
-      "Then immediately run validate inline (same session). Continue to next phase or mark done.",
-      "Stop only when: BLOCKED or user pauses.",
-    );
+    lines.push(...buildBuildStagePickupLines(controls ?? {}));
   }
 
   if (pipelineStage === "validate") {
@@ -173,6 +178,7 @@ export function collectItemRow(control, workstream, slug, global, orderIndex) {
   const embeddedWireframes =
     workstream === "feature" ? collectEmbeddedWireframes(control, base, slug) : [];
   const embeddedScreenshots = collectEmbeddedScreenshots(control, base, slug, sortedTasks);
+  const controls = readOrchestratorControls(control);
 
   return {
     id: slug,
@@ -198,7 +204,7 @@ export function collectItemRow(control, workstream, slug, global, orderIndex) {
     inProgress,
     isBuilding: stage.key === "build",
     nextCommand: nextCommand(stage),
-    pickupPrompt: buildPickupPrompt({ workstream, slug, stage, status, global }),
+    pickupPrompt: buildPickupPrompt({ workstream, slug, stage, status, global, controls }),
     tasks: sortedTasks.map((t) => ({
       id: t.id,
       title: t.title ?? "",

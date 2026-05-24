@@ -19,6 +19,7 @@ READ disk → ROUTE workflow → CHECK vendor skills → PACKET context → DISP
 - `ROUTER.md`
 - `ORCHESTRATOR.md` (this file)
 - `ORCHESTRATOR-CONTROLS.md` — user toggles in `.mc/orchestrator-controls.json`
+- `WORKFLOW-CONTROLS.md` — build/plan mode from dashboard workflow panel
 - `SKILL-DEPENDENCIES.md`
 - `CONTEXT-PACKETS.md`
 - `BUILD-GATES.md`
