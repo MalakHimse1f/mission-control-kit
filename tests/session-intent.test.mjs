@@ -6,12 +6,17 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import {
   suggestPipelineScope,
   shouldStopForPlanningOnly,
+  shouldSkipPlanningForBuildOnly,
   shouldPauseForDecisionReview,
   resolveSessionIntent,
+  normalizePipelineScope,
+  normalizeDecisionReview,
   buildSessionIntentPromptLines,
 } from '../control/lib/session-intent.mjs';
 import { mergeOrchestratorControls, DEFAULT_ORCHESTRATOR_CONTROLS } from '../control/lib/orchestrator-controls.mjs';
 import { collectSkillFindings } from '../control/scripts/dashboard-content.mjs';
+import { collectItemRow, buildPickupPrompt } from '../control/scripts/dashboard-data.mjs';
+import { buildDashboardHtml } from '../control/scripts/dashboard-template.mjs';
 
 describe('session-intent', () => {
   it('suggests planning-only during early planning stages', () => {
@@ -28,6 +33,39 @@ describe('session-intent', () => {
     );
   });
 
+  it('suggests full-pipeline when plan is ready with approved spec', () => {
+    assert.equal(
+      suggestPipelineScope({ pipelineStage: 'plan', specStatus: 'approved', hasTasks: true, hasPhases: true }),
+      'full-pipeline',
+    );
+  });
+
+  it('suggests full-pipeline when feature is done', () => {
+    assert.equal(
+      suggestPipelineScope({ pipelineStage: 'done', specStatus: 'approved', hasTasks: true, hasPhases: true }),
+      'full-pipeline',
+    );
+  });
+
+  it('normalizes invalid pipeline scope to full-pipeline', () => {
+    assert.equal(normalizePipelineScope('bogus'), 'full-pipeline');
+    assert.equal(normalizePipelineScope(undefined), 'full-pipeline');
+    assert.equal(normalizePipelineScope('planning-only'), 'planning-only');
+  });
+
+  it('normalizes invalid decision review to review-first', () => {
+    assert.equal(normalizeDecisionReview('bogus'), 'review-first');
+    assert.equal(normalizeDecisionReview(undefined), 'review-first');
+    assert.equal(normalizeDecisionReview('auto-proceed'), 'auto-proceed');
+  });
+
+  it('resolveSessionIntent merges defaults for partial controls', () => {
+    assert.deepEqual(resolveSessionIntent({ sessionIntent: { pipelineScope: 'build-only' } }), {
+      pipelineScope: 'build-only',
+      decisionReview: 'review-first',
+    });
+  });
+
   it('stops planning-only at build gate', () => {
     const controls = mergeOrchestratorControls(DEFAULT_ORCHESTRATOR_CONTROLS, {
       sessionIntent: { pipelineScope: 'planning-only' },
@@ -36,9 +74,30 @@ describe('session-intent', () => {
     assert.equal(shouldStopForPlanningOnly(controls, 'plan'), false);
   });
 
+  it('skips planning for build-only when plan artifacts exist', () => {
+    const controls = { sessionIntent: { pipelineScope: 'build-only' } };
+    assert.equal(
+      shouldSkipPlanningForBuildOnly(controls, { hasPhases: true, hasTasks: true, specStatus: 'approved' }),
+      true,
+    );
+    assert.equal(
+      shouldSkipPlanningForBuildOnly(controls, { hasPhases: false, hasTasks: true, specStatus: 'approved' }),
+      false,
+    );
+    assert.equal(
+      shouldSkipPlanningForBuildOnly(
+        { sessionIntent: { pipelineScope: 'full-pipeline' } },
+        { hasPhases: true, hasTasks: true, specStatus: 'approved' },
+      ),
+      false,
+    );
+  });
+
   it('pauses for decision review on skill stages when review-first', () => {
-    const controls = resolveSessionIntent({ sessionIntent: { decisionReview: 'review-first' } });
+    const controls = { sessionIntent: { decisionReview: 'review-first' } };
     assert.equal(shouldPauseForDecisionReview(controls, 'research'), true);
+    assert.equal(shouldPauseForDecisionReview(controls, 'explore'), true);
+    assert.equal(shouldPauseForDecisionReview(controls, 'plan'), true);
     assert.equal(shouldPauseForDecisionReview(controls, 'build'), false);
   });
 
@@ -55,6 +114,194 @@ describe('session-intent', () => {
     assert.match(text, /planning-only/);
     assert.match(text, /review-first/);
     assert.match(text, /SESSION-INTENT/);
+    assert.match(text, /stop when pipelineStage would advance to build/);
+  });
+
+  it('buildSessionIntentPromptLines describes build-only and auto-proceed', () => {
+    const text = buildSessionIntentPromptLines({
+      sessionIntent: { pipelineScope: 'build-only', decisionReview: 'auto-proceed' },
+    }).join('\n');
+    assert.match(text, /skip braindump–plan/);
+    assert.match(text, /Auto-proceed/);
+  });
+});
+
+describe('pickup prompt embeds session intent', () => {
+  it('includes session intent lines and AskQuestion reminder', () => {
+    const prompt = buildPickupPrompt({
+      workstream: 'feature',
+      slug: 'alpha',
+      stage: { key: 'plan', label: 'Plan' },
+      status: { pipelineStage: 'plan' },
+      global: {},
+      controls: {
+        sessionIntent: { pipelineScope: 'planning-only', decisionReview: 'review-first' },
+      },
+    });
+    assert.match(prompt, /SESSION START: Ask pipeline scope \+ decision review/);
+    assert.match(prompt, /sessionIntent/);
+    assert.match(prompt, /pipelineScope: planning-only/);
+    assert.match(prompt, /decisionReview: review-first/);
+    assert.match(prompt, /SESSION-INTENT\.md/);
+  });
+});
+
+describe('collectItemRow skillFindings integration', () => {
+  let tmp;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-row-skill-'));
+    const slugDir = path.join(tmp, 'features', 'demo');
+    fs.mkdirSync(slugDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(slugDir, 'status.json'),
+      JSON.stringify({ pipelineStage: 'research', specStatus: 'draft', tasks: [] }),
+    );
+    fs.writeFileSync(path.join(slugDir, 'research.md'), '# Research\nFindings here.');
+    fs.writeFileSync(path.join(slugDir, 'interaction.md'), '# Interaction\nFlows defined.');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('attaches skillFindings from disk to feature row', () => {
+    const row = collectItemRow(tmp, 'feature', 'demo', {}, -1);
+    assert.equal(row.skillFindings.length, 2);
+    assert.equal(row.skillFindings[0].file, 'research.md');
+    assert.match(row.skillFindings[1].content, /Flows defined/);
+  });
+
+  it('embeds session intent in row pickupPrompt from orchestrator controls', () => {
+    fs.mkdirSync(path.join(tmp, '.mc'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmp, '.mc', 'orchestrator-controls.json'),
+      JSON.stringify({
+        sessionIntent: { pipelineScope: 'planning-only', decisionReview: 'auto-proceed' },
+      }),
+    );
+    const row = collectItemRow(tmp, 'feature', 'demo', {}, -1);
+    assert.match(row.pickupPrompt, /pipelineScope: planning-only/);
+    assert.match(row.pickupPrompt, /decisionReview: auto-proceed/);
+  });
+
+  it('returns empty skillFindings for tech-stack rows', () => {
+    const techDir = path.join(tmp, 'tech-stack', 'next-app');
+    fs.mkdirSync(techDir, { recursive: true });
+    fs.writeFileSync(path.join(techDir, 'status.json'), JSON.stringify({ pipelineStage: 'braindump' }));
+    const row = collectItemRow(tmp, 'tech-stack', 'next-app', {}, -1);
+    assert.deepEqual(row.skillFindings, []);
+  });
+});
+
+describe('dashboard embeds skillFindings', () => {
+  it('includes skill findings section and serializes findings in MC_ITEMS', () => {
+    const html = buildDashboardHtml({
+      generatedAt: new Date().toISOString(),
+      handoff: '',
+      stack: { techStackStatus: 'established', summary: '—', projectMode: '—', layoutTargets: [] },
+      global: {},
+      rows: [
+        {
+          id: 'demo',
+          workstream: 'feature',
+          type: 'Feature',
+          stage: 'Research',
+          stageKey: 'research',
+          pipelineStage: 'research',
+          specStatus: 'draft',
+          layoutStatus: '—',
+          targetCodebases: [],
+          stepTimeline: [],
+          progress: { done: 0, total: 0, pct: 0 },
+          lastUpdated: null,
+          lastUpdatedDisplay: '—',
+          currentTaskId: '—',
+          currentTaskTitle: '',
+          workingTaskId: null,
+          workingTaskTitle: '',
+          hasWorkingTask: false,
+          branch: '—',
+          order: null,
+          inProgress: true,
+          isBuilding: false,
+          nextCommand: '/mc',
+          pickupPrompt: 'pickup',
+          tasks: [],
+          braindump: null,
+          spec: null,
+          layoutDoc: null,
+          exploreDocs: [],
+          skillFindings: [
+            {
+              file: 'research.md',
+              label: 'UX research',
+              source: 'design-research',
+              content: 'Persona: admin user',
+            },
+          ],
+          phaseDocs: [],
+          journalEntries: [],
+          wireframes: [],
+          screenshots: [],
+        },
+      ],
+      defaultSort: 'lastUpdated',
+      kitVersion: null,
+      controls: null,
+    });
+
+    assert.match(html, /id="detail-skill-findings"/);
+    assert.match(html, /Skill findings/);
+
+    const start = html.indexOf('window.MC_ITEMS = ');
+    const end = html.indexOf('</script>', start);
+    const json = html.slice(start, end).replace(/^window\.MC_ITEMS = /, '').replace(/;window\.MC_DEFAULT_SORT.*$/, '');
+    const items = JSON.parse(json);
+    assert.equal(items[0].skillFindings[0].label, 'UX research');
+    assert.match(items[0].skillFindings[0].content, /admin user/);
+  });
+});
+
+describe('migration 4.6.0-session-intent', () => {
+  let tmp;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-migrate-460-'));
+    fs.mkdirSync(path.join(tmp, '.mc'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmp, '.mc', 'orchestrator-controls.json'),
+      JSON.stringify({ advanceToNextFeature: true, version: 2 }),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('adds sessionIntent defaults without clobbering existing controls', async () => {
+    const { up } = await import('../migrations/4.6.0-session-intent.mjs');
+    await up({ controlRoot: tmp });
+    const raw = JSON.parse(fs.readFileSync(path.join(tmp, '.mc', 'orchestrator-controls.json'), 'utf8'));
+    assert.equal(raw.advanceToNextFeature, true);
+    assert.deepEqual(raw.sessionIntent, {
+      pipelineScope: 'full-pipeline',
+      decisionReview: 'review-first',
+    });
+  });
+
+  it('preserves existing sessionIntent partial patch', async () => {
+    fs.writeFileSync(
+      path.join(tmp, '.mc', 'orchestrator-controls.json'),
+      JSON.stringify({
+        sessionIntent: { pipelineScope: 'planning-only' },
+      }),
+    );
+    const { up } = await import('../migrations/4.6.0-session-intent.mjs');
+    await up({ controlRoot: tmp });
+    const raw = JSON.parse(fs.readFileSync(path.join(tmp, '.mc', 'orchestrator-controls.json'), 'utf8'));
+    assert.equal(raw.sessionIntent.pipelineScope, 'planning-only');
+    assert.equal(raw.sessionIntent.decisionReview, 'review-first');
   });
 });
 
