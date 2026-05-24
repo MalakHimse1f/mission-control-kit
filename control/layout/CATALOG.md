@@ -50,3 +50,4 @@ HTML snippets: [`primitives/`](primitives/) — one file per primitive.
 2. Place primitives inside labeled regions — do not invent new chrome.
 3. Document navigation paths in `features/{slug}/layout/layout.md`.
 4. Output wireframes to `features/{slug}/layout/wireframes/{platform}.html`.
+5. Output research / explore / strategy / interaction findings as HTML layouts per `RESEARCH-LAYOUT.md` (not markdown-only).

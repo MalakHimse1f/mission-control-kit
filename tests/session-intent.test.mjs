@@ -17,6 +17,17 @@ import { mergeOrchestratorControls, DEFAULT_ORCHESTRATOR_CONTROLS } from '../con
 import { collectSkillFindings } from '../control/scripts/dashboard-content.mjs';
 import { collectItemRow, buildPickupPrompt } from '../control/scripts/dashboard-data.mjs';
 import { buildDashboardHtml } from '../control/scripts/dashboard-template.mjs';
+import { buildResearchPage, cardSection } from '../control/lib/research-layout.mjs';
+
+const kitControlRoot = path.join(process.cwd(), 'control');
+
+function setupTmpControl(tmp) {
+  fs.mkdirSync(path.join(tmp, 'layout'), { recursive: true });
+  fs.copyFileSync(
+    path.join(kitControlRoot, 'layout/wireframe.css'),
+    path.join(tmp, 'layout/wireframe.css'),
+  );
+}
 
 describe('session-intent', () => {
   it('suggests planning-only during early planning stages', () => {
@@ -151,14 +162,27 @@ describe('collectItemRow skillFindings integration', () => {
 
   beforeEach(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-row-skill-'));
+    setupTmpControl(tmp);
     const slugDir = path.join(tmp, 'features', 'demo');
     fs.mkdirSync(slugDir, { recursive: true });
     fs.writeFileSync(
       path.join(slugDir, 'status.json'),
       JSON.stringify({ pipelineStage: 'research', specStatus: 'draft', tasks: [] }),
     );
-    fs.writeFileSync(path.join(slugDir, 'research.md'), '# Research\nFindings here.');
-    fs.writeFileSync(path.join(slugDir, 'interaction.md'), '# Interaction\nFlows defined.');
+    fs.writeFileSync(
+      path.join(slugDir, 'research.html'),
+      buildResearchPage({
+        title: 'Research',
+        sections: [cardSection({ title: 'Finding', body: 'Findings here.' })],
+      }),
+    );
+    fs.writeFileSync(
+      path.join(slugDir, 'interaction.html'),
+      buildResearchPage({
+        title: 'Interaction',
+        sections: [cardSection({ title: 'Flow', body: 'Flows defined.' })],
+      }),
+    );
   });
 
   afterEach(() => {
@@ -168,8 +192,9 @@ describe('collectItemRow skillFindings integration', () => {
   it('attaches skillFindings from disk to feature row', () => {
     const row = collectItemRow(tmp, 'feature', 'demo', {}, -1);
     assert.equal(row.skillFindings.length, 2);
-    assert.equal(row.skillFindings[0].file, 'research.md');
-    assert.match(row.skillFindings[1].content, /Flows defined/);
+    assert.equal(row.skillFindings[0].file, 'research.html');
+    assert.equal(row.skillFindings[0].format, 'html');
+    assert.match(row.skillFindings[1].html, /Flows defined/);
   });
 
   it('embeds session intent in row pickupPrompt from orchestrator controls', () => {
@@ -234,10 +259,11 @@ describe('dashboard embeds skillFindings', () => {
           exploreDocs: [],
           skillFindings: [
             {
-              file: 'research.md',
+              file: 'research.html',
               label: 'UX research',
               source: 'design-research',
-              content: 'Persona: admin user',
+              format: 'html',
+              html: '<!DOCTYPE html><html><body><div class="wf-card">Persona: admin user</div></body></html>',
             },
           ],
           phaseDocs: [],
@@ -259,7 +285,8 @@ describe('dashboard embeds skillFindings', () => {
     const json = html.slice(start, end).replace(/^window\.MC_ITEMS = /, '').replace(/;window\.MC_DEFAULT_SORT.*$/, '');
     const items = JSON.parse(json);
     assert.equal(items[0].skillFindings[0].label, 'UX research');
-    assert.match(items[0].skillFindings[0].content, /admin user/);
+    assert.match(items[0].skillFindings[0].html, /admin user/);
+    assert.match(html, /renderResearchPages/);
   });
 });
 
@@ -305,11 +332,12 @@ describe('migration 4.6.0-session-intent', () => {
   });
 });
 
-describe('collectSkillFindings', () => {
+describe('collectSkillFindings legacy markdown fallback', () => {
   let tmp;
 
   beforeEach(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-skill-findings-'));
+    setupTmpControl(tmp);
     const slugDir = path.join(tmp, 'features', 'demo');
     fs.mkdirSync(slugDir, { recursive: true });
     fs.writeFileSync(path.join(slugDir, 'research.md'), '# Research\nPersonas defined.');
@@ -320,16 +348,17 @@ describe('collectSkillFindings', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 
-  it('collects vendor skill markdown from feature folder', () => {
+  it('converts legacy markdown skill outputs to HTML for dashboard', () => {
     const findings = collectSkillFindings(tmp, 'features', 'demo');
     assert.equal(findings.length, 2);
+    assert.equal(findings[0].format, 'html');
     assert.equal(findings[0].label, 'UX research');
-    assert.equal(findings[0].source, 'design-research');
-    assert.match(findings[1].content, /IA map/);
+    assert.match(findings[0].html, /Personas defined/);
+    assert.match(findings[1].html, /IA map/);
   });
 
-  it('omits missing interaction.md', () => {
+  it('omits missing interaction artifact', () => {
     const findings = collectSkillFindings(tmp, 'features', 'demo');
-    assert.ok(!findings.some((f) => f.file === 'interaction.md'));
+    assert.ok(!findings.some((f) => f.file === 'interaction.html' || f.file === 'interaction.md'));
   });
 });

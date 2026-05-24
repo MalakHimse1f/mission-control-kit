@@ -39,7 +39,7 @@ READ disk → SESSION INTENT (AskUserQuestion) → CHECK vendor skills → PACKE
 
 ## Session intent (every `/mc`)
 
-Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs to known paths for dashboard **Skill findings** review.
+Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs as HTML layouts per `RESEARCH-LAYOUT.md` for dashboard review.
 
 ## Entry commands
 

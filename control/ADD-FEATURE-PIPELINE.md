@@ -18,12 +18,12 @@ Use when adding a **capability to an existing product** with established stack a
 |------|-----|--------------|-----------------|-------------|
 | 0 | `vendor-setup` | Verify designer-skills + prd-generator installed | `mc-setup-skills` if missing | journal |
 | 1 | `braindump` | Capture feature + codebase paths | — | `features/{slug}/braindump.md`, status.json |
-| 2 | `explore` | Codebase map per target | `mc-explore` × N | `explore/{label}.md`, journals |
-| 3 | `research` | UX research synthesis | **`design-research`** (required) | `features/{slug}/research.md`, journal |
+| 2 | `explore` | Codebase map per target | `mc-explore` × N | `explore/{label}.html`, journals |
+| 3 | `research` | UX research synthesis | **`design-research`** (required) | `features/{slug}/research.html`, journal |
 | 4 | `clarify` | AskQuestion loop | orchestrator | `journal/NNN-clarify.md` |
-| 5 | `strategy` | IA / problem frame | **`ux-strategy`** when ambiguous | `features/{slug}/ux-strategy.md` |
+| 5 | `strategy` | IA / problem frame | **`ux-strategy`** when ambiguous | `features/{slug}/ux-strategy.html` |
 | 6 | `prd` | Write PRD | `mc-prd` + **`prd-generator`** (required) | `spec.md`, journal |
-| 7 | `interaction` | Flows, states, errors | **`interaction-design`** for UI features | `features/{slug}/interaction.md` |
+| 7 | `interaction` | Flows, states, errors | **`interaction-design`** for UI features | `features/{slug}/interaction.html` |
 | 8 | `mock` | Wireframes | `mc-mock` + **`visual-critique`** before approve | `layout/**`, journal |
 | 9 | `plan` | Platform plans | `mc-platform-plan` | `phases/phase-*.md`, tasks[] |
 | 10 | `build` | Implement tasks | subagent-driven-development | commits, build journals |
@@ -42,7 +42,7 @@ Use when adding a **capability to an existing product** with established stack a
 | Navigation / states | `interaction-design` |
 | Research gaps | `design-research` |
 
-Document skill outputs in feature folder — do not keep design decisions only in chat.
+Document skill outputs in feature folder as **HTML layouts** (`RESEARCH-LAYOUT.md`) — do not keep design decisions only in chat.
 
 ---
 
@@ -52,8 +52,8 @@ Document skill outputs in feature folder — do not keep design decisions only i
 |-------|------|------|
 | explore | braindump, target repo paths | project/market-brief, other features |
 | research | braindump, explore summaries | phase plans |
-| prd | braindump, explore/*, research, clarify journal | unrelated features |
-| mock | spec.md, interaction.md, layout targets | market briefs |
+| prd | braindump, explore/*.html, research.html, clarify journal | unrelated features |
+| mock | spec.md, interaction.html, layout targets | market briefs |
 | plan | spec.md, stack.json, explore maps | competitor docs |
 | build | single task + BUILD-GATES commands | full portfolio |
 

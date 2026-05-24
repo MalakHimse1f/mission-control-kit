@@ -23,7 +23,7 @@ disable-model-invocation: true
 
 Before dispatching any subagent:
 
-1. Read disk — `state.json`, `HANDOFF.md`, active `status.json`, `.mc/orchestrator-controls.json`, skill artifacts (`research.md`, `ux-strategy.md`, `interaction.md`, `explore/*.md`)
+1. Read disk — `state.json`, `HANDOFF.md`, active `status.json`, `.mc/orchestrator-controls.json`, research HTML artifacts
 2. Brief the user — active slug, `pipelineStage`, progress, suggested next step
 3. **AskUserQuestion** — pipeline scope (`SESSION-INTENT.md`, `USER-QUESTIONS.md`)
 4. **AskUserQuestion** — decision review: review key decisions vs auto-proceed with defaults

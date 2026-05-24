@@ -237,7 +237,7 @@ describe('validateRouteCard', () => {
       read: ['features/x/braindump.md'],
       skip: ['features/other-slug/**'],
       skills: [],
-      outputs: ['features/x/explore/web.md'],
+      outputs: ['features/x/explore/web.html'],
       gates: [],
       stop: 'DONE',
     });

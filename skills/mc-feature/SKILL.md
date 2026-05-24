@@ -11,7 +11,7 @@ argument-hint: [feature description + target codebase folder paths]
 
 **MUST invoke:** `mission-control` skill.
 
-**MUST read:** `ROUTER.md`, `ADD-FEATURE-PIPELINE.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`
+**MUST read:** `ROUTER.md`, `ADD-FEATURE-PIPELINE.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`, `RESEARCH-LAYOUT.md`
 
 ## Raw input
 
@@ -33,7 +33,7 @@ Dispatch `mc-explore` per target codebase with **context packet** (braindump + p
 
 ## Part C — Research (required)
 
-Invoke **design-research** skills/commands. Write `features/{slug}/research.md`, journal → clarify
+Invoke **design-research** skills/commands. Compose **`features/{slug}/research.html`** using layout primitives (`RESEARCH-LAYOUT.md`), journal → clarify
 
 ## Part D — Clarify
 
@@ -41,17 +41,17 @@ AskQuestion loop → journal → prd
 
 ## Part E — Strategy
 
-If IA/problem frame needed → **ux-strategy** → `ux-strategy.md`
+If IA/problem frame needed → **ux-strategy** → **`ux-strategy.html`** (HTML layout, not markdown)
 
 ## Part F — PRD
 
-Dispatch `mc-prd` with packet: braindump, explore, research, clarify — **not** other features.
+Dispatch `mc-prd` with packet: braindump, explore HTML, research HTML, clarify — **not** other features.
 
 **Route card must include:** `skills: [prd-generator]`. The subagent **must invoke** `prd-generator` before writing `spec.md`.
 
 ## Part G — Interaction
 
-For UX features → **interaction-design** → `interaction.md`
+For UX features → **interaction-design** → **`interaction.html`** (HTML layout using primitives)
 
 ## Part H — Mock
 

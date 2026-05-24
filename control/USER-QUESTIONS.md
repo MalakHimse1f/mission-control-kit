@@ -65,7 +65,7 @@ Persist → `sessionIntent.decisionReview`.
 
 When `decisionReview` is `review-first`, orchestrator **must** pause after research, strategy, interaction, explore synthesis, clarify, prd, mock, and plan — even if `pipelineScope` is full-pipeline.
 
-When `decisionReview` is `auto-proceed`, still write all skill outputs to disk (`research.md`, `ux-strategy.md`, `interaction.md`, `explore/*.md`) for dashboard review.
+When `decisionReview` is `auto-proceed`, still write all skill outputs to disk as HTML layouts (`research.html`, `ux-strategy.html`, `interaction.html`, `explore/*.html`) per `RESEARCH-LAYOUT.md`.
 
 ### Build order (`/mc-portfolio`)
 

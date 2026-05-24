@@ -163,9 +163,9 @@ A collection of **91 skills across 9 plugins** (research → systems → UI → 
 
 | Skill / plugin | What it does | Mission Control stage |
 |----------------|----------------|----------------------|
-| **`design-research`** | Personas, journey maps, interviews, usability synthesis — turns user evidence into design inputs | `research` — orchestrator invokes; writes `features/{slug}/research.md` |
-| **`ux-strategy`** | Problem framing, IA, experience maps, competitive UX analysis, design principles | `strategy` — when scope is ambiguous; writes `features/{slug}/ux-strategy.md` |
-| **`interaction-design`** | Flows, states, errors, navigation, forms, micro-interactions, cognitive laws (Fitts, Hick, …) | `interaction` — UI features; writes `features/{slug}/interaction.md` |
+| **`design-research`** | Personas, journey maps, interviews, usability synthesis — turns user evidence into design inputs | `research` — orchestrator invokes; writes `features/{slug}/research.html` |
+| **`ux-strategy`** | Problem framing, IA, experience maps, competitive UX analysis, design principles | `strategy` — when scope is ambiguous; writes `features/{slug}/ux-strategy.html` |
+| **`interaction-design`** | Flows, states, errors, navigation, forms, micro-interactions, cognitive laws (Fitts, Hick, …) | `interaction` — UI features; writes `features/{slug}/interaction.html` |
 | **`visual-critique`** | Hierarchy, typography, composition, brand consistency audits | `mock` — before mock approval; `mc-mock` subagent runs wireframes, critique gates quality |
 
 **Also in the bundle (optional — invoke when useful):** `ui-design`, `prototyping-testing`, `design-systems`, `design-ops`, `designer-toolkit` — layout systems, color/type scales, heuristic evaluation, handoff specs, etc.

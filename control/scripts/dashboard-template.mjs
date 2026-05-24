@@ -74,6 +74,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .visual-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
 .wireframe-card, .shot-card { margin: 0; flex: 1 1 280px; max-width: 420px; background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .wireframe-card iframe { display: block; width: 100%; height: 360px; border: none; background: #fff; }
+.research-card iframe { height: 420px; }
 .wireframe-card figcaption, .shot-card figcaption { font-size: 0.75rem; color: var(--muted); padding: 0.45rem 0.6rem; border-top: 1px solid #1f1f1f; }
 .shot-card img { display: block; width: 100%; height: auto; max-height: 280px; object-fit: contain; background: #111; }
 .btn { background: #262626; color: #fff; border: 1px solid #555; padding: 0.35rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.78rem; white-space: nowrap; }
@@ -229,6 +230,23 @@ export const DASHBOARD_CLIENT_JS = `
           (s.journalFile ? '<div class="step-meta">Journal: ' + esc(s.journalFile) + '</div>' : '') +
         '</div></li>'
     ).join('') + '</ul>';
+  }
+
+  function renderResearchPages(pages, emptyMsg) {
+    if (!pages || !pages.length) return '<p class="muted">' + esc(emptyMsg) + '</p>';
+    return '<div class="visual-grid">' + pages.map((p) => {
+      const html = p.html || p.content || '';
+      if (p.format === 'html' || (html && html.includes('<!DOCTYPE'))) {
+        return '<figure class="wireframe-card research-card">' +
+          '<iframe srcdoc="' + escSrcdoc(html) + '" title="' + esc(p.label || p.file) + '" loading="lazy"></iframe>' +
+          '<figcaption>' + esc(p.label || p.file) + (p.source ? ' · ' + esc(p.source) : '') + '</figcaption>' +
+        '</figure>';
+      }
+      return '<details class="collapsible-doc">' +
+        '<summary>' + esc(p.label || p.file) + '</summary>' +
+        renderDocBlock(html) +
+      '</details>';
+    }).join('') + '</div>';
   }
 
   function renderCollapsibleDocs(docs, emptyMsg) {
@@ -451,8 +469,8 @@ export const DASHBOARD_CLIENT_JS = `
     if (detailSteps) detailSteps.innerHTML = renderStepTimeline(i.stepTimeline);
     if (detailBraindump) detailBraindump.innerHTML = renderDocBlock(i.braindump, "Braindump");
     if (detailSpec) detailSpec.innerHTML = renderDocBlock(i.spec, "PRD / Spec");
-    if (detailExplore) detailExplore.innerHTML = renderCollapsibleDocs(i.exploreDocs, "No exploration findings yet.");
-    if (detailSkillFindings) detailSkillFindings.innerHTML = renderCollapsibleDocs(i.skillFindings, "No skill findings yet — research, strategy, and interaction outputs appear here.");
+    if (detailExplore) detailExplore.innerHTML = renderResearchPages(i.exploreDocs, "No exploration findings yet.");
+    if (detailSkillFindings) detailSkillFindings.innerHTML = renderResearchPages(i.skillFindings, "No skill findings yet — research, strategy, and interaction HTML outputs appear here.");
     if (detailPhases) detailPhases.innerHTML = renderCollapsibleDocs(i.phaseDocs, "No implementation plans yet.");
     if (detailJournal) detailJournal.innerHTML = renderCollapsibleDocs(i.journalEntries, "No journal entries yet — subagents document here when tasks complete.");
     if (detailLayoutDoc) detailLayoutDoc.innerHTML = renderDocBlock(i.layoutDoc, "Layout notes");
@@ -699,7 +717,7 @@ export function buildDashboardHtml({
         </div>
         <div class="detail-section">
           <h4>Skill findings</h4>
-          <p class="muted">Research, strategy, and interaction outputs from vendor skills — review before build when decision review is on.</p>
+          <p class="muted">Research, strategy, and interaction HTML layouts (layout primitives + wireframe.css) — review before build when decision review is on.</p>
           <div id="detail-skill-findings"></div>
         </div>
         <div class="detail-section" id="detail-wireframes-section">

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Explore — {codebase-label}</title>
+  <link rel="stylesheet" href="../../../layout/wireframe.css" />
+</head>
+<body>
+<div class="wf-page wf-desktop">
+  <section class="wf-hero">
+    <span class="wf-label">Explore</span>
+    <h1 style="margin-top:16px">{codebase-label}</h1>
+    <p>Structured codebase findings for the orchestrator and PRD subagent.</p>
+  </section>
+  <div style="padding:24px">
+    <section class="wf-region" style="margin-bottom:16px">
+      <span class="wf-label">Overview</span>
+      <div class="wf-region-body">
+        <div class="wf-card">
+          <strong>Stack &amp; entry points</strong>
+          <p style="margin-top:8px;color:#555">Framework, main app entry, routing pattern.</p>
+        </div>
+      </div>
+    </section>
+    <section class="wf-region" style="margin-bottom:16px">
+      <span class="wf-label">Structure</span>
+      <div class="wf-region-body">
+        <div class="wf-list wf-card" style="padding:0">
+          <div style="padding:10px 12px;border-bottom:1px solid #ccc">src/ — application code</div>
+          <div style="padding:10px 12px;border-bottom:1px solid #ccc">api/ — server routes</div>
+          <div style="padding:10px 12px">tests/ — test setup</div>
+        </div>
+      </div>
+    </section>
+    <section class="wf-region" style="margin-bottom:16px">
+      <span class="wf-label">Integration points</span>
+      <div class="wf-region-body">
+        <table class="wf-table" style="width:100%;border-collapse:collapse;border:1px solid #666">
+          <tr style="background:#eee">
+            <th style="border:1px solid #666;padding:8px;text-align:left">Area</th>
+            <th style="border:1px solid #666;padding:8px;text-align:left">Notes</th>
+          </tr>
+          <tr>
+            <td style="border:1px solid #666;padding:8px">Auth</td>
+            <td style="border:1px solid #666;padding:8px">Session / JWT pattern</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+    <section class="wf-region">
+      <span class="wf-label">Blockers</span>
+      <div class="wf-region-body">
+        <div class="wf-card">
+          <strong>Concerns</strong>
+          <p style="margin-top:8px;color:#555">None — or list blockers for orchestrator.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>

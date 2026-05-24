@@ -34,7 +34,7 @@ Also read: `USER-QUESTIONS.md`, `ORCHESTRATOR-CONTROLS.md`.
 
 ## Session start flow (mandatory on `/mc`)
 
-1. **Read disk** — `state.json`, `HANDOFF.md`, active `status.json`, `.mc/orchestrator-controls.json`, latest journals, skill artifacts (`research.md`, `ux-strategy.md`, `interaction.md`, `explore/*.md`).
+1. **Read disk** — `state.json`, `HANDOFF.md`, active `status.json`, `.mc/orchestrator-controls.json`, latest journals, research HTML (`research.html`, `ux-strategy.html`, `interaction.html`, `explore/*.html`).
 2. **Brief the user** — one paragraph: active slug, `pipelineStage`, what's done, what's next, suggested scope from disk.
 3. **AskQuestion (Cursor) / AskUserQuestion (Claude)** — pipeline scope. Options depend on state (see `USER-QUESTIONS.md`).
 4. **AskQuestion / AskUserQuestion** — decision review mode (unless user already set both via dashboard and says "use dashboard settings").
@@ -57,10 +57,10 @@ Vendor skill outputs must land at known paths so the dashboard can embed them:
 
 | Artifact | Path |
 |----------|------|
-| UX research | `features/{slug}/research.md` |
-| UX strategy | `features/{slug}/ux-strategy.md` |
-| Interaction design | `features/{slug}/interaction.md` |
-| Codebase exploration | `features/{slug}/explore/*.md` |
+| UX research | `features/{slug}/research.html` |
+| UX strategy | `features/{slug}/ux-strategy.html` |
+| Interaction design | `features/{slug}/interaction.html` |
+| Codebase exploration | `features/{slug}/explore/*.html` |
 
 The dashboard **Skill findings** section shows these in the feature detail modal.
 

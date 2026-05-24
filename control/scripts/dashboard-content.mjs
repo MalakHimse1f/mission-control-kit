@@ -1,6 +1,12 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { escapeHtml } from "./dashboard-helpers.mjs";
+import {
+  RESEARCH_HTML_ARTIFACTS,
+  resolveResearchArtifactHtml,
+  resolveExploreDocHtml,
+  prepareHtmlForDashboardEmbed,
+} from "../lib/research-layout.mjs";
 
 const PIPELINE_LABELS = {
   braindump: "Braindump",
@@ -43,35 +49,25 @@ export function collectJournalEntries(control, base, slug) {
 export function collectExploreDocs(control, base, slug) {
   const exploreDir = join(control, base, slug, "explore");
   if (!existsSync(exploreDir)) return [];
-  return readdirSync(exploreDir)
-    .filter((f) => f.endsWith(".md") && !f.startsWith("_"))
-    .sort()
-    .map((file) => ({
-      file,
-      label: file.replace(/\.md$/, ""),
-      content: readTextFile(join(exploreDir, file)) ?? "",
-    }));
+  const names = new Set();
+  for (const f of readdirSync(exploreDir)) {
+    if (f.startsWith("_")) continue;
+    if (/\.(html|md)$/i.test(f)) names.add(f.replace(/\.(html|md)$/i, ""));
+  }
+  const out = [];
+  for (const name of [...names].sort()) {
+    const doc = resolveExploreDocHtml(control, exploreDir, name);
+    if (doc) out.push(doc);
+  }
+  return out;
 }
-
-/** Vendor skill outputs (research, strategy, interaction) for dashboard review. */
-const SKILL_FINDING_FILES = [
-  { file: "research.md", label: "UX research", source: "design-research" },
-  { file: "ux-strategy.md", label: "UX strategy", source: "ux-strategy" },
-  { file: "interaction.md", label: "Interaction design", source: "interaction-design" },
-];
 
 export function collectSkillFindings(control, base, slug) {
   const itemRoot = join(control, base, slug);
   const out = [];
-  for (const meta of SKILL_FINDING_FILES) {
-    const content = readTextFile(join(itemRoot, meta.file));
-    if (!content?.trim()) continue;
-    out.push({
-      file: meta.file,
-      label: meta.label,
-      source: meta.source,
-      content,
-    });
+  for (const meta of RESEARCH_HTML_ARTIFACTS) {
+    const resolved = resolveResearchArtifactHtml(control, itemRoot, meta);
+    if (resolved) out.push(resolved);
   }
   return out;
 }
@@ -96,8 +92,8 @@ export function collectEmbeddedWireframes(control, base, slug) {
   for (const file of readdirSync(wireDir)) {
     if (!/\.html?$/i.test(file)) continue;
     const id = file.replace(/\.html?$/i, "");
-    const html = readTextFile(join(wireDir, file)) ?? "";
-    out.push({ id, label: id, html });
+    const raw = readTextFile(join(wireDir, file)) ?? "";
+    out.push({ id, label: id, html: prepareHtmlForDashboardEmbed(raw, control) });
   }
   return out.sort((a, b) => a.id.localeCompare(b.id));
 }

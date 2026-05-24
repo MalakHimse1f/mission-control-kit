@@ -24,7 +24,8 @@ Generic PRD prompts are **forbidden** when `prd-generator` is available.
 - `braindump.md`
 - All files in `explore/*.md`
 - Clarify journal (Q&A with user)
-- `research.md` when present (UX path)
+- `research.html` when present (UX path)
+- `explore/*.html` when present
 - `tech-stack/stack.json` → `layoutTargets`
 
 ## Outputs (required before DONE)
