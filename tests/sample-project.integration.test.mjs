@@ -58,6 +58,20 @@ describe('sample project install', () => {
     assert.ok(check.includes('prd-generator'));
   });
 
+  it('bundles superpowers skills for both workflows', () => {
+    for (const skill of [
+      'brainstorming',
+      'writing-plans',
+      'subagent-driven-development',
+      'verification-before-completion',
+    ]) {
+      const p = path.join(sampleRoot, '.claude/skills/vendor/superpowers', skill, 'SKILL.md');
+      assert.ok(fs.existsSync(p), `missing superpowers/${skill}`);
+    }
+    const check = run(`node "${path.join(kitRoot, 'scripts/check-vendor-skills.mjs')}" "${sampleRoot}" all`);
+    assert.ok(check.includes('superpowers'));
+  });
+
   it('generates dashboard without error', () => {
     run('node docs/superpowers/control/scripts/generate-dashboard.mjs', sampleRoot);
     assert.ok(fs.existsSync(path.join(controlRoot, 'dashboard.html')));

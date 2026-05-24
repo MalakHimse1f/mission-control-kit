@@ -2,6 +2,24 @@
   "version": 1,
   "bundles": [
     {
+      "id": "superpowers",
+      "repo": "https://github.com/obra/superpowers.git",
+      "ref": "main",
+      "sourceSubpath": "skills",
+      "installPath": "vendor/superpowers",
+      "projectSkillsPath": ".claude/skills/vendor/superpowers",
+      "requiredFor": ["project-start", "add-feature"],
+      "requiredSkills": [
+        "brainstorming",
+        "writing-plans",
+        "subagent-driven-development",
+        "verification-before-completion"
+      ],
+      "license": "MIT",
+      "attribution": "Jesse Vincent (obra) — https://github.com/obra/superpowers",
+      "pluginInstall": "/plugin install superpowers@claude-plugins-official"
+    },
+    {
       "id": "startup-skill",
       "repo": "https://github.com/ferdinandobons/startup-skill.git",
       "ref": "main",

@@ -94,7 +94,7 @@ You  →  Orchestrator (/mc, /mc-start, /mc-feature)
          Dashboard updates  →  You review  →  Next stage
 ```
 
-Works with **[Superpowers](https://github.com/obra/superpowers)** and bundles three vendor skill repos (below). Mission Control **does not substitute generic prompts** when a required skill is missing — it blocks and runs setup first.
+Works with **[Superpowers](https://github.com/obra/superpowers)** and **four bundled vendor repos** (below). Mission Control **does not substitute generic prompts** when a required skill is missing — it blocks and runs setup first.
 
 ---
 
@@ -113,18 +113,22 @@ Install clones vendor repos into `.claude/skills/vendor/` (see `vendor/manifest.
 
 ---
 
-### Companion plugin — [Superpowers](https://github.com/obra/superpowers) by [Jesse Vincent (obra)](https://github.com/obra)
+### Bundled — [Superpowers](https://github.com/obra/superpowers) by [Jesse Vincent (obra)](https://github.com/obra) (MIT)
 
-**Not bundled** — install separately in Cursor or Claude Code. Mission Control orchestrates the workflow; Superpowers provides the execution patterns for brainstorming, planning, building, and verification.
+**Workflows:** `/mc-start` and `/mc-feature` · **Install path:** `.claude/skills/vendor/superpowers/` (mirrored to `.cursor/skills/vendor/superpowers/`)
+
+Cloned from [obra/superpowers](https://github.com/obra/superpowers) on install. Provides the core execution patterns Mission Control orchestrates — brainstorming before specs, phased plans, isolated implementers, and evidence-based validation. The full repo includes 14 skills; MC requires four at specific stages.
 
 | Skill | What it does | Mission Control stage |
 |-------|----------------|----------------------|
-| **`brainstorming`** | Structured refinement — explores intent, alternatives, and constraints before committing to a spec | Braindump / clarify (required to start Add Feature) |
-| **`writing-plans`** | Phased implementation plans with checkpoints and task breakdown | Plan (`mc-platform-plan`), portfolio review (`/mc-portfolio`) |
-| **`subagent-driven-development`** | Fresh implementer per task, status codes (`DONE`, `BLOCKED`, …), no context bleed | Build — orchestrator dispatches implementers per phase task |
-| **`verification-before-completion`** | Evidence before claims — run commands, confirm output before marking work complete | Validate — paired with BUILD-GATES (lint, test, build) |
+| **`brainstorming`** | Structured refinement — explores intent, alternatives, and constraints before committing to a spec | `braindump` / clarify — orchestrator invokes before locking scope |
+| **`writing-plans`** | Phased implementation plans with checkpoints and task breakdown | `plan` — `mc-platform-plan` subagent; also `/mc-portfolio` |
+| **`subagent-driven-development`** | Fresh implementer per task, status codes (`DONE`, `BLOCKED`, …), no context bleed | `build` — orchestrator dispatches implementers per phase task |
+| **`verification-before-completion`** | Evidence before claims — run commands, confirm output before marking work complete | `validate` (Add Feature) — paired with BUILD-GATES |
 
-Setup: see `control/SUPERPOWERS-SETUP.md`. Preflight: `node docs/superpowers/control/scripts/check-setup.mjs`.
+**Also bundled (optional):** `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `executing-plans`, and others — available under the vendor folder for ad-hoc use.
+
+Plugin install remains optional for marketplace updates. See `control/SUPERPOWERS-SETUP.md`. Preflight: `node docs/superpowers/control/scripts/check-setup.mjs`.
 
 ---
 
@@ -197,7 +201,7 @@ These live in the kit (`skills/`, `claude-skills/`, `.cursor/commands/`) — not
 
 | Stage | Who runs it | Required open-source skill |
 |-------|-------------|---------------------------|
-| vendor-setup | `mc-setup-skills` | startup-skill bundle |
+| vendor-setup | `mc-setup-skills` | superpowers + startup-skill bundles |
 | validate | orchestrator | `startup-design` |
 | compete | orchestrator | `startup-competitors` |
 | position | orchestrator | `startup-positioning` |
@@ -207,16 +211,16 @@ These live in the kit (`skills/`, `claude-skills/`, `.cursor/commands/`) — not
 
 | Stage | Who runs it | Required open-source skill |
 |-------|-------------|---------------------------|
-| vendor-setup | `mc-setup-skills` | designer-skills + prd-generator |
-| braindump / clarify | orchestrator | `brainstorming` (Superpowers) |
+| vendor-setup | `mc-setup-skills` | superpowers + designer-skills + prd-generator |
+| braindump / clarify | orchestrator | `brainstorming` |
 | research | orchestrator | `design-research` |
 | strategy | orchestrator | `ux-strategy` |
 | prd | `mc-prd` | **`prd-generator`** |
 | interaction | orchestrator | `interaction-design` |
 | mock | `mc-mock` | `visual-critique` |
-| plan | `mc-platform-plan` | `writing-plans` (Superpowers) |
-| build | implementer | `subagent-driven-development` (Superpowers) |
-| validate | validator | `verification-before-completion` (Superpowers) |
+| plan | `mc-platform-plan` | `writing-plans` |
+| build | implementer | `subagent-driven-development` |
+| validate | validator | `verification-before-completion` |
 
 Tech-only features skip research, strategy, interaction, and mock stages — PRD and build skills still apply.
 
@@ -251,7 +255,7 @@ git clone https://github.com/MalakHimse1f/mission-control-kit.git mission-contro
 cd mission-control-kit && chmod +x install.sh && ./install.sh .. both
 ```
 
-Install copies the control plane to `docs/superpowers/control/`, skills to `.cursor/` and `.claude/`, and bundles required vendor skills.
+Install copies the control plane to `docs/superpowers/control/`, skills to `.cursor/` and `.claude/`, and bundles **Superpowers**, startup-skill, designer-skills, and prd-generator into `vendor/`.
 
 ---
 

@@ -8,6 +8,7 @@ Mission Control v4 **requires** external skill bundles for two workflows. Generi
 
 | Bundle | Source | Workflow | Install path (project) |
 |--------|--------|----------|------------------------|
+| **superpowers** | [obra/superpowers](https://github.com/obra/superpowers) | Both workflows | `.claude/skills/vendor/superpowers/` (+ mirrored to `.cursor/skills/vendor/superpowers/`) |
 | **startup-skill** | [ferdinandobons/startup-skill](https://github.com/ferdinandobons/startup-skill) | Project START | `.claude/skills/vendor/startup-skill/` |
 | **designer-skills** | [Owl-Listener/designer-skills](https://github.com/Owl-Listener/designer-skills) | Add Feature (design stages) | `.claude/skills/vendor/designer-skills/` |
 | **prd-generator** | [jamesrochabrun/skills](https://github.com/jamesrochabrun/skills/tree/main/skills/prd-generator) | Add Feature (PRD stage) | `.claude/skills/vendor/prd-generator/` |
@@ -17,6 +18,19 @@ Pinned versions: `vendor/manifest.json` in the kit.
 ---
 
 ## Required invocations
+
+### Superpowers (both workflows)
+
+Bundled from [obra/superpowers](https://github.com/obra/superpowers) on install. Plugin install remains optional if you prefer marketplace updates.
+
+| Stage | Required skills (minimum) |
+|-------|---------------------------|
+| Braindump / clarify | `brainstorming` |
+| Plan | `writing-plans` |
+| Build | `subagent-driven-development` |
+| Validate (Add Feature) | `verification-before-completion` |
+
+See `SUPERPOWERS-SETUP.md` for plugin fallback.
 
 ### Project START (`/mc-start`)
 

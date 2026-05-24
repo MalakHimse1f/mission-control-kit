@@ -1,5 +1,6 @@
 dist/
 vendor/.cache-*/
+vendor/superpowers/
 vendor/startup-skill/
 vendor/designer-skills/
 vendor/prd-generator/

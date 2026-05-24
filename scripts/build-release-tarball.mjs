@@ -19,6 +19,7 @@ const archivePath = path.join(outDir, archiveName);
 /** Paths relative to kit root — excluded from release bundle */
 export const RELEASE_EXCLUDE_PREFIXES = [
   'vendor/.cache-',
+  'vendor/superpowers',
   'vendor/startup-skill',
   'vendor/designer-skills',
   'vendor/prd-generator',

@@ -48,8 +48,17 @@ function findMissionControl(projectRoot) {
   return null;
 }
 
-/** Walk plugin cache for superpowers/skills/{name}/SKILL.md */
-function findSuperpowersSkill(skillId) {
+/** Bundled vendor copy from Mission Control install */
+function findBundledSuperpowersSkill(projectRoot, skillId) {
+  const paths = [
+    path.join(projectRoot, '.claude', 'skills', 'vendor', 'superpowers', skillId, 'SKILL.md'),
+    path.join(projectRoot, '.cursor', 'skills', 'vendor', 'superpowers', skillId, 'SKILL.md'),
+  ];
+  return paths.filter(exists);
+}
+
+/** Walk plugin cache for superpowers/skills/{name}/SKILL.md (optional plugin install) */
+function findPluginSuperpowersSkill(skillId) {
   const caches = [
     path.join(os.homedir(), '.cursor', 'plugins', 'cache'),
     path.join(os.homedir(), '.claude', 'plugins', 'cache'),
@@ -65,6 +74,12 @@ function findSuperpowersSkill(skillId) {
     });
   }
   return hits;
+}
+
+function findSuperpowersSkill(projectRoot, skillId) {
+  const bundled = findBundledSuperpowersSkill(projectRoot, skillId);
+  if (bundled.length) return bundled;
+  return findPluginSuperpowersSkill(skillId);
 }
 
 function walk(dir, depth, onFile) {
@@ -100,7 +115,6 @@ let passed = 0;
 let failed = 0;
 let warnings = 0;
 
-// Control plane
 if (exists(path.join(controlRoot, 'INDEX.md'))) {
   ok('Control plane found');
   passed++;
@@ -118,15 +132,16 @@ if (mc) {
   failed++;
 }
 
-console.log('\nSuperpowers plugin:\n');
+console.log('\nSuperpowers (bundled on install, or via plugin):\n');
 
 for (const skill of REQUIRED_SP_SKILLS) {
-  const hits = findSuperpowersSkill(skill.id);
+  const hits = findSuperpowersSkill(projectRoot, skill.id);
   if (hits.length > 0) {
-    ok(`${skill.id} (${skill.stage})`);
+    const source = hits[0].includes('/vendor/superpowers/') ? 'bundled' : 'plugin';
+    ok(`${skill.id} (${skill.stage}, ${source})`);
     passed++;
   } else if (skill.required) {
-    fail(`${skill.id} not found — required for ${skill.stage}`);
+    fail(`${skill.id} not found — run install/upgrade or install Superpowers plugin`);
     failed++;
   } else {
     warn(`${skill.id} not found — needed before ${skill.stage}`);
@@ -136,9 +151,9 @@ for (const skill of REQUIRED_SP_SKILLS) {
 
 console.log('\n---');
 if (failed === 0) {
-  console.log(warnings ? 'Ready for /mc-braindump (with warnings above for later stages).' : 'All checks passed. Run /mc-braindump to start.');
+  console.log(warnings ? 'Ready for /mc-feature (with warnings above for later stages).' : 'All checks passed. Run /mc-feature or /mc-start.');
   process.exit(0);
 } else {
-  console.log('Setup incomplete. See docs/superpowers/control/SUPERPOWERS-SETUP.md');
+  console.log('Setup incomplete. Re-run install or see docs/superpowers/control/SUPERPOWERS-SETUP.md');
   process.exit(1);
 }

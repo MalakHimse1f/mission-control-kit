@@ -33,14 +33,34 @@ function existsDir(p) {
   }
 }
 
+function skillPresent(projectPath, skillId, bundleId) {
+  if (fs.existsSync(path.join(projectPath, skillId, 'SKILL.md'))) return true;
+  if (skillId === bundleId && fs.existsSync(path.join(projectPath, 'SKILL.md'))) return true;
+  if (existsDir(path.join(projectPath, skillId))) return true;
+  return false;
+}
+
 function bundleOk(bundle) {
   const projectPath = path.join(projectRoot, bundle.projectSkillsPath);
   if (!existsDir(projectPath)) {
     return { ok: false, reason: `missing directory ${bundle.projectSkillsPath}` };
   }
+
+  if (bundle.requiredSkills?.length) {
+    for (const skillId of bundle.requiredSkills) {
+      if (!skillPresent(projectPath, skillId, bundle.id)) {
+        return { ok: false, reason: `missing skill ${skillId} in ${bundle.projectSkillsPath}` };
+      }
+    }
+    return { ok: true };
+  }
+
   const entries = fs.readdirSync(projectPath).filter((e) => !e.startsWith('.'));
   if (entries.length === 0) {
     return { ok: false, reason: 'empty vendor directory' };
+  }
+  if (bundle.sourceSubpath && fs.existsSync(path.join(projectPath, 'SKILL.md')) === false) {
+    return { ok: true };
   }
   return { ok: true };
 }

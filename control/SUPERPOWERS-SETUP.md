@@ -1,81 +1,62 @@
-# Superpowers plugin — required for Mission Control
+# Superpowers — bundled with Mission Control
 
-Mission Control **orchestrates** the workflow. **Superpowers** provides the skills that do the heavy lifting (refinement questions, phased plans, subagent build loop, verification gates).
+Mission Control **orchestrates** the workflow. **[Superpowers](https://github.com/obra/superpowers)** (by Jesse Vincent / obra, MIT) provides brainstorming, planning, build-loop, and verification patterns.
 
-You need **both** installed in your project:
+## Bundled on install
 
-| You install | Provides |
-|-------------|----------|
-| Mission Control kit | `/mc-*` commands, control plane, dashboard, layout library |
-| **Superpowers plugin** | `brainstorming`, `writing-plans`, `subagent-driven-development`, `verification-before-completion`, etc. |
+`install.sh` / `mc-upgrade` runs `bundle-vendor-skills.sh`, which clones Superpowers into:
 
----
+- `.claude/skills/vendor/superpowers/{skill}/SKILL.md`
+- `.cursor/skills/vendor/superpowers/{skill}/SKILL.md` (mirrored for Cursor)
 
-## When is Superpowers checked?
+Required skills for Mission Control:
 
-On **`/mc-braindump`**, the agent runs a **setup check first**. If Superpowers is missing, it stops and shows you these steps — it won't start your feature spec until setup passes.
+| Skill | Stage |
+|-------|--------|
+| `brainstorming` | Braindump / clarify |
+| `writing-plans` | Plan |
+| `subagent-driven-development` | Build |
+| `verification-before-completion` | Validate (Add Feature) |
 
-Optional: run the check yourself anytime:
+Verify:
 
 ```bash
+node mission-control-kit/scripts/check-vendor-skills.mjs . all
 node docs/superpowers/control/scripts/check-setup.mjs
 ```
 
----
-
-## Install — Cursor
-
-1. Open **Cursor Settings → Plugins** (or the plugin marketplace in Cursor).
-2. Search for **Superpowers** (by obra) and install it.
-3. **Restart Cursor** or start a **new chat** so skills load.
-4. Confirm: type `/skills` in chat — you should see skills like `brainstorming`, `writing-plans`.
-
-If plugins aren't available in your Cursor build, see the [Superpowers Cursor install guide](https://obra-superpowers.mintlify.app/installation/cursor).
+If bundles are missing, dispatch **`mc-setup-skills`** or re-run install.
 
 ---
 
-## Install — Claude Code
+## Optional: Superpowers plugin
 
-In a Claude Code chat session:
+You can still install the official plugin for marketplace updates. Bundled copy takes precedence in `check-setup.mjs` when present.
+
+### Cursor
+
+1. **Cursor Settings → Plugins** → install **Superpowers** (obra)
+2. Restart Cursor / new chat
+
+[Cursor install guide](https://obra-superpowers.mintlify.app/installation/cursor)
+
+### Claude Code
 
 ```
 /plugin install superpowers@claude-plugins-official
 ```
 
-Or via the Superpowers marketplace:
+Or:
 
 ```
 /plugin marketplace add obra/superpowers-marketplace
 /plugin install superpowers@superpowers-marketplace
 ```
 
-Verify:
-
-```
-/plugin list
-```
-
-Start a **new session** after install.
-
-Docs: [Superpowers — Claude Code install](https://obra-superpowers.mintlify.app/installation/claude-code)
+[Claude Code install guide](https://obra-superpowers.mintlify.app/installation/claude-code)
 
 ---
 
-## Skills Mission Control uses (by stage)
+## Additional Superpowers skills (in bundle, optional)
 
-| Stage | Superpowers skill |
-|-------|-------------------|
-| Braindump + refine | `brainstorming` |
-| Plan | `writing-plans` |
-| Build | `subagent-driven-development` |
-| Validate | `verification-before-completion` |
-
-Only **`brainstorming`** is required to start `/mc-braindump`. The setup check verifies that one first; the script also warns if others are missing.
-
----
-
-## After installing
-
-1. Restart your editor / start a new chat session.
-2. Run `node docs/superpowers/control/scripts/check-setup.mjs` — all checks should pass.
-3. Run `/mc-braindump` + your idea again.
+The full repo includes 14 skills — Mission Control requires the four above. Others (e.g. `systematic-debugging`, `test-driven-development`, `using-git-worktrees`) are available under `.claude/skills/vendor/superpowers/` for ad-hoc use.

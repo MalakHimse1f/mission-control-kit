@@ -155,6 +155,16 @@ describe('resolveDispatch', () => {
     assert.equal(d.actor, 'subagent');
     assert.deepEqual(d.vendorSkills, ['prd-generator']);
   });
+
+  it('requires verification-before-completion at add-feature validate', () => {
+    const d = resolveDispatch('add-feature', 'validate');
+    assert.deepEqual(d.vendorSkills, ['verification-before-completion']);
+  });
+
+  it('requires brainstorming at braindump', () => {
+    const d = resolveDispatch('add-feature', 'braindump');
+    assert.deepEqual(d.vendorSkills, ['brainstorming']);
+  });
 });
 
 describe('isOrchestratorStage', () => {

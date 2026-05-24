@@ -36,6 +36,18 @@ extract_subpath() {
   rsync -a --delete "$src/$subpath/" "$dest/"
 }
 
+mirror_vendor_to_cursor() {
+  local project_dest="$1"
+  case "$project_dest" in
+    *"/.claude/skills/vendor/"*)
+      local cursor_dest="${project_dest/.claude\/.cursor}"
+      mkdir -p "$(dirname "$cursor_dest")"
+      rsync -a --delete "$project_dest/" "$cursor_dest/"
+      echo "Mirrored vendor bundle -> $cursor_dest"
+      ;;
+  esac
+}
+
 install_bundle() {
   local id="$1" repo="$2" ref="$3" installPath="$4" projectSkillsPath="$5" sourceSubpath="$6"
   local kit_dest="$KIT_ROOT/$installPath"
@@ -52,10 +64,12 @@ install_bundle() {
       if [[ -d "$kit_dest" && "$(ls -A "$kit_dest" 2>/dev/null)" ]]; then
         rsync -a --delete "$kit_dest/" "$project_dest/"
         echo "Installed $id -> $project_dest (from kit cache)"
+        mirror_vendor_to_cursor "$project_dest"
       else
         clone_bundle "$id" "$repo" "$ref" "$kit_clone"
         extract_subpath "$kit_clone" "$sourceSubpath" "$project_dest"
         echo "Installed $id -> $project_dest (direct clone)"
+        mirror_vendor_to_cursor "$project_dest"
       fi
     fi
   else
@@ -68,9 +82,11 @@ install_bundle() {
       if [[ -d "$kit_dest" && "$(ls -A "$kit_dest" 2>/dev/null)" ]]; then
         rsync -a --delete "$kit_dest/" "$project_dest/"
         echo "Installed $id -> $project_dest (from kit cache)"
+        mirror_vendor_to_cursor "$project_dest"
       elif [[ -n "$PROJECT_ROOT" ]]; then
         clone_bundle "$id" "$repo" "$ref" "$project_dest"
         echo "Installed $id -> $project_dest (direct clone)"
+        mirror_vendor_to_cursor "$project_dest"
       else
         echo "WARN: cannot install $id — no kit cache and no project root" >&2
       fi
