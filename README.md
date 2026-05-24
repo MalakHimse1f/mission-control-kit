@@ -94,7 +94,133 @@ You  →  Orchestrator (/mc, /mc-start, /mc-feature)
          Dashboard updates  →  You review  →  Next stage
 ```
 
-Works with **[Superpowers](https://github.com/obra/superpowers)** (brainstorming, writing-plans, subagent-driven-development, verification-before-completion) and ships ready for **Cursor** and **Claude Code**.
+Works with **[Superpowers](https://github.com/obra/superpowers)** and bundles three vendor skill repos (below). Mission Control **does not substitute generic prompts** when a required skill is missing — it blocks and runs setup first.
+
+---
+
+## Open source skills (attribution & routing)
+
+Mission Control is an **orchestrator**. It does not replace specialist skills — it **installs them, verifies them, and dispatches subagents at the right pipeline stage** with a scoped context packet and an explicit skill list on every route card.
+
+```
+Pipeline stage  →  check vendor skills  →  build route card  →  dispatch subagent
+                         ↓                      ↓
+                  mc-setup-skills          skills: [required invocations]
+                  if missing               read: [exact paths only]
+```
+
+Install clones vendor repos into `.claude/skills/vendor/` (see `vendor/manifest.json`). The router engine (`lib/mc-router.mjs`) and `SKILL-DEPENDENCIES.md` define which skills are **required** at each stage. Subagent skills (e.g. `mc-prd`) embed mandatory invocations — generic “write a PRD” prompts are forbidden when `prd-generator` is available.
+
+---
+
+### Companion plugin — [Superpowers](https://github.com/obra/superpowers) by [Jesse Vincent (obra)](https://github.com/obra)
+
+**Not bundled** — install separately in Cursor or Claude Code. Mission Control orchestrates the workflow; Superpowers provides the execution patterns for brainstorming, planning, building, and verification.
+
+| Skill | What it does | Mission Control stage |
+|-------|----------------|----------------------|
+| **`brainstorming`** | Structured refinement — explores intent, alternatives, and constraints before committing to a spec | Braindump / clarify (required to start Add Feature) |
+| **`writing-plans`** | Phased implementation plans with checkpoints and task breakdown | Plan (`mc-platform-plan`), portfolio review (`/mc-portfolio`) |
+| **`subagent-driven-development`** | Fresh implementer per task, status codes (`DONE`, `BLOCKED`, …), no context bleed | Build — orchestrator dispatches implementers per phase task |
+| **`verification-before-completion`** | Evidence before claims — run commands, confirm output before marking work complete | Validate — paired with BUILD-GATES (lint, test, build) |
+
+Setup: see `control/SUPERPOWERS-SETUP.md`. Preflight: `node docs/superpowers/control/scripts/check-setup.mjs`.
+
+---
+
+### Bundled — [startup-skill](https://github.com/ferdinandobons/startup-skill) by [ferdinandobons](https://github.com/ferdinandobons) (MIT)
+
+**Workflow:** `/mc-start` (Project START) · **Install path:** `.claude/skills/vendor/startup-skill/`
+
+Market validation, competitive intelligence, positioning, and pitch prep — the kind of deliverables a strategy consultant would produce, written to disk under `project/`.
+
+| Skill | What it does | Mission Control stage |
+|-------|----------------|----------------------|
+| **`startup-design`** | 8-phase market validation: research, product definition, financial projections, go/no-go experiments | `validate` — orchestrator invokes; writes `project/market-brief.md` |
+| **`startup-competitors`** | Competitor battle cards, pricing landscape, feature matrix from real web/review data | `compete` — when competitive landscape matters; writes `project/competitors.md` |
+| **`startup-positioning`** | April Dunford positioning framework — category, alternatives, messaging implications | `position` — required before platform/stack lock; writes `project/positioning.md` |
+| **`startup-pitch`** | Investor-ready pitches (10/5/2/1-min), scoring rubric, Q&A prep | `launch-prep` — optional when raising or presenting externally |
+
+---
+
+### Bundled — [designer-skills](https://github.com/Owl-Listener/designer-skills) by [Owl-Listener](https://github.com/Owl-Listener) (MIT)
+
+**Workflow:** `/mc-feature` (Add Feature, UX path) · **Install path:** `.claude/skills/vendor/designer-skills/`
+
+A collection of **91 skills across 9 plugins** (research → systems → UI → interaction → testing). Mission Control installs the full repo but **requires four plugins** at specific stages. The rest remain available for deeper work.
+
+**Required by router (Add Feature UX pipeline):**
+
+| Skill / plugin | What it does | Mission Control stage |
+|----------------|----------------|----------------------|
+| **`design-research`** | Personas, journey maps, interviews, usability synthesis — turns user evidence into design inputs | `research` — orchestrator invokes; writes `features/{slug}/research.md` |
+| **`ux-strategy`** | Problem framing, IA, experience maps, competitive UX analysis, design principles | `strategy` — when scope is ambiguous; writes `features/{slug}/ux-strategy.md` |
+| **`interaction-design`** | Flows, states, errors, navigation, forms, micro-interactions, cognitive laws (Fitts, Hick, …) | `interaction` — UI features; writes `features/{slug}/interaction.md` |
+| **`visual-critique`** | Hierarchy, typography, composition, brand consistency audits | `mock` — before mock approval; `mc-mock` subagent runs wireframes, critique gates quality |
+
+**Also in the bundle (optional — invoke when useful):** `ui-design`, `prototyping-testing`, `design-systems`, `design-ops`, `designer-toolkit` — layout systems, color/type scales, heuristic evaluation, handoff specs, etc.
+
+---
+
+### Bundled — [prd-generator](https://github.com/jamesrochabrun/skills/tree/main/skills/prd-generator) by [jamesrochabrun](https://github.com/jamesrochabrun) (from [skills](https://github.com/jamesrochabrun/skills) monorepo)
+
+**Workflow:** `/mc-feature` · **Install path:** `.claude/skills/vendor/prd-generator/`
+
+Structured PRD authoring for product managers: discovery questions, problem statements, user stories, success metrics, scope boundaries, and validation checklists — mapped into Mission Control's `features/{slug}/spec.md` template.
+
+| Skill | What it does | Mission Control stage |
+|-------|----------------|----------------------|
+| **`prd-generator`** | Industry-standard PRD workflow — discovery → structure → stories → metrics → validation | `prd` — **`mc-prd` subagent MUST invoke** before writing `spec.md`; journal records which sections were applied |
+
+---
+
+### Shipped with Mission Control — orchestrator & subagent skills
+
+These live in the kit (`skills/`, `claude-skills/`, `.cursor/commands/`) — not third-party repos, but they **enforce** vendor skill use:
+
+| Subagent / skill | Role |
+|------------------|------|
+| **`mission-control`** / **`mc`** | Orchestrator hub — reads disk, routes pipeline, never writes code or PRDs directly |
+| **`mc-setup-skills`** | Clones missing vendor bundles via `bundle-vendor-skills.sh`; journals setup |
+| **`mc-explore`** | Codebase mapping per target repo — scoped to braindump paths only |
+| **`mc-prd`** | Writes `spec.md` — **requires `prd-generator` invocation** |
+| **`mc-mock`** | Wireframe HTML from layout library — pairs with `visual-critique` |
+| **`mc-platform-plan`** | Cross-platform phase plans — uses **`writing-plans`** (Superpowers) |
+| **`mc-start`** / **`mc-feature`** | Workflow entry points with vendor preflight |
+| **`mc-upgrade`** | Safe kit updates — preserves all user specs |
+
+---
+
+### Stage → skill map (quick reference)
+
+**Project START (`/mc-start`):**
+
+| Stage | Who runs it | Required open-source skill |
+|-------|-------------|---------------------------|
+| vendor-setup | `mc-setup-skills` | startup-skill bundle |
+| validate | orchestrator | `startup-design` |
+| compete | orchestrator | `startup-competitors` |
+| position | orchestrator | `startup-positioning` |
+| launch-prep | orchestrator | `startup-pitch` (optional) |
+
+**Add Feature (`/mc-feature`):**
+
+| Stage | Who runs it | Required open-source skill |
+|-------|-------------|---------------------------|
+| vendor-setup | `mc-setup-skills` | designer-skills + prd-generator |
+| braindump / clarify | orchestrator | `brainstorming` (Superpowers) |
+| research | orchestrator | `design-research` |
+| strategy | orchestrator | `ux-strategy` |
+| prd | `mc-prd` | **`prd-generator`** |
+| interaction | orchestrator | `interaction-design` |
+| mock | `mc-mock` | `visual-critique` |
+| plan | `mc-platform-plan` | `writing-plans` (Superpowers) |
+| build | implementer | `subagent-driven-development` (Superpowers) |
+| validate | validator | `verification-before-completion` (Superpowers) |
+
+Tech-only features skip research, strategy, interaction, and mock stages — PRD and build skills still apply.
+
+**Verify bundles:** `node mission-control-kit/scripts/check-vendor-skills.mjs . project-start` or `add-feature`
 
 ---
 
