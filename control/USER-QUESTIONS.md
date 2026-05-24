@@ -67,6 +67,18 @@ When `decisionReview` is `review-first`, orchestrator **must** pause after resea
 
 When `decisionReview` is `auto-proceed`, still write all skill outputs to disk as HTML layouts (`research.html`, `ux-strategy.html`, `interaction.html`, `explore/*.html`) per `RESEARCH-LAYOUT.md`.
 
+### Present research HTML to the user (orchestrator)
+
+After explore, research, strategy, or interaction stages complete, the orchestrator **must post in chat** (not only write to disk):
+
+1. List each `.html` file path under `docs/superpowers/control/features/{slug}/`
+2. Brief highlights (2–4 bullets)
+3. **How to view** — dashboard (generate-dashboard → dashboard-server → feature detail → Skill findings / Exploration findings) and local browser
+
+See `RESEARCH-LAYOUT.md` → **Present to the user**. Helper: `formatResearchPresentationMessage()` in `research-layout.mjs`.
+
+When `decisionReview` is `review-first`, AskQuestion comes **after** the presentation message.
+
 ### Build order (`/mc-portfolio`)
 
 After **`spec-portfolio-review`** analyzes interdependencies, **AskQuestion** — PM framing:

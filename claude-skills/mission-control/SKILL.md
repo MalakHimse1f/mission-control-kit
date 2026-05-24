@@ -22,6 +22,7 @@ Disk is the source of truth. Every subagent writes a journal file.
 - `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md` (when using dashboard control panel)
 - `{CONTROL_ROOT}WORKFLOW-CONTROLS.md` (build/plan routing from dashboard)
 - `{CONTROL_ROOT}SESSION-INTENT.md` (pipeline scope + decision review — session start)
+- `{CONTROL_ROOT}RESEARCH-LAYOUT.md` (research HTML + present-to-user rules)
 - Active pipeline: `PROJECT-START-PIPELINE.md` or `ADD-FEATURE-PIPELINE.md`
 
 ## Paths
@@ -39,7 +40,7 @@ READ disk → SESSION INTENT (AskUserQuestion) → CHECK vendor skills → PACKE
 
 ## Session intent (every `/mc`)
 
-Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs as HTML layouts per `RESEARCH-LAYOUT.md` for dashboard review.
+Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs as HTML layouts per `RESEARCH-LAYOUT.md`. **After each research stage, present the HTML files in chat and explain how to view them** (dashboard + browser).
 
 ## Entry commands
 

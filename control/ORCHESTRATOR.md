@@ -26,6 +26,7 @@ READ disk → SESSION INTENT (AskQuestion) → ROUTE workflow → CHECK vendor s
 - `BUILD-GATES.md`
 - `JOURNAL-RULES.md`
 - `AGENT-DATA-RULES.md`
+- `RESEARCH-LAYOUT.md` — research HTML outputs + present-to-user rules
 - Active pipeline: `PROJECT-START-PIPELINE.md` **or** `ADD-FEATURE-PIPELINE.md`
 
 ---
@@ -89,7 +90,8 @@ Kit copy of scripts: `{project}/mission-control-kit/scripts/` or installed into 
 2. Update `status.json` / `project/status.json` → stage, steps[]
 3. Update `HANDOFF.md`
 4. `node docs/superpowers/control/scripts/generate-dashboard.mjs`
-5. **Immediately dispatch next stage**
+5. **If stage produced research HTML** (explore, research, strategy, interaction) → **present files to the user in chat** with viewing instructions per `RESEARCH-LAYOUT.md` (use `formatResearchPresentationMessage()`)
+6. **Immediately dispatch next stage** (or AskQuestion first when `decisionReview: review-first`)
 
 Every **5 build tasks committed**: update `HANDOFF.md` checkpoint — keep going.
 

@@ -1,8 +1,8 @@
 {
-  "kitVersion": "4.7.0",
+  "kitVersion": "4.7.1",
   "schemaVersion": 1,
   "kitFolder": "mission-control-kit",
-  "migrations": ["4.0.0-baseline", "4.1.0-install-stamp", "4.2.0-custom-dir", "4.3.1-kit-folder", "4.4.0-orchestrator-controls", "4.5.0-workflow-controls", "4.6.0-session-intent", "4.7.0-research-html"],
+  "migrations": ["4.0.0-baseline", "4.1.0-install-stamp", "4.2.0-custom-dir", "4.3.1-kit-folder", "4.4.0-orchestrator-controls", "4.5.0-workflow-controls", "4.6.0-session-intent", "4.7.0-research-html", "4.7.1-research-presentation"],
   "release": {
     "github": "MalakHimse1f/mission-control-kit",
     "assetPattern": "mission-control-kit"

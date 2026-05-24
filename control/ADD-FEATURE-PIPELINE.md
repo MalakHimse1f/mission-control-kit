@@ -42,7 +42,7 @@ Use when adding a **capability to an existing product** with established stack a
 | Navigation / states | `interaction-design` |
 | Research gaps | `design-research` |
 
-Document skill outputs in feature folder as **HTML layouts** (`RESEARCH-LAYOUT.md`) — do not keep design decisions only in chat.
+Document skill outputs in feature folder as **HTML layouts** (`RESEARCH-LAYOUT.md`). **Orchestrator presents each HTML file in chat with viewing instructions** after the stage — do not keep design decisions only in chat or on disk unseen.
 
 ---
 

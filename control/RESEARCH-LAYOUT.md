@@ -94,6 +94,37 @@ Regenerate after writes: `node docs/superpowers/control/scripts/generate-dashboa
 
 ---
 
+## Present to the user (mandatory — orchestrator)
+
+After **every** explore, research, strategy, or interaction stage — once HTML is on disk and the dashboard is regenerated — the **orchestrator must post in chat**:
+
+1. **List each `.html` file** written (full path under `docs/superpowers/control/features/{slug}/…`)
+2. **2–4 bullet summary** of key findings (personas, flows, blockers — not the full HTML dump)
+3. **How to view** — both dashboard and local browser (see template below)
+
+Subagents (`mc-explore`, etc.) do **not** talk to the user — the orchestrator presents on their behalf after reading the journal + HTML files.
+
+Use `listResearchHtmlArtifacts()` and `formatResearchPresentationMessage()` from `research-layout.mjs`, or match this structure in chat:
+
+```
+Research layouts for **{slug}** are ready:
+
+- **UX research** — `docs/superpowers/control/features/{slug}/research.html` (dashboard → Skill findings)
+- **Explore web-app** — `docs/superpowers/control/features/{slug}/explore/web-app.html` (dashboard → Exploration findings)
+
+**Highlights**
+- …
+
+**How to view**
+
+1. **Dashboard (recommended)** — … generate-dashboard.mjs … dashboard-server.mjs … feature detail → Skill findings / Exploration findings
+2. **Browser (local file)** — open the `.html` path in your browser from the repo
+```
+
+When `sessionIntent.decisionReview` is `review-first`, pause for AskQuestion **after** presenting the files and viewing instructions — not before.
+
+---
+
 ## Rules
 
 1. **Never** leave research decisions only in chat — write HTML to disk.

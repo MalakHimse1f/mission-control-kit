@@ -15,6 +15,8 @@ import {
   markdownToResearchHtml,
   prepareHtmlForDashboardEmbed,
   resolveResearchArtifactHtml,
+  listResearchHtmlArtifacts,
+  formatResearchPresentationMessage,
 } from '../control/lib/research-layout.mjs';
 import { collectSkillFindings, collectExploreDocs } from '../control/scripts/dashboard-content.mjs';
 import { collectItemRow } from '../control/scripts/dashboard-data.mjs';
@@ -260,6 +262,52 @@ describe('dashboard research iframe rendering', () => {
     const items = JSON.parse(html.slice(start, end).replace(/^window\.MC_ITEMS = /, '').replace(/;window\.MC_DEFAULT_SORT.*$/, ''));
     assert.equal(items[0].skillFindings[0].format, 'html');
     assert.match(items[0].skillFindings[0].html, /Visible in iframe/);
+  });
+});
+
+describe('listResearchHtmlArtifacts and formatResearchPresentationMessage', () => {
+  let tmp;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-research-present-'));
+    setupTmpControl(tmp);
+    const slugDir = path.join(tmp, 'features', 'alpha');
+    fs.mkdirSync(path.join(slugDir, 'explore'), { recursive: true });
+    fs.writeFileSync(path.join(slugDir, 'research.html'), '<!DOCTYPE html><html></html>');
+    fs.writeFileSync(path.join(slugDir, 'explore', 'web-app.html'), '<!DOCTYPE html><html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('lists skill and explore HTML artifacts on disk', () => {
+    const artifacts = listResearchHtmlArtifacts(tmp, 'alpha');
+    assert.equal(artifacts.length, 2);
+    assert.equal(artifacts[0].file, 'research.html');
+    assert.equal(artifacts[1].path, 'features/alpha/explore/web-app.html');
+  });
+
+  it('formats presentation message with paths and viewing instructions', () => {
+    const artifacts = listResearchHtmlArtifacts(tmp, 'alpha');
+    const msg = formatResearchPresentationMessage({
+      slug: 'alpha',
+      artifacts,
+      summaryBullets: ['Two personas identified', 'Auth uses Supabase'],
+    });
+    assert.match(msg, /Research layouts for \*\*alpha\*\*/);
+    assert.match(msg, /features\/alpha\/research\.html/);
+    assert.match(msg, /features\/alpha\/explore\/web-app\.html/);
+    assert.match(msg, /Two personas identified/);
+    assert.match(msg, /\*\*How to view\*\*/);
+    assert.match(msg, /dashboard-server\.mjs/);
+    assert.match(msg, /Skill findings/);
+    assert.match(msg, /Exploration findings/);
+    assert.match(msg, /Browser \(local file\)/);
+  });
+
+  it('returns empty string when no artifacts', () => {
+    assert.equal(formatResearchPresentationMessage({ slug: 'x', artifacts: [] }), '');
   });
 });
 

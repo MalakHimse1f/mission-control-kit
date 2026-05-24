@@ -198,3 +198,69 @@ export function resolveExploreDocHtml(controlRoot, exploreDir, file) {
 
   return null;
 }
+
+/** List HTML research artifacts on disk for a feature slug. */
+export function listResearchHtmlArtifacts(controlRoot, slug) {
+  const itemRoot = path.join(controlRoot, 'features', slug);
+  const out = [];
+  for (const meta of RESEARCH_HTML_ARTIFACTS) {
+    const htmlPath = path.join(itemRoot, meta.file);
+    if (fs.existsSync(htmlPath)) {
+      out.push({
+        label: meta.label,
+        file: meta.file,
+        path: `features/${slug}/${meta.file}`,
+        dashboardSection: 'Skill findings',
+      });
+    }
+  }
+  const exploreDir = path.join(itemRoot, 'explore');
+  if (fs.existsSync(exploreDir)) {
+    for (const f of fs.readdirSync(exploreDir).filter((x) => x.endsWith('.html') && !x.startsWith('_')).sort()) {
+      out.push({
+        label: f.replace(/\.html$/i, ''),
+        file: f,
+        path: `features/${slug}/explore/${f}`,
+        dashboardSection: 'Exploration findings',
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Chat message the orchestrator posts after research HTML is written.
+ * Agents must present files to the user and explain how to view them.
+ */
+export function formatResearchPresentationMessage({
+  slug,
+  artifacts = [],
+  controlRootPrefix = 'docs/superpowers/control/',
+  summaryBullets = [],
+}) {
+  if (!artifacts.length) return '';
+
+  const prefix = controlRootPrefix.endsWith('/') ? controlRootPrefix : `${controlRootPrefix}/`;
+  const fileLines = artifacts.map(
+    (a) => `- **${a.label}** — \`${prefix}${a.path}\` (dashboard → **${a.dashboardSection}**)`,
+  );
+
+  const summaryBlock =
+    summaryBullets.length > 0
+      ? ['', '**Highlights**', ...summaryBullets.map((b) => `- ${b}`), '']
+      : [''];
+
+  return [
+    `Research layouts for **${slug}** are ready:`,
+    '',
+    ...fileLines,
+    ...summaryBlock,
+    '**How to view**',
+    '',
+    '1. **Dashboard (recommended)** — Regenerate if needed: `node docs/superpowers/control/scripts/generate-dashboard.mjs`. Open the dashboard (`node docs/superpowers/control/scripts/dashboard-server.mjs`, then the URL it prints). Click the feature card → open detail → scroll to **Exploration findings** and **Skill findings** — each page renders as a live layout preview.',
+    '',
+    '2. **Browser (local file)** — Open any `.html` path above directly in your browser from the project repo. Paths are relative to `docs/superpowers/control/`. CSS loads via the linked `layout/wireframe.css`.',
+    '',
+    'Review these layouts before approving the next pipeline stage. When `decisionReview` is `review-first`, use AskQuestion after the user has had a chance to view them.',
+  ].join('\n');
+}
