@@ -1,5 +1,6 @@
 import { escapeHtml } from './dashboard-helpers.mjs';
 import { BUILD_MODES } from '../lib/workflow-controls.mjs';
+import { PIPELINE_SCOPES, DECISION_REVIEW_MODES } from '../lib/session-intent.mjs';
 
 export const WORKFLOW_PANEL_CSS = `
 .workflow-panel { border-color: #4a3a5a; margin-top: 0; }
@@ -13,17 +14,35 @@ export function renderWorkflowPanel({ controls, serveMode = false }) {
   const mode = controls.buildWorkflow?.mode ?? 'sdd+tdd';
   const review = controls.buildWorkflow?.reviewChain ?? 'full';
   const plan = controls.planWorkflow?.mode ?? 'subagent-driven';
+  const pipelineScope = controls.sessionIntent?.pipelineScope ?? 'full-pipeline';
+  const decisionReview = controls.sessionIntent?.decisionReview ?? 'review-first';
   const reviewDisabled = mode === 'tdd-lite' || !serveMode;
 
   const buildOptions = Object.entries(BUILD_MODES)
     .map(([id, meta]) => `<option value="${escapeHtml(id)}"${id === mode ? ' selected' : ''}>${escapeHtml(meta.label)}</option>`)
     .join('');
 
+  const scopeOptions = Object.entries(PIPELINE_SCOPES)
+    .map(([id, meta]) => `<option value="${escapeHtml(id)}"${id === pipelineScope ? ' selected' : ''}>${escapeHtml(meta.label)}</option>`)
+    .join('');
+
+  const decisionOptions = Object.entries(DECISION_REVIEW_MODES)
+    .map(([id, meta]) => `<option value="${escapeHtml(id)}"${id === decisionReview ? ' selected' : ''}>${escapeHtml(meta.label)}</option>`)
+    .join('');
+
   return `
   <div class="panel workflow-panel" id="workflow-control-panel">
     <h2>Workflow controls</h2>
-    <p class="muted">Build and plan routing — agents read <code>WORKFLOW-CONTROLS.md</code> + <code>.mc/orchestrator-controls.json</code>.</p>
+    <p class="muted">Build, plan, and session intent — agents read <code>WORKFLOW-CONTROLS.md</code>, <code>SESSION-INTENT.md</code>, and <code>.mc/orchestrator-controls.json</code>.</p>
     <div class="control-grid">
+      <div class="control-field">
+        <label for="ctl-pipeline-scope">Session pipeline scope</label>
+        <select id="ctl-pipeline-scope" ${serveMode ? '' : 'disabled'}>${scopeOptions}</select>
+      </div>
+      <div class="control-field">
+        <label for="ctl-decision-review">Decision review</label>
+        <select id="ctl-decision-review" ${serveMode ? '' : 'disabled'}>${decisionOptions}</select>
+      </div>
       <div class="control-field">
         <label for="ctl-build-mode">Build mode</label>
         <select id="ctl-build-mode" ${serveMode ? '' : 'disabled'}>${buildOptions}</select>
@@ -44,7 +63,7 @@ export function renderWorkflowPanel({ controls, serveMode = false }) {
         </select>
       </div>
     </div>
-    <p class="workflow-hint" id="workflow-hint">Default: SDD + TDD with full review chain.</p>
+    <p class="workflow-hint" id="workflow-hint">Default: SDD + TDD with full review chain. Orchestrator confirms session intent at every <code>/mc</code> start.</p>
   </div>`;
 }
 

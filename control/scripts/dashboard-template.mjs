@@ -185,6 +185,7 @@ export const DASHBOARD_CLIENT_JS = `
   const detailBraindump = document.getElementById("detail-braindump");
   const detailSpec = document.getElementById("detail-spec");
   const detailExplore = document.getElementById("detail-explore");
+  const detailSkillFindings = document.getElementById("detail-skill-findings");
   const detailPhases = document.getElementById("detail-phases");
   const detailJournal = document.getElementById("detail-journal");
   const detailLayoutDoc = document.getElementById("detail-layout-doc");
@@ -234,7 +235,7 @@ export const DASHBOARD_CLIENT_JS = `
     if (!docs || !docs.length) return '<p class="muted">' + esc(emptyMsg) + '</p>';
     return docs.map((d) =>
       '<details class="collapsible-doc">' +
-        '<summary>' + esc(d.label || d.file) + '</summary>' +
+        '<summary>' + esc(d.label || d.file) + (d.source ? ' <span class="muted">(' + esc(d.source) + ')</span>' : '') + '</summary>' +
         renderDocBlock(d.content) +
       '</details>'
     ).join('');
@@ -451,6 +452,7 @@ export const DASHBOARD_CLIENT_JS = `
     if (detailBraindump) detailBraindump.innerHTML = renderDocBlock(i.braindump, "Braindump");
     if (detailSpec) detailSpec.innerHTML = renderDocBlock(i.spec, "PRD / Spec");
     if (detailExplore) detailExplore.innerHTML = renderCollapsibleDocs(i.exploreDocs, "No exploration findings yet.");
+    if (detailSkillFindings) detailSkillFindings.innerHTML = renderCollapsibleDocs(i.skillFindings, "No skill findings yet — research, strategy, and interaction outputs appear here.");
     if (detailPhases) detailPhases.innerHTML = renderCollapsibleDocs(i.phaseDocs, "No implementation plans yet.");
     if (detailJournal) detailJournal.innerHTML = renderCollapsibleDocs(i.journalEntries, "No journal entries yet — subagents document here when tasks complete.");
     if (detailLayoutDoc) detailLayoutDoc.innerHTML = renderDocBlock(i.layoutDoc, "Layout notes");
@@ -694,6 +696,11 @@ export function buildDashboardHtml({
         <div class="detail-section">
           <h4>Exploration findings</h4>
           <div id="detail-explore"></div>
+        </div>
+        <div class="detail-section">
+          <h4>Skill findings</h4>
+          <p class="muted">Research, strategy, and interaction outputs from vendor skills — review before build when decision review is on.</p>
+          <div id="detail-skill-findings"></div>
         </div>
         <div class="detail-section" id="detail-wireframes-section">
           <h4>UI mockups</h4>

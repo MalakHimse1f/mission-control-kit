@@ -20,6 +20,7 @@ Disk is the source of truth. Every subagent writes a journal file.
 - `{CONTROL_ROOT}AGENT-DATA-RULES.md`
 - `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md` (when using dashboard control panel)
 - `{CONTROL_ROOT}WORKFLOW-CONTROLS.md` (build/plan routing from dashboard)
+- `{CONTROL_ROOT}SESSION-INTENT.md` (pipeline scope + decision review — session start)
 - Active pipeline: `PROJECT-START-PIPELINE.md` or `ADD-FEATURE-PIPELINE.md`
 
 ## Paths
@@ -32,8 +33,12 @@ Disk is the source of truth. Every subagent writes a journal file.
 ## Prime directive
 
 ```
-ROUTE → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → NEXT
+READ disk → SESSION INTENT (AskQuestion) → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → NEXT
 ```
+
+## Session intent (every `/mc`)
+
+Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs to known paths for dashboard **Skill findings** review.
 
 ## Entry commands
 

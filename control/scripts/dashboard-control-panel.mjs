@@ -119,6 +119,10 @@ export const CONTROL_PANEL_CLIENT_JS = `
       planWorkflow: {
         mode: document.getElementById("ctl-plan-mode")?.value ?? "subagent-driven",
       },
+      sessionIntent: {
+        pipelineScope: document.getElementById("ctl-pipeline-scope")?.value ?? "full-pipeline",
+        decisionReview: document.getElementById("ctl-decision-review")?.value ?? "review-first",
+      },
       autoAdvanceScope: "build-only",
       pauseOnClarify: true,
       pauseOnBlocked: true,

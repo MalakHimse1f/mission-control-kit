@@ -12,6 +12,7 @@ import {
   readTextFile,
   collectJournalEntries,
   collectExploreDocs,
+  collectSkillFindings,
   collectPhaseDocs,
   collectEmbeddedWireframes,
   collectEmbeddedScreenshots,
@@ -19,6 +20,7 @@ import {
 } from "./dashboard-content.mjs";
 import { readOrchestratorControls } from "../lib/orchestrator-controls.mjs";
 import { buildWorkflowPromptLines, buildBuildStagePickupLines } from "../lib/workflow-controls.mjs";
+import { buildSessionIntentPromptLines } from "../lib/session-intent.mjs";
 
 function readJson(path) {
   if (!existsSync(path)) return null;
@@ -72,8 +74,9 @@ export function buildPickupPrompt({ workstream, slug, stage, status, global, con
   const tasks = status?.tasks ?? [];
   const lines = [
     "You are the ORCHESTRATOR. Do not implement code, PRDs, plans, or mock HTML yourself.",
-    "Your job: read disk → dispatch subagents → read journal files → update status → regenerate dashboard.",
-    "CONTINUOUS RUN: advance through pipeline stages in THIS session — do not stop between stages or tell the user to start a new chat.",
+    "Your job: read disk → confirm session intent (AskQuestion) → dispatch subagents → read journal files → update status → regenerate dashboard.",
+    "SESSION START: Ask pipeline scope + decision review before first dispatch (SESSION-INTENT.md). Pickup paste does not skip this.",
+    "CONTINUOUS RUN: advance through pipeline stages in THIS session — do not stop between stages or tell the user to start a new chat (unless sessionIntent.pipelineScope is planning-only at build gate).",
     "",
     `Continue Mission Control v3 — ${ws}: ${slug}`,
     "",
@@ -112,6 +115,7 @@ export function buildPickupPrompt({ workstream, slug, stage, status, global, con
 
   if (controls) {
     lines.push(...buildWorkflowPromptLines(controls));
+    lines.push(...buildSessionIntentPromptLines(controls));
   }
 
   if (pipelineStage === "plan") {
@@ -219,6 +223,7 @@ export function collectItemRow(control, workstream, slug, global, orderIndex) {
     spec: readTextFile(join(itemRoot, "spec.md")),
     layoutDoc: readTextFile(join(itemRoot, "layout", "layout.md")),
     exploreDocs: collectExploreDocs(control, base, slug),
+    skillFindings: workstream === "feature" ? collectSkillFindings(control, base, slug) : [],
     phaseDocs: collectPhaseDocs(control, base, slug),
     journalEntries: collectJournalEntries(control, base, slug),
     wireframes: embeddedWireframes,

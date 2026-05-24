@@ -23,6 +23,8 @@ Opening `dashboard.html` as `file://` shows controls read-only — use the serve
 | `pauseOnPortfolioDraft` | `true` | Block auto-advance until `portfolioReviewStatus === "approved"` |
 | `pauseOnClarify` | `true` | Always stop for AskQuestion — never guess (not disableable) |
 | `pauseOnBlocked` | `true` | Stop on BLOCKED subagent or gate failure |
+| `sessionIntent.pipelineScope` | `"full-pipeline"` | `planning-only` \| `full-pipeline` \| `build-only` — see `SESSION-INTENT.md` |
+| `sessionIntent.decisionReview` | `"review-first"` | `review-first` \| `auto-proceed` — pause after skill findings vs proceed with defaults |
 | `ralphLoop.enabled` | `false` | On session end, write `.mc/ralph/resume-prompt.txt` for a fresh orchestrator |
 | `ralphLoop.maxSessionsPerDay` | `12` | Rate limit for hook-written prompts |
 

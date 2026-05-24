@@ -11,7 +11,7 @@ The Orchestrator **never** writes implementation code, PRDs, plans, or mock HTML
 ## Prime directive
 
 ```
-READ disk → ROUTE workflow → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → REPEAT
+READ disk → SESSION INTENT (AskQuestion) → ROUTE workflow → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → REPEAT
 ```
 
 **Must read every session:**
@@ -20,6 +20,7 @@ READ disk → ROUTE workflow → CHECK vendor skills → PACKET context → DISP
 - `ORCHESTRATOR.md` (this file)
 - `ORCHESTRATOR-CONTROLS.md` — user toggles in `.mc/orchestrator-controls.json`
 - `WORKFLOW-CONTROLS.md` — build/plan mode from dashboard workflow panel
+- `SESSION-INTENT.md` — pipeline scope + decision review (session start)
 - `SKILL-DEPENDENCIES.md`
 - `CONTEXT-PACKETS.md`
 - `BUILD-GATES.md`
@@ -49,6 +50,7 @@ READ disk → ROUTE workflow → CHECK vendor skills → PACKET context → DISP
 | Clarify — waiting for user | AskQuestion; resume same session |
 | BLOCKED — subagent or vendor setup failed | Report; stop |
 | User pause | Stop |
+| Planning-only scope reached build gate | Stop; report planning complete |
 | Workflow done | Report success; if `advanceToNextFeature` in orchestrator controls → advance build queue or ralph prompt |
 
 ---

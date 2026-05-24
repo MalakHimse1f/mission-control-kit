@@ -28,6 +28,8 @@ export function buildRalphResumePrompt({ controls, pickupPrompt }) {
     '',
     'Read first:',
     '- docs/superpowers/control/.mc/orchestrator-controls.json',
+    '- docs/superpowers/control/SESSION-INTENT.md',
+    '- docs/superpowers/control/USER-QUESTIONS.md',
     '- docs/superpowers/control/ORCHESTRATOR-CONTROLS.md',
     '- docs/superpowers/control/ORCHESTRATOR.md',
     '- docs/superpowers/control/HANDOFF.md',

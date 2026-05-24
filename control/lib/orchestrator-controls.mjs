@@ -21,6 +21,10 @@ export const DEFAULT_ORCHESTRATOR_CONTROLS = {
   planWorkflow: {
     mode: 'subagent-driven',
   },
+  sessionIntent: {
+    pipelineScope: 'full-pipeline',
+    decisionReview: 'review-first',
+  },
   continuousWithinFeature: true,
   pauseOnClarify: true,
   pauseOnBlocked: true,
@@ -57,6 +61,10 @@ export function mergeOrchestratorControls(base, patch) {
     planWorkflow: {
       ...base.planWorkflow,
       ...(patch?.planWorkflow ?? {}),
+    },
+    sessionIntent: {
+      ...base.sessionIntent,
+      ...(patch?.sessionIntent ?? {}),
     },
   };
   merged.version = CONTROLS_SCHEMA_VERSION;

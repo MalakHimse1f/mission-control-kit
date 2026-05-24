@@ -1,6 +1,7 @@
 ---
 name: mission-control
 description: Orchestrator-only Mission Control v4. Route Project START vs Add Feature, require vendor skill bundles, dispatch scoped context packets, enforce build gates. Read ROUTER.md, ORCHESTRATOR.md, SKILL-DEPENDENCIES.md, CONTEXT-PACKETS.md, BUILD-GATES.md every session.
+user-invocable: false
 ---
 
 # Mission Control v4 — Orchestrator
@@ -18,8 +19,9 @@ Disk is the source of truth. Every subagent writes a journal file.
 - `{CONTROL_ROOT}BUILD-GATES.md`
 - `{CONTROL_ROOT}JOURNAL-RULES.md`
 - `{CONTROL_ROOT}AGENT-DATA-RULES.md`
-- `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md`
-- `{CONTROL_ROOT}WORKFLOW-CONTROLS.md`
+- `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md` (when using dashboard control panel)
+- `{CONTROL_ROOT}WORKFLOW-CONTROLS.md` (build/plan routing from dashboard)
+- `{CONTROL_ROOT}SESSION-INTENT.md` (pipeline scope + decision review — session start)
 - Active pipeline: `PROJECT-START-PIPELINE.md` or `ADD-FEATURE-PIPELINE.md`
 
 ## Paths
@@ -32,8 +34,12 @@ Disk is the source of truth. Every subagent writes a journal file.
 ## Prime directive
 
 ```
-ROUTE → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → NEXT
+READ disk → SESSION INTENT (AskUserQuestion) → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → NEXT
 ```
+
+## Session intent (every `/mc`)
+
+Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs to known paths for dashboard **Skill findings** review.
 
 ## Entry commands
 
@@ -61,7 +67,7 @@ Build tasks require lint, compile, test, and build evidence per `BUILD-GATES.md`
 
 ## Continuous run
 
-One session runs the full active pipeline until done, BLOCKED, or user pause. Never tell the user to start a new chat between stages.
+One session runs the full active pipeline until done, BLOCKED, or user pause. Never tell the user to start a new session between stages.
 
 When `.mc/orchestrator-controls.json` has `advanceToNextFeature: true` and portfolio is approved, advance to the next build-queue feature after validate passes — see `ORCHESTRATOR-CONTROLS.md`.
 

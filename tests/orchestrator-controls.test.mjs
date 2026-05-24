@@ -34,6 +34,15 @@ describe('orchestrator-controls', () => {
     assert.equal(merged.ralphLoop.spawnFreshSession, true);
     assert.deepEqual(merged.buildWorkflow, DEFAULT_ORCHESTRATOR_CONTROLS.buildWorkflow);
     assert.deepEqual(merged.planWorkflow, DEFAULT_ORCHESTRATOR_CONTROLS.planWorkflow);
+    assert.deepEqual(merged.sessionIntent, DEFAULT_ORCHESTRATOR_CONTROLS.sessionIntent);
+  });
+
+  it('merges nested sessionIntent patches', () => {
+    const merged = mergeOrchestratorControls(DEFAULT_ORCHESTRATOR_CONTROLS, {
+      sessionIntent: { pipelineScope: 'planning-only' },
+    });
+    assert.equal(merged.sessionIntent.pipelineScope, 'planning-only');
+    assert.equal(merged.sessionIntent.decisionReview, 'review-first');
   });
 
   it('merges nested buildWorkflow and planWorkflow patches', () => {

@@ -53,6 +53,29 @@ export function collectExploreDocs(control, base, slug) {
     }));
 }
 
+/** Vendor skill outputs (research, strategy, interaction) for dashboard review. */
+const SKILL_FINDING_FILES = [
+  { file: "research.md", label: "UX research", source: "design-research" },
+  { file: "ux-strategy.md", label: "UX strategy", source: "ux-strategy" },
+  { file: "interaction.md", label: "Interaction design", source: "interaction-design" },
+];
+
+export function collectSkillFindings(control, base, slug) {
+  const itemRoot = join(control, base, slug);
+  const out = [];
+  for (const meta of SKILL_FINDING_FILES) {
+    const content = readTextFile(join(itemRoot, meta.file));
+    if (!content?.trim()) continue;
+    out.push({
+      file: meta.file,
+      label: meta.label,
+      source: meta.source,
+      content,
+    });
+  }
+  return out;
+}
+
 export function collectPhaseDocs(control, base, slug) {
   const phasesDir = join(control, base, slug, "phases");
   if (!existsSync(phasesDir)) return [];

@@ -57,6 +57,7 @@ describe('buildDashboardHtml MC_ITEMS embed', () => {
           spec: null,
           layoutDoc: null,
           exploreDocs: [],
+          skillFindings: [],
           phaseDocs: [],
           journalEntries: [],
           wireframes: [{ id: 'w', label: 'w', html: '<html><script>alert(1)</script></html>' }],

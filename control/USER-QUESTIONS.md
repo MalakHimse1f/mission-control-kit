@@ -29,6 +29,7 @@ Later stages read `tech-stack/stack.json` → `layoutTargets`. If missing, send 
 
 | Stage | Who asks | Typical questions |
 |-------|----------|-------------------|
+| **`/mc` session start** | Orchestrator | Pipeline scope; decision review mode (see below) |
 | `/mc-init` | User runs once | Existing vs greenfield; layout targets; frameworks |
 | `/mc-braindump` | Orchestrator | Target codebase folder paths if not in braindump |
 | `clarify` (pipeline) | Orchestrator | Requirements grounded in explore findings — one at a time |
@@ -36,6 +37,35 @@ Later stages read `tech-stack/stack.json` → `layoutTargets`. If missing, send 
 | `build` (pipeline) | Orchestrator | E2e screenshot capture only |
 
 **Deprecated for user-facing questions:** refine, layout, plan — handled by subagents (`mc-prd`, `mc-mock`, `mc-platform-plan`).
+
+### Session start (`/mc`, pickup prompt paste, ralph resume)
+
+**Every session** — after reading disk (`state.json`, `HANDOFF.md`, active `status.json`, skill artifacts). Brief the user on current stage and suggested next step, then **AskQuestion** (one call at a time).
+
+**Question 1 — pipeline scope** (PM framing; options depend on disk state):
+
+| Option | When to offer | Meaning |
+|--------|---------------|---------|
+| **Planning only — finish research, PRD, mock, and plan** | `pipelineStage` is braindump–plan, or user pasted pickup during planning | Stop before build; no implementer subagents this session |
+| **Full pipeline — plan then build** | Plan exists or stage is early planning | Continuous run through build after planning completes |
+| **Build only — skip to implementers** | `phases/*.md`, `tasks[]`, `specStatus: approved` | Skip planning stages; dispatch build subagents |
+
+If only one option makes sense given disk state, still offer it plus **Pause — I'll decide later** (orchestrator stops after saving intent).
+
+Persist answer → `.mc/orchestrator-controls.json` → `sessionIntent.pipelineScope`. See `SESSION-INTENT.md`.
+
+**Question 2 — decision review** (always ask unless user says "use dashboard settings"):
+
+| Option | Meaning |
+|--------|---------|
+| **Review key decisions with me** | After skill stages, summarize findings and AskQuestion before next dispatch; artifacts visible in dashboard **Skill findings** |
+| **Proceed with defaults from research** | Subagents choose grounded defaults; document in journal; user reviews in dashboard later |
+
+Persist → `sessionIntent.decisionReview`.
+
+When `decisionReview` is `review-first`, orchestrator **must** pause after research, strategy, interaction, explore synthesis, clarify, prd, mock, and plan — even if `pipelineScope` is full-pipeline.
+
+When `decisionReview` is `auto-proceed`, still write all skill outputs to disk (`research.md`, `ux-strategy.md`, `interaction.md`, `explore/*.md`) for dashboard review.
 
 ### Build order (`/mc-portfolio`)
 
