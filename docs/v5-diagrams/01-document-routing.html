@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCK v5 — Document Routing &amp; Data Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+  }
+
+  /* Comparison section */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto 4rem;
+  }
+  .compare-panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .compare-panel h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+  .compare-panel.before h3 { color: #e85d5d; }
+  .compare-panel.after h3 { color: #5de8a0; }
+  .bloat-list {
+    list-style: none;
+    font-size: 0.8rem;
+    color: #999;
+  }
+  .bloat-list li {
+    padding: 0.3rem 0.5rem;
+    border-left: 2px solid #3a2020;
+    margin-bottom: 0.4rem;
+    background: #1a1010;
+    border-radius: 0 4px 4px 0;
+  }
+  .focused-list {
+    list-style: none;
+    font-size: 0.8rem;
+    color: #ccc;
+  }
+  .focused-list li {
+    padding: 0.3rem 0.5rem;
+    border-left: 2px solid #1a3a25;
+    margin-bottom: 0.4rem;
+    background: #0f1a14;
+    border-radius: 0 4px 4px 0;
+  }
+  .focused-list li.active {
+    border-left-color: #5de8a0;
+    color: #f5f5f5;
+    background: #142a1e;
+  }
+  .compare-size {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: #666;
+    text-align: right;
+  }
+  .compare-panel.before .compare-size { color: #e85d5d; }
+  .compare-panel.after .compare-size { color: #5de8a0; }
+
+  /* Main flow diagram */
+  .flow-container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .flow-section-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: #6a8caf;
+  }
+
+  .flow-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .flow-node {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1.25rem 1.75rem;
+    text-align: center;
+    position: relative;
+    max-width: 420px;
+    width: 100%;
+  }
+  .flow-node .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 0.3rem;
+  }
+  .flow-node .title {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .flow-node .desc {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 0.3rem;
+  }
+  .flow-node.accent {
+    border-color: #6a8caf;
+    box-shadow: 0 0 20px rgba(106, 140, 175, 0.1);
+  }
+  .flow-node.router {
+    border-color: #af8c6a;
+    box-shadow: 0 0 20px rgba(175, 140, 106, 0.1);
+  }
+  .flow-node.router .label { color: #af8c6a; }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+  .flow-arrow svg {
+    width: 24px;
+    height: 32px;
+  }
+  .flow-arrow .arrow-label {
+    font-size: 0.7rem;
+    color: #555;
+    margin-top: 0.2rem;
+  }
+
+  /* Router expansion */
+  .router-expansion {
+    margin: 2.5rem auto;
+    max-width: 1000px;
+  }
+  .router-expansion h3 {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #af8c6a;
+  }
+  .route-table {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1px;
+    background: #2a2a2a;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+  }
+  .route-table .header {
+    background: #1a1a1a;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    font-weight: 600;
+  }
+  .route-row-type, .route-row-docs {
+    padding: 0.75rem 1rem;
+    background: #141414;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .route-row-type {
+    font-weight: 500;
+  }
+  .route-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .route-row-docs {
+    color: #bbb;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .doc-tag {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-family: ui-monospace, monospace;
+    color: #ccc;
+  }
+
+  /* Color coding for route types */
+  .color-ui { background: #5b8dd9; }
+  .color-ux { background: #9b59b6; }
+  .color-arch { background: #e67e22; }
+  .color-research { background: #2ecc71; }
+  .color-build { background: #e74c3c; }
+  .color-brainstorm { background: #f1c40f; }
+
+  .doc-tag.ui { border-color: #3a5a8a; }
+  .doc-tag.ux { border-color: #6a3a7a; }
+  .doc-tag.arch { border-color: #8a5a2a; }
+  .doc-tag.research { border-color: #2a7a4a; }
+  .doc-tag.build { border-color: #8a3a3a; }
+  .doc-tag.brainstorm { border-color: #8a7a2a; }
+
+  /* Dispatch section */
+  .dispatch-section {
+    margin-top: 2.5rem;
+    display: flex;
+    justify-content: center;
+  }
+  .context-packet {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 100%;
+  }
+  .context-packet h4 {
+    font-size: 0.8rem;
+    color: #5de8a0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+  .packet-fields {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+  .packet-key {
+    color: #6a8caf;
+    font-family: ui-monospace, monospace;
+  }
+  .packet-val {
+    color: #ccc;
+  }
+
+  /* SVG arrow styling */
+  .arrow-line { stroke: #444; stroke-width: 1.5; }
+  .arrow-head { fill: #444; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .comparison { grid-template-columns: 1fr; }
+    .route-table { grid-template-columns: 1fr; }
+    .route-row-docs { border-left: 3px solid #333; }
+    body { padding: 2rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Document Routing &amp; Data Flow</h1>
+<p class="subtitle">Mission Control Kit v5 — Intelligent context routing for focused subagent dispatch</p>
+
+<!-- Before / After comparison -->
+<section class="comparison">
+  <div class="compare-panel before">
+    <h3>Before: Bloated Prompt</h3>
+    <ul class="bloat-list">
+      <li>ARCHITECTURE.md (full)</li>
+      <li>UI-REQUIREMENTS.md (full)</li>
+      <li>UX-PATTERNS.md (full)</li>
+      <li>stack.json</li>
+      <li>All wireframes</li>
+      <li>All flow diagrams</li>
+      <li>BUILD-GATES.md</li>
+      <li>Product context</li>
+      <li>Market research</li>
+      <li>Every phase plan</li>
+      <li>Every task spec</li>
+      <li>Research templates</li>
+    </ul>
+    <div class="compare-size">~45,000 tokens of context</div>
+  </div>
+  <div class="compare-panel after">
+    <h3>After: Routed Context</h3>
+    <ul class="focused-list">
+      <li>ARCHITECTURE.md (full)</li>
+      <li class="active">UI-REQUIREMENTS.md (full)</li>
+      <li>UX-PATTERNS.md (full)</li>
+      <li>stack.json</li>
+      <li class="active">Layout primitives</li>
+      <li>All flow diagrams</li>
+      <li>BUILD-GATES.md</li>
+      <li>Product context</li>
+      <li>Market research</li>
+      <li>Every phase plan</li>
+      <li>Every task spec</li>
+      <li class="active">Relevant wireframes only</li>
+    </ul>
+    <div class="compare-size">~8,000 tokens — 82% reduction</div>
+  </div>
+</section>
+
+<!-- Main flow diagram -->
+<section class="flow-container">
+  <h2 class="flow-section-title">Routing Pipeline</h2>
+
+  <div class="flow-diagram">
+    <!-- Step 1: User Prompt -->
+    <div class="flow-node">
+      <div class="label">Step 1 — Input</div>
+      <div class="title">User Pickup Prompt</div>
+      <div class="desc">"Build the settings panel layout" + stub reference</div>
+    </div>
+
+    <div class="flow-arrow">
+      <svg viewBox="0 0 24 32"><line class="arrow-line" x1="12" y1="0" x2="12" y2="26"/><polygon class="arrow-head" points="7,22 12,30 17,22"/></svg>
+    </div>
+
+    <!-- Step 2: Status -->
+    <div class="flow-node accent">
+      <div class="label">Step 2 — State Lookup</div>
+      <div class="title">Orchestrator reads status.json</div>
+      <div class="desc">Determines current stage: phase, feature, completion %</div>
+    </div>
+
+    <div class="flow-arrow">
+      <svg viewBox="0 0 24 32"><line class="arrow-line" x1="12" y1="0" x2="12" y2="26"/><polygon class="arrow-head" points="7,22 12,30 17,22"/></svg>
+    </div>
+
+    <!-- Step 3: Router -->
+    <div class="flow-node router">
+      <div class="label">Step 3 — Route Resolution</div>
+      <div class="title">mc-router.mjs</div>
+      <div class="desc">Maps task type → required documents</div>
+    </div>
+
+    <div class="flow-arrow">
+      <svg viewBox="0 0 24 32"><line class="arrow-line" x1="12" y1="0" x2="12" y2="26"/><polygon class="arrow-head" points="7,22 12,30 17,22"/></svg>
+      <span class="arrow-label">resolved route</span>
+    </div>
+
+    <!-- Step 4: Document Load -->
+    <div class="flow-node">
+      <div class="label">Step 4 — Selective Load</div>
+      <div class="title">Document Store</div>
+      <div class="desc">Only relevant documents loaded into context</div>
+    </div>
+
+    <div class="flow-arrow">
+      <svg viewBox="0 0 24 32"><line class="arrow-line" x1="12" y1="0" x2="12" y2="26"/><polygon class="arrow-head" points="7,22 12,30 17,22"/></svg>
+      <span class="arrow-label">focused context packet</span>
+    </div>
+
+    <!-- Step 5: Subagent -->
+    <div class="flow-node accent">
+      <div class="label">Step 5 — Dispatch</div>
+      <div class="title">Subagent Execution</div>
+      <div class="desc">Receives only what it needs — fast, focused, accurate</div>
+    </div>
+  </div>
+</section>
+
+<!-- Route table expansion -->
+<section class="router-expansion">
+  <h3>Route Mapping — mc-router.mjs</h3>
+  <div class="route-table">
+    <div class="header">Task Type</div>
+    <div class="header">Routes To</div>
+
+    <div class="route-row-type"><span class="route-dot color-ui"></span> UI Implementation</div>
+    <div class="route-row-docs">
+      <span class="doc-tag ui">UI-REQUIREMENTS.md</span>
+      <span class="doc-tag ui">layout primitives</span>
+      <span class="doc-tag ui">wireframes</span>
+    </div>
+
+    <div class="route-row-type"><span class="route-dot color-ux"></span> UX Decisions</div>
+    <div class="route-row-docs">
+      <span class="doc-tag ux">UX-PATTERNS.md</span>
+      <span class="doc-tag ux">interaction.html</span>
+      <span class="doc-tag ux">flow diagrams</span>
+    </div>
+
+    <div class="route-row-type"><span class="route-dot color-arch"></span> Architecture</div>
+    <div class="route-row-docs">
+      <span class="doc-tag arch">ARCHITECTURE.md</span>
+      <span class="doc-tag arch">stack.json</span>
+      <span class="doc-tag arch">tech decisions</span>
+    </div>
+
+    <div class="route-row-type"><span class="route-dot color-research"></span> Research</div>
+    <div class="route-row-docs">
+      <span class="doc-tag research">relevant skill</span>
+      <span class="doc-tag research">user specs</span>
+      <span class="doc-tag research">research template</span>
+    </div>
+
+    <div class="route-row-type"><span class="route-dot color-build"></span> Build</div>
+    <div class="route-row-docs">
+      <span class="doc-tag build">phase plan</span>
+      <span class="doc-tag build">BUILD-GATES.md</span>
+      <span class="doc-tag build">single task spec</span>
+    </div>
+
+    <div class="route-row-type"><span class="route-dot color-brainstorm"></span> Brainstorm</div>
+    <div class="route-row-docs">
+      <span class="doc-tag brainstorm">product context</span>
+      <span class="doc-tag brainstorm">market research</span>
+      <span class="doc-tag brainstorm">user goals</span>
+    </div>
+  </div>
+</section>
+
+<!-- Example context packet -->
+<section class="dispatch-section">
+  <div class="context-packet">
+    <h4>Example Context Packet — UI Implementation</h4>
+    <div class="packet-fields">
+      <span class="packet-key">task</span>
+      <span class="packet-val">"Build the settings panel layout"</span>
+      <span class="packet-key">stage</span>
+      <span class="packet-val">phase-2 / feature-settings / 40% complete</span>
+      <span class="packet-key">route</span>
+      <span class="packet-val">ui-implementation</span>
+      <span class="packet-key">docs</span>
+      <span class="packet-val">UI-REQUIREMENTS.md §settings, primitives/grid.md, wireframes/settings.png</span>
+      <span class="packet-key">tokens</span>
+      <span class="packet-val">~7,800 (vs ~45,000 unrouted)</span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCK v5 — Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 0.75rem;
+    padding-left: 4px;
+  }
+
+  /* Panels */
+  .panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .panel:hover {
+    border-color: #3a3a3a;
+    box-shadow: 0 0 20px rgba(255,255,255,0.02);
+  }
+
+  /* Live agent item */
+  .live-item {
+    position: relative;
+    cursor: default;
+  }
+
+  .live-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.6rem;
+  }
+
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #5de8a0;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(93, 232, 160, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(93, 232, 160, 0); }
+  }
+
+  .live-item-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+
+  .phase-badge {
+    font-size: 0.72rem;
+    padding: 2px 10px;
+    border-radius: 100px;
+    background: #6a8caf18;
+    color: #8cafc6;
+    border: 1px solid #6a8caf44;
+    margin-left: auto;
+  }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0.4rem;
+  }
+
+  .progress-text {
+    font-size: 0.78rem;
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: #222;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #6a8caf;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* Up next item */
+  .next-item {
+    position: relative;
+    cursor: default;
+  }
+
+  .next-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.4rem;
+  }
+
+  .next-item-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+
+  .next-item-desc {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 0.6rem;
+  }
+
+  .next-item-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stage-badge {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    color: #ccc;
+  }
+
+  .open-link {
+    font-size: 0.8rem;
+    color: #6a8caf;
+    text-decoration: none;
+    cursor: pointer;
+    margin-left: auto;
+    transition: color 0.15s;
+  }
+
+  .open-link:hover {
+    color: #8cafc6;
+  }
+
+  /* Filter pills */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .filter-pill {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid #2a2a2a;
+    color: #888;
+    background: #111;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+  }
+
+  .filter-pill:hover {
+    border-color: #3a3a3a;
+    color: #bbb;
+  }
+
+  .filter-pill.active {
+    background: #6a8caf22;
+    border-color: #6a8caf55;
+    color: #8cafc6;
+  }
+
+  .filter-count {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.65rem;
+    opacity: 0.7;
+  }
+
+  /* Item rows */
+  .item-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    gap: 10px;
+    border-radius: 6px;
+    position: relative;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .item-row:hover {
+    background: #1a1a1a;
+  }
+
+  .item-row:hover .entry-tooltip {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+    pointer-events: auto;
+  }
+
+  .item-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-input { background: #e8a85d; }
+  .dot-ready { background: #5de8a0; }
+  .dot-progress { background: #6a8caf; }
+  .dot-complete { background: #555; }
+
+  .item-name {
+    font-size: 0.85rem;
+    color: #ccc;
+    font-weight: 500;
+  }
+
+  .item-stage {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.7rem;
+    color: #999;
+    white-space: nowrap;
+  }
+
+  .item-updated {
+    font-size: 0.72rem;
+    color: #555;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* Tooltip popover */
+  .entry-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    transform: translateY(4px) translateX(-50%);
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    color: #aaa;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s, transform 0.18s;
+    z-index: 10;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .entry-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+  }
+
+  /* Empty state */
+  .muted-text {
+    font-size: 0.8rem;
+    color: #555;
+    font-style: italic;
+  }
+
+  /* ───── Detail View ───── */
+  .detail-view {
+    display: none;
+  }
+
+  .detail-view.active {
+    display: block;
+  }
+
+  .dashboard-view.hidden {
+    display: none;
+  }
+
+  .back-link {
+    font-size: 0.8rem;
+    color: #666;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link:hover {
+    color: #aaa;
+  }
+
+  .detail-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .detail-stage {
+    display: inline-block;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.78rem;
+    color: #ccc;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Tabs */
+  .tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .tab-pill {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid #2a2a2a;
+    color: #888;
+    background: #111;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+  }
+
+  .tab-pill:hover {
+    border-color: #3a3a3a;
+    color: #bbb;
+  }
+
+  .tab-pill.active {
+    background: #6a8caf22;
+    border-color: #6a8caf55;
+    color: #8cafc6;
+  }
+
+  .tab-content {
+    display: none;
+    min-height: 200px;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .tab-panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .tab-placeholder {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+  }
+
+  .spec-block {
+    font-family: ui-monospace, 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    color: #999;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  /* Progress timeline */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .timeline-node {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    position: relative;
+    max-width: 380px;
+    width: 100%;
+  }
+
+  .timeline-node.done {
+    border-color: #333;
+    opacity: 0.6;
+  }
+
+  .timeline-node.current {
+    border-color: #6a8caf;
+    box-shadow: 0 0 20px rgba(106, 140, 175, 0.1);
+  }
+
+  .timeline-node .node-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 0.2rem;
+  }
+
+  .timeline-node.done .node-label { color: #555; }
+
+  .timeline-node .node-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .timeline-node.done .node-title { color: #777; }
+
+  .timeline-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.4rem 0;
+  }
+
+  .timeline-arrow svg {
+    width: 24px;
+    height: 28px;
+  }
+
+  .arrow-line { stroke: #444; stroke-width: 1.5; }
+  .arrow-head { fill: #444; }
+
+  /* Save button */
+  .save-btn {
+    margin-top: 2rem;
+    padding: 8px 24px;
+    background: transparent;
+    border: 1px solid #6a8caf55;
+    border-radius: 6px;
+    color: #6a8caf;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .save-btn:hover {
+    background: #6a8caf11;
+    border-color: #6a8caf;
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    body { padding: 2rem 1rem; }
+    .filter-bar { gap: 6px; }
+    .item-updated { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══════ DASHBOARD VIEW ═══════ -->
+  <div class="dashboard-view" id="dashboardView">
+
+    <h1>Mission Control Kit</h1>
+    <p class="subtitle">v5 Dashboard — Feature pipeline at a glance</p>
+
+    <!-- Section 1: LIVE AGENTS -->
+    <div class="section-label">Live Agents</div>
+    <div class="panel" style="border-color: #6a8caf55; box-shadow: 0 0 24px #6a8caf10;">
+      <div class="live-item">
+        <div class="live-item-header">
+          <span class="pulse-dot"></span>
+          <span class="live-item-name">user-onboarding</span>
+          <span class="phase-badge">Build — Phase 2</span>
+        </div>
+        <div class="progress-row">
+          <span class="progress-text">Task 3/7</span>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 43%;"></div>
+          </div>
+        </div>
+        <div class="entry-tooltip">Started 2h ago · mc-build subagent active</div>
+      </div>
+    </div>
+
+    <!-- Section 2: UP NEXT -->
+    <div class="section-label">Up Next</div>
+    <div class="panel">
+      <div class="next-item">
+        <div class="next-item-header">
+          <span class="next-item-name">payment-integration</span>
+        </div>
+        <div class="next-item-desc">Stripe integration for subscription billing</div>
+        <div class="next-item-footer">
+          <span class="stage-badge">Ready for development</span>
+          <a class="open-link" data-feature="payment-integration">Open →</a>
+        </div>
+        <div class="entry-tooltip">4 decisions finalized · Spec approved</div>
+      </div>
+    </div>
+
+    <!-- Section 3: ALL ITEMS -->
+    <div class="section-label">All Items</div>
+    <div class="panel">
+      <div class="filter-bar">
+        <span class="filter-pill active" data-filter="input">Needs Your Input<span class="filter-count">(2)</span></span>
+        <span class="filter-pill" data-filter="ready">Ready<span class="filter-count">(3)</span></span>
+        <span class="filter-pill" data-filter="progress">In Progress<span class="filter-count">(1)</span></span>
+        <span class="filter-pill" data-filter="complete">Complete<span class="filter-count">(4)</span></span>
+      </div>
+
+      <div class="items-list" id="itemsList">
+        <!-- Needs Input -->
+        <div class="item-row" data-category="input" data-feature="social-sharing">
+          <span class="item-dot dot-input"></span>
+          <span class="item-name">social-sharing</span>
+          <span class="item-stage">Needs input</span>
+          <span class="item-updated">Updated 1d ago</span>
+          <div class="entry-tooltip">UX decisions pending — sharing flow & platform targets</div>
+        </div>
+        <div class="item-row" data-category="input" data-feature="dark-mode">
+          <span class="item-dot dot-input"></span>
+          <span class="item-name">dark-mode</span>
+          <span class="item-stage">Needs input</span>
+          <span class="item-updated">Updated 3d ago</span>
+          <div class="entry-tooltip">Architecture decisions pending — theme system approach</div>
+        </div>
+
+        <!-- Ready -->
+        <div class="item-row" data-category="ready" data-feature="payment-integration">
+          <span class="item-dot dot-ready"></span>
+          <span class="item-name">payment-integration</span>
+          <span class="item-stage">Ready</span>
+          <span class="item-updated">Updated 2h ago</span>
+          <div class="entry-tooltip">Stripe integration — spec approved, decisions finalized</div>
+        </div>
+        <div class="item-row" data-category="ready" data-feature="push-notifications">
+          <span class="item-dot dot-ready"></span>
+          <span class="item-name">push-notifications</span>
+          <span class="item-stage">Ready</span>
+          <span class="item-updated">Updated 1d ago</span>
+          <div class="entry-tooltip">Firebase Cloud Messaging — all decisions captured</div>
+        </div>
+        <div class="item-row" data-category="ready" data-feature="profile-customization">
+          <span class="item-dot dot-ready"></span>
+          <span class="item-name">profile-customization</span>
+          <span class="item-stage">Ready</span>
+          <span class="item-updated">Updated 4d ago</span>
+          <div class="entry-tooltip">Avatar upload + bio editing — wireframes approved</div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="item-row" data-category="progress" data-feature="user-onboarding">
+          <span class="item-dot dot-progress"></span>
+          <span class="item-name">user-onboarding</span>
+          <span class="item-stage">In progress</span>
+          <span class="item-updated">Updated 5m ago</span>
+          <div class="entry-tooltip">Build Phase 2 — Task 3/7 active</div>
+        </div>
+
+        <!-- Complete -->
+        <div class="item-row" data-category="complete" data-feature="auth-system">
+          <span class="item-dot dot-complete"></span>
+          <span class="item-name">auth-system</span>
+          <span class="item-stage">Complete</span>
+          <span class="item-updated">Updated 1w ago</span>
+          <div class="entry-tooltip">Supabase Auth — email + OAuth, fully shipped</div>
+        </div>
+        <div class="item-row" data-category="complete" data-feature="landing-page">
+          <span class="item-dot dot-complete"></span>
+          <span class="item-name">landing-page</span>
+          <span class="item-stage">Complete</span>
+          <span class="item-updated">Updated 2w ago</span>
+          <div class="entry-tooltip">Hero, features, pricing sections — deployed</div>
+        </div>
+        <div class="item-row" data-category="complete" data-feature="email-verification">
+          <span class="item-dot dot-complete"></span>
+          <span class="item-name">email-verification</span>
+          <span class="item-stage">Complete</span>
+          <span class="item-updated">Updated 2w ago</span>
+          <div class="entry-tooltip">Confirmation flow with magic link fallback</div>
+        </div>
+        <div class="item-row" data-category="complete" data-feature="password-reset">
+          <span class="item-dot dot-complete"></span>
+          <span class="item-name">password-reset</span>
+          <span class="item-stage">Complete</span>
+          <span class="item-updated">Updated 3w ago</span>
+          <div class="entry-tooltip">Reset flow with rate limiting and expiry</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════ DETAIL VIEW ═══════ -->
+  <div class="detail-view" id="detailView">
+    <a class="back-link" id="backLink">← Dashboard</a>
+    <div class="detail-title" id="detailTitle">Feature Name</div>
+    <div class="detail-stage" id="detailStage">Stage</div>
+
+    <div class="tab-bar" id="tabBar">
+      <span class="tab-pill active" data-tab="decisions">Decisions</span>
+      <span class="tab-pill" data-tab="spec">Spec</span>
+      <span class="tab-pill" data-tab="progress">Progress</span>
+    </div>
+
+    <div class="tab-content active" id="tab-decisions">
+      <div class="tab-panel">
+        <span class="tab-placeholder">Interactive diagrams load here</span>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-spec">
+      <div class="tab-panel">
+        <pre class="spec-block" id="specContent">Feature: payment-integration
+Status: Ready for development
+
+## Overview
+Stripe integration for subscription billing with
+tiered pricing and usage-based metering.
+
+## Requirements
+- Checkout Sessions for initial subscription
+- Customer Portal for plan management
+- Webhook handling for async events
+- Usage records for metered billing
+
+## Technical Notes
+- Stripe SDK v14+
+- Server-side only (no client keys)
+- Idempotent webhook processing</pre>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-progress">
+      <div class="timeline">
+        <div class="timeline-node done">
+          <div class="node-label">Phase 1</div>
+          <div class="node-title">Research & Exploration</div>
+        </div>
+        <div class="timeline-arrow">
+          <svg viewBox="0 0 24 28"><line class="arrow-line" x1="12" y1="0" x2="12" y2="22"/><polygon class="arrow-head" points="7,18 12,26 17,18"/></svg>
+        </div>
+        <div class="timeline-node done">
+          <div class="node-label">Phase 2</div>
+          <div class="node-title">UX Flow & Decisions</div>
+        </div>
+        <div class="timeline-arrow">
+          <svg viewBox="0 0 24 28"><line class="arrow-line" x1="12" y1="0" x2="12" y2="22"/><polygon class="arrow-head" points="7,18 12,26 17,18"/></svg>
+        </div>
+        <div class="timeline-node done">
+          <div class="node-label">Phase 3</div>
+          <div class="node-title">Spec & Architecture</div>
+        </div>
+        <div class="timeline-arrow">
+          <svg viewBox="0 0 24 28"><line class="arrow-line" x1="12" y1="0" x2="12" y2="22"/><polygon class="arrow-head" points="7,18 12,26 17,18"/></svg>
+        </div>
+        <div class="timeline-node current">
+          <div class="node-label">Phase 4</div>
+          <div class="node-title">Build</div>
+        </div>
+        <div class="timeline-arrow">
+          <svg viewBox="0 0 24 28"><line class="arrow-line" x1="12" y1="0" x2="12" y2="22"/><polygon class="arrow-head" points="7,18 12,26 17,18"/></svg>
+        </div>
+        <div class="timeline-node">
+          <div class="node-label">Phase 5</div>
+          <div class="node-title">Verification & Ship</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn">Save</button>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const dashboardView = document.getElementById('dashboardView');
+  const detailView = document.getElementById('detailView');
+  const backLink = document.getElementById('backLink');
+  const detailTitle = document.getElementById('detailTitle');
+  const detailStage = document.getElementById('detailStage');
+  const itemsList = document.getElementById('itemsList');
+  const tabBar = document.getElementById('tabBar');
+
+  const featureData = {
+    'social-sharing': { stage: 'Needs input', desc: 'Social sharing UX flow & platform targets' },
+    'dark-mode': { stage: 'Needs input', desc: 'Theme system architecture decisions' },
+    'payment-integration': { stage: 'Ready for development', desc: 'Stripe subscription billing' },
+    'push-notifications': { stage: 'Ready', desc: 'Firebase Cloud Messaging integration' },
+    'profile-customization': { stage: 'Ready', desc: 'Avatar upload and bio editing' },
+    'user-onboarding': { stage: 'In progress', desc: 'Build Phase 2 — Task 3/7' },
+    'auth-system': { stage: 'Complete', desc: 'Supabase Auth with email + OAuth' },
+    'landing-page': { stage: 'Complete', desc: 'Hero, features, pricing sections' },
+    'email-verification': { stage: 'Complete', desc: 'Confirmation flow with magic link' },
+    'password-reset': { stage: 'Complete', desc: 'Reset flow with rate limiting' }
+  };
+
+  // Filter pills
+  const filterPills = document.querySelectorAll('.filter-pill');
+  const itemRows = document.querySelectorAll('.item-row');
+
+  function applyFilter(filter) {
+    filterPills.forEach(p => p.classList.toggle('active', p.dataset.filter === filter));
+    itemRows.forEach(row => {
+      row.style.display = row.dataset.category === filter ? '' : 'none';
+    });
+  }
+
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => applyFilter(pill.dataset.filter));
+  });
+
+  // Show initial filter
+  applyFilter('input');
+
+  // Open detail view
+  function openDetail(featureName) {
+    const data = featureData[featureName];
+    if (!data) return;
+    detailTitle.textContent = featureName;
+    detailStage.textContent = data.stage;
+    dashboardView.classList.add('hidden');
+    detailView.classList.add('active');
+  }
+
+  // Item row clicks
+  itemRows.forEach(row => {
+    row.addEventListener('click', () => openDetail(row.dataset.feature));
+  });
+
+  // Open link in Up Next
+  const openLinks = document.querySelectorAll('.open-link');
+  openLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      openDetail(link.dataset.feature);
+    });
+  });
+
+  // Back to dashboard
+  backLink.addEventListener('click', () => {
+    detailView.classList.remove('active');
+    dashboardView.classList.remove('hidden');
+  });
+
+  // Tab switching
+  const tabPills = tabBar.querySelectorAll('.tab-pill');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      tabPills.forEach(p => p.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      pill.classList.add('active');
+      document.getElementById('tab-' + pill.dataset.tab).classList.add('active');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

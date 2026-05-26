@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCK v5 — Brainstorming UX Flow</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.legend-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.legend-swatch.question { border: 2px solid #6a8caf; background: rgba(106,140,175,0.1); border-radius: 8px; }
+.legend-swatch.response { background: #1e1e1e; border: 1px solid #333; }
+.legend-swatch.research { background: rgba(175,146,106,0.15); border: 2px solid #af926a; }
+.legend-swatch.diagram { background: rgba(106,175,140,0.15); border: 2px solid #6aaf8c; }
+.legend-swatch.decision { background: rgba(106,175,140,0.25); border: 2px solid #4a9; border-radius: 50%; }
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  color: #888;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { color: #ccc; background: #1a1a1a; }
+.tab-btn.active { color: #fff; background: #1a1a1a; border-color: #3a3a3a; }
+
+.tab-content {
+  display: none;
+  padding: 2rem 1.5rem;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+
+.tab-content.active { display: block; }
+
+/* Scenario Header */
+.scenario-header {
+  margin-bottom: 1.5rem;
+}
+
+.scenario-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6a8caf;
+  margin-bottom: 0.25rem;
+}
+
+.scenario-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.scenario-trigger {
+  margin-top: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #ccc;
+  font-style: italic;
+}
+
+.scenario-trigger::before {
+  content: "User says: ";
+  font-style: normal;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Flow Timeline */
+.flow {
+  position: relative;
+  padding-left: 2rem;
+  margin-top: 1.5rem;
+}
+
+.flow::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: linear-gradient(to bottom, #2a2a2a, #3a3a3a, #2a2a2a);
+}
+
+.flow-step {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.flow-step:last-child { margin-bottom: 0; }
+
+.flow-dot {
+  position: absolute;
+  left: -2rem;
+  top: 0.6rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  border: 2px solid #444;
+  z-index: 1;
+}
+
+/* Node Types */
+.node {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.node-question {
+  border: 1.5px solid #6a8caf;
+  background: rgba(106,140,175,0.06);
+  color: #c8d8e8;
+}
+
+.node-question .node-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a8caf;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.node-response {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #999;
+  font-style: italic;
+}
+
+.node-research {
+  border: 1.5px solid #af926a;
+  background: rgba(175,146,106,0.06);
+  color: #d8c8a8;
+}
+
+.node-research .node-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #af926a;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.node-research .patterns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.node-research .pattern-tag {
+  padding: 0.2rem 0.5rem;
+  background: rgba(175,146,106,0.12);
+  border: 1px solid rgba(175,146,106,0.3);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #c8b898;
+  font-style: normal;
+}
+
+.node-diagram {
+  border: 2px solid #6aaf8c;
+  background: rgba(106,175,140,0.06);
+  color: #b8e8cc;
+  position: relative;
+}
+
+.node-diagram .node-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6aaf8c;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.node-diagram .diagram-preview {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: #0f1f18;
+  border: 1px solid rgba(106,175,140,0.2);
+  border-radius: 6px;
+}
+
+.node-diagram .diagram-preview .preview-title {
+  font-size: 0.7rem;
+  color: #6aaf8c;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.node-diagram .diagram-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.node-diagram .diagram-option {
+  padding: 0.3rem 0.6rem;
+  background: rgba(106,175,140,0.1);
+  border: 1px solid rgba(106,175,140,0.25);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #a0d8b8;
+}
+
+.node-diagram .diagram-option.selected {
+  background: rgba(106,175,140,0.2);
+  border-color: #6aaf8c;
+  color: #c8f0d8;
+}
+
+.node-decision {
+  border: 2px solid #4a9;
+  background: rgba(68,170,153,0.08);
+  color: #a8e8c8;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.node-decision .checkmark {
+  width: 22px;
+  height: 22px;
+  background: rgba(68,170,153,0.2);
+  border: 1.5px solid #4a9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+/* Dot colors per type */
+.flow-step.step-question .flow-dot { background: #6a8caf; border-color: #6a8caf; }
+.flow-step.step-response .flow-dot { background: #444; border-color: #555; }
+.flow-step.step-research .flow-dot { background: #af926a; border-color: #af926a; }
+.flow-step.step-diagram .flow-dot { background: #6aaf8c; border-color: #6aaf8c; width: 12px; height: 12px; left: calc(-2rem - 1px); top: calc(0.6rem - 1px); }
+.flow-step.step-decision .flow-dot { background: #4a9; border-color: #4a9; width: 12px; height: 12px; left: calc(-2rem - 1px); top: calc(0.6rem - 1px); }
+
+/* Browser icon (SVG inline) */
+.browser-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+/* Arrow indicator between steps */
+.arrow-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0;
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  color: #555;
+}
+
+.arrow-hint::before {
+  content: "↓";
+  color: #444;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Brainstorming UX Flow</h1>
+  <p class="subtitle">Mission Control Kit v5 — Interactive orchestrator conversation flows</p>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch question"></div>
+      <span>Orchestrator Question</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch response"></div>
+      <span>User Response</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch research">⟳</div>
+      <span>Research Phase</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch diagram">◫</div>
+      <span>Diagram Opens</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch decision">✓</div>
+      <span>Decision Saved</span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="engineering">Engineering — Tech Stack</button>
+    <button class="tab-btn" data-tab="product">Product — Feature Scope</button>
+    <button class="tab-btn" data-tab="design">Design — UI Component</button>
+  </div>
+
+  <!-- SCENARIO 1: Engineering -->
+  <div class="tab-content active" id="tab-engineering">
+    <div class="scenario-header">
+      <div class="scenario-label">Scenario 1</div>
+      <div class="scenario-title">Tech Stack Decision — Real-time Notifications</div>
+      <div class="scenario-trigger">"We need to add real-time notifications"</div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          What triggers notifications? User actions, system events, or both?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User answers with their requirements</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator offers research</div>
+          Want me to research notification architectures?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User: "Yes"</div>
+      </div>
+
+      <div class="flow-step step-research">
+        <div class="flow-dot"></div>
+        <div class="node node-research">
+          <div class="node-label">⟳ Research subagent returns</div>
+          Notification architecture patterns discovered:
+          <div class="patterns">
+            <span class="pattern-tag">WebSockets</span>
+            <span class="pattern-tag">Server-Sent Events</span>
+            <span class="pattern-tag">Long Polling</span>
+            <span class="pattern-tag">Push API</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step step-diagram">
+        <div class="flow-dot"></div>
+        <div class="node node-diagram">
+          <div class="node-label">
+            <svg class="browser-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="11" rx="2"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><circle cx="3.5" cy="3.75" r="0.6" fill="currentColor" stroke="none"/><circle cx="5.5" cy="3.75" r="0.6" fill="currentColor" stroke="none"/></svg>
+            Architecture Diagram Opens
+          </div>
+          User sees 3 illustrated data flow options
+          <div class="diagram-preview">
+            <div class="preview-title">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="11" rx="2"/><line x1="1" y1="5.5" x2="15" y2="5.5"/></svg>
+              Interactive comparison view
+            </div>
+            <div class="diagram-options">
+              <span class="diagram-option selected">WebSocket bi-directional</span>
+              <span class="diagram-option">SSE one-way stream</span>
+              <span class="diagram-option">Polling interval-based</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User selects WebSocket approach</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          Message persistence? Ephemeral or stored?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User selects their preference</div>
+      </div>
+
+      <div class="flow-step step-decision">
+        <div class="flow-dot"></div>
+        <div class="node node-decision">
+          <div class="checkmark">✓</div>
+          <div><strong>Decision saved</strong> — Ready for spec generation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIO 2: Product -->
+  <div class="tab-content" id="tab-product">
+    <div class="scenario-header">
+      <div class="scenario-label">Scenario 2</div>
+      <div class="scenario-title">Feature Scope Decision — User Onboarding</div>
+      <div class="scenario-trigger">"We need user onboarding"</div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          Who's the target user? New signups, invited team members, or both?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User: "New signups"</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator offers research</div>
+          Want me to research onboarding patterns?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User: "Yes"</div>
+      </div>
+
+      <div class="flow-step step-research">
+        <div class="flow-dot"></div>
+        <div class="node node-research">
+          <div class="node-label">⟳ Research subagent returns</div>
+          Onboarding UX patterns discovered:
+          <div class="patterns">
+            <span class="pattern-tag">Step Wizard</span>
+            <span class="pattern-tag">Progressive Disclosure</span>
+            <span class="pattern-tag">Contextual Tooltips</span>
+            <span class="pattern-tag">Video Walkthrough</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step step-diagram">
+        <div class="flow-dot"></div>
+        <div class="node node-diagram">
+          <div class="node-label">
+            <svg class="browser-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="11" rx="2"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><circle cx="3.5" cy="3.75" r="0.6" fill="currentColor" stroke="none"/><circle cx="5.5" cy="3.75" r="0.6" fill="currentColor" stroke="none"/></svg>
+            UX Flow Diagram Opens
+          </div>
+          User sees illustrated user journeys for each pattern
+          <div class="diagram-preview">
+            <div class="preview-title">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="11" rx="2"/><line x1="1" y1="5.5" x2="15" y2="5.5"/></svg>
+              User journey comparison
+            </div>
+            <div class="diagram-options">
+              <span class="diagram-option selected">Wizard (step-by-step)</span>
+              <span class="diagram-option">Progressive (gradual reveal)</span>
+              <span class="diagram-option">Contextual (in-app tips)</span>
+              <span class="diagram-option">Video (guided tour)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User selects wizard approach</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          How many steps? 3-step quick, 5-step thorough, or adaptive?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User picks from illustrated options</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          Skip option? Can users skip onboarding entirely?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User decides on skip behavior</div>
+      </div>
+
+      <div class="flow-step step-decision">
+        <div class="flow-dot"></div>
+        <div class="node node-decision">
+          <div class="checkmark">✓</div>
+          <div><strong>Decision saved</strong> — Ready for spec generation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIO 3: Design -->
+  <div class="tab-content" id="tab-design">
+    <div class="scenario-header">
+      <div class="scenario-label">Scenario 3</div>
+      <div class="scenario-title">UI Component Decision — Settings Page</div>
+      <div class="scenario-trigger">"We need a settings page"</div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          What settings? Account, preferences, billing, or all?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User: "Account and preferences"</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator offers research</div>
+          Want me to research settings UI patterns?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User: "Yes"</div>
+      </div>
+
+      <div class="flow-step step-research">
+        <div class="flow-dot"></div>
+        <div class="node node-research">
+          <div class="node-label">⟳ Research subagent returns</div>
+          Settings UI layout patterns discovered:
+          <div class="patterns">
+            <span class="pattern-tag">Sidebar Sections</span>
+            <span class="pattern-tag">Tabbed Panels</span>
+            <span class="pattern-tag">Single Scroll</span>
+            <span class="pattern-tag">Accordion</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step step-diagram">
+        <div class="flow-dot"></div>
+        <div class="node node-diagram">
+          <div class="node-label">
+            <svg class="browser-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="11" rx="2"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><circle cx="3.5" cy="3.75" r="0.6" fill="currentColor" stroke="none"/><circle cx="5.5" cy="3.75" r="0.6" fill="currentColor" stroke="none"/></svg>
+            UI Diagram Opens
+          </div>
+          User sees rendered layout mockups for each pattern
+          <div class="diagram-preview">
+            <div class="preview-title">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="11" rx="2"/><line x1="1" y1="5.5" x2="15" y2="5.5"/></svg>
+              Layout pattern comparison
+            </div>
+            <div class="diagram-options">
+              <span class="diagram-option">Sidebar nav + content</span>
+              <span class="diagram-option selected">Tabbed panels</span>
+              <span class="diagram-option">Infinite scroll page</span>
+              <span class="diagram-option">Collapsible sections</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User selects tabbed layout</div>
+      </div>
+
+      <div class="flow-step step-question">
+        <div class="flow-dot"></div>
+        <div class="node node-question">
+          <div class="node-label">Orchestrator asks</div>
+          Form save behavior? Auto-save, explicit save button, or section-level save?
+        </div>
+      </div>
+
+      <div class="flow-step step-response">
+        <div class="flow-dot"></div>
+        <div class="node node-response">User picks from illustrated options</div>
+      </div>
+
+      <div class="flow-step step-decision">
+        <div class="flow-dot"></div>
+        <div class="node node-decision">
+          <div class="checkmark">✓</div>
+          <div><strong>Decision saved</strong> — Ready for spec generation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

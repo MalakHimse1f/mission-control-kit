@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCK v5 — Decision Sequencing</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Principle bar */
+  .principle-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+
+  .principle {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid #2a2a2a;
+    color: #888;
+    background: #111;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #666;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+
+  /* ── Main pipeline ── */
+  .pipeline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  /* Phase node */
+  .phase {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    width: 200px;
+    flex-shrink: 0;
+    position: relative;
+    cursor: default;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .phase:hover { z-index: 2; }
+
+  .phase.ux { border-color: rgba(155, 89, 182, 0.4); }
+  .phase.ux:hover { border-color: #9b59b6; box-shadow: 0 0 24px rgba(155, 89, 182, 0.12); }
+  .phase.ui { border-color: rgba(91, 141, 217, 0.4); }
+  .phase.ui:hover { border-color: #5b8dd9; box-shadow: 0 0 24px rgba(91, 141, 217, 0.12); }
+  .phase.arch { border-color: rgba(230, 126, 34, 0.4); }
+  .phase.arch:hover { border-color: #e67e22; box-shadow: 0 0 24px rgba(230, 126, 34, 0.12); }
+  .phase.build { border-color: rgba(46, 204, 113, 0.4); }
+  .phase.build:hover { border-color: #2ecc71; box-shadow: 0 0 24px rgba(46, 204, 113, 0.12); }
+
+  .phase-number {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+  }
+
+  .phase.ux .phase-number { color: #9b59b6; }
+  .phase.ui .phase-number { color: #5b8dd9; }
+  .phase.arch .phase-number { color: #e67e22; }
+  .phase.build .phase-number { color: #2ecc71; }
+
+  .phase-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+
+  .phase-question {
+    font-size: 0.78rem;
+    color: #999;
+    font-style: italic;
+    margin-bottom: 0.6rem;
+    line-height: 1.4;
+  }
+
+  .phase-activities {
+    list-style: none;
+    font-size: 0.72rem;
+    color: #777;
+  }
+
+  .phase-activities li {
+    padding: 0.2rem 0;
+    padding-left: 0.8rem;
+    position: relative;
+  }
+
+  .phase-activities li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    background: #444;
+  }
+
+  .phase.ux .phase-activities li::before { background: rgba(155, 89, 182, 0.5); }
+  .phase.ui .phase-activities li::before { background: rgba(91, 141, 217, 0.5); }
+  .phase.arch .phase-activities li::before { background: rgba(230, 126, 34, 0.5); }
+  .phase.build .phase-activities li::before { background: rgba(46, 204, 113, 0.5); }
+
+  .phase-gate {
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #222;
+    font-size: 0.68rem;
+    color: #555;
+  }
+
+  .phase-gate .gate-icon {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #444;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-right: 4px;
+    position: relative;
+  }
+
+  .phase-gate .gate-icon::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 3px;
+    width: 3px;
+    height: 5px;
+    border-right: 1.5px solid #555;
+    border-bottom: 1.5px solid #555;
+    transform: rotate(40deg);
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    transform: translateY(4px) translateX(-50%);
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    color: #aaa;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s, transform 0.18s;
+    z-index: 10;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .phase:hover .tooltip {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
+
+  /* Gate connector (diamond between phases) */
+  .gate-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    flex-shrink: 0;
+    padding-top: 2.5rem;
+    position: relative;
+  }
+
+  .gate-diamond {
+    width: 26px;
+    height: 26px;
+    background: #1a1a1a;
+    border: 1.5px solid #444;
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .gate-diamond svg {
+    transform: rotate(-45deg);
+    width: 12px;
+    height: 12px;
+  }
+
+  .gate-label {
+    font-size: 0.58rem;
+    color: #555;
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .gate-connector .gate-line-left,
+  .gate-connector .gate-line-right {
+    position: absolute;
+    top: calc(2.5rem + 12px);
+    height: 1.5px;
+    background: #333;
+  }
+
+  .gate-connector .gate-line-left { right: calc(50% + 14px); left: 0; }
+  .gate-connector .gate-line-right { left: calc(50% + 14px); right: 0; }
+
+  /* ── Tech-stack exception ── */
+  .exception-section { margin-bottom: 2.5rem; }
+
+  .exception-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .exception-node {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 0.75rem 1.15rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .exception-node .en-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #666;
+    margin-bottom: 0.2rem;
+  }
+
+  .exception-node .en-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .exception-node.ts { border-color: rgba(241, 196, 15, 0.35); }
+  .exception-node.ts .en-label { color: #f1c40f; }
+  .exception-node.ea { border-color: rgba(230, 126, 34, 0.35); }
+  .exception-node.ea .en-label { color: #e67e22; }
+  .exception-node.eb { border-color: rgba(46, 204, 113, 0.35); }
+  .exception-node.eb .en-label { color: #2ecc71; }
+
+  .exception-arrow {
+    display: flex;
+    align-items: center;
+    width: 48px;
+    flex-shrink: 0;
+    justify-content: center;
+  }
+
+  .exception-arrow svg { width: 48px; height: 20px; }
+
+  .exception-note {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #555;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+
+  /* ── Deferred questions ── */
+  .deferred-section { margin-bottom: 2.5rem; }
+
+  .deferred-panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .deferred-diagram {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .deferred-bubble {
+    background: #1a1a2a;
+    border: 1px solid rgba(155, 89, 182, 0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    color: #b89ad4;
+    white-space: nowrap;
+  }
+
+  .deferred-arrow-down svg { width: 20px; height: 28px; }
+
+  .deferred-bucket {
+    background: #1a1a1a;
+    border: 1.5px dashed #444;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    color: #888;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .deferred-text {
+    font-size: 0.78rem;
+    color: #777;
+    line-height: 1.5;
+  }
+
+  .deferred-text strong { color: #aaa; font-weight: 500; }
+
+  /* ── Anti-pattern box ── */
+  .antipattern {
+    background: #141414;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .antipattern-icon {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    position: relative;
+  }
+
+  .antipattern-label-top {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #e74c3c;
+    margin-bottom: 0.5rem;
+  }
+
+  .antipattern-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #e8e8e8;
+    margin-bottom: 0.35rem;
+  }
+
+  .antipattern-desc {
+    font-size: 0.78rem;
+    color: #777;
+    line-height: 1.5;
+  }
+
+  .antipattern-chain {
+    font-size: 0.72rem;
+    color: #999;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(231, 76, 60, 0.06);
+    border-radius: 6px;
+    border-left: 2px solid rgba(231, 76, 60, 0.3);
+  }
+
+  /* ── SVG shared ── */
+  .arrow-line { stroke: #444; stroke-width: 1.5; }
+  .arrow-head { fill: #444; }
+  .arrow-line-red { stroke: rgba(231, 76, 60, 0.5); stroke-width: 1.5; }
+  .arrow-head-red { fill: rgba(231, 76, 60, 0.5); }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .pipeline {
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .phase { width: 100%; max-width: 340px; }
+    .gate-connector {
+      width: auto;
+      padding: 0.5rem 0;
+      flex-direction: row;
+      gap: 8px;
+    }
+    .gate-connector .gate-line-left,
+    .gate-connector .gate-line-right { display: none; }
+    .gate-label { margin-top: 0; margin-left: 6px; }
+  }
+
+  @media (max-width: 640px) {
+    .deferred-panel { flex-direction: column; text-align: center; }
+    .antipattern { flex-direction: column; text-align: center; }
+    .exception-flow { flex-wrap: wrap; gap: 6px; }
+    .exception-arrow { width: 32px; }
+    body { padding: 2rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Decision Sequencing</h1>
+  <p class="subtitle">Mission Control Kit v5 — Mandatory feature-decision pipeline: UX → UI → Architecture → Build</p>
+
+  <div class="principle-bar">
+    <span class="principle">UX first, always</span>
+    <span class="principle">No backtracking</span>
+    <span class="principle">Gates between phases</span>
+    <span class="principle">Deferred, not blocked</span>
+  </div>
+
+  <!-- ── Main pipeline ── -->
+  <div class="section-label">Feature Decision Pipeline</div>
+
+  <div class="pipeline">
+
+    <!-- Phase 1: UX -->
+    <div class="phase ux">
+      <div class="tooltip">Routes: UX-PATTERNS.md, flow diagrams, interaction specs</div>
+      <div class="phase-number">Phase 1</div>
+      <div class="phase-title">UX Decisions</div>
+      <div class="phase-question">"How does the user experience this?"</div>
+      <ul class="phase-activities">
+        <li>User journey mapping</li>
+        <li>Flow decisions</li>
+        <li>Interaction patterns</li>
+      </ul>
+      <div class="phase-gate">
+        <span class="gate-icon"></span> All UX decisions saved to decisions.json
+      </div>
+    </div>
+
+    <!-- Gate 1→2 -->
+    <div class="gate-connector">
+      <div class="gate-line-left"></div>
+      <div class="gate-diamond">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5L5.5 10L11 4" stroke="#5de8a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="gate-line-right"></div>
+      <div class="gate-label">All saved?</div>
+    </div>
+
+    <!-- Phase 2: UI -->
+    <div class="phase ui">
+      <div class="tooltip">Routes: UI-REQUIREMENTS.md, wireframes, layout primitives</div>
+      <div class="phase-number">Phase 2</div>
+      <div class="phase-title">UI Decisions</div>
+      <div class="phase-question">"What does each screen / state look like?"</div>
+      <ul class="phase-activities">
+        <li>Component choices</li>
+        <li>Layouts &amp; spacing</li>
+        <li>Visual hierarchy</li>
+      </ul>
+      <div class="phase-gate">
+        <span class="gate-icon"></span> All UI decisions saved to decisions.json
+      </div>
+    </div>
+
+    <!-- Gate 2→3 -->
+    <div class="gate-connector">
+      <div class="gate-line-left"></div>
+      <div class="gate-diamond">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5L5.5 10L11 4" stroke="#5de8a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="gate-line-right"></div>
+      <div class="gate-label">All saved?</div>
+    </div>
+
+    <!-- Phase 3: Architecture -->
+    <div class="phase arch">
+      <div class="tooltip">Routes: ARCHITECTURE.md, stack.json, tech decisions</div>
+      <div class="phase-number">Phase 3</div>
+      <div class="phase-title">Architecture Decisions</div>
+      <div class="phase-question">"What technical decisions support this?"</div>
+      <ul class="phase-activities">
+        <li>Data models &amp; APIs</li>
+        <li>Services &amp; state</li>
+        <li>Infrastructure</li>
+      </ul>
+      <div class="phase-gate">
+        <span class="gate-icon"></span> All arch decisions saved to decisions.json
+      </div>
+    </div>
+
+    <!-- Gate 3→4 -->
+    <div class="gate-connector">
+      <div class="gate-line-left"></div>
+      <div class="gate-diamond">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5L5.5 10L11 4" stroke="#5de8a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="gate-line-right"></div>
+      <div class="gate-label">All saved?</div>
+    </div>
+
+    <!-- Phase 4: Build -->
+    <div class="phase build">
+      <div class="tooltip">Routes: phase plan, BUILD-GATES.md, task spec</div>
+      <div class="phase-number">Phase 4</div>
+      <div class="phase-title">Build</div>
+      <div class="phase-question">"Execute with all decisions locked in."</div>
+      <ul class="phase-activities">
+        <li>Code implementation</li>
+        <li>No backtracking</li>
+        <li>Decisions are final</li>
+      </ul>
+      <div class="phase-gate">
+        <span class="gate-icon"></span> Ship it
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Tech-stack exception ── -->
+  <div class="exception-section">
+    <div class="section-label">Exception — Tech-Stack Items</div>
+    <div class="exception-flow">
+      <div class="exception-node ts">
+        <div class="en-label">Trigger</div>
+        <div class="en-title">Tech-Stack Item</div>
+      </div>
+      <div class="exception-arrow">
+        <svg viewBox="0 0 48 20"><line class="arrow-line" x1="0" y1="10" x2="40" y2="10"/><polygon class="arrow-head" points="36,5 44,10 36,15"/></svg>
+      </div>
+      <div class="exception-node ea">
+        <div class="en-label">Phase 3</div>
+        <div class="en-title">Architecture</div>
+      </div>
+      <div class="exception-arrow">
+        <svg viewBox="0 0 48 20"><line class="arrow-line" x1="0" y1="10" x2="40" y2="10"/><polygon class="arrow-head" points="36,5 44,10 36,15"/></svg>
+      </div>
+      <div class="exception-node eb">
+        <div class="en-label">Phase 4</div>
+        <div class="en-title">Build</div>
+      </div>
+    </div>
+    <div class="exception-note">No UX / UI phase needed for scaffolding, CI, database, infrastructure, etc.</div>
+  </div>
+
+  <!-- ── Deferred questions ── -->
+  <div class="deferred-section">
+    <div class="section-label">Deferred Questions Mechanism</div>
+    <div class="deferred-panel">
+      <div class="deferred-diagram">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="deferred-bubble">Tech question during UX</div>
+          <div class="deferred-arrow-down">
+            <svg viewBox="0 0 20 28"><line class="arrow-line" x1="10" y1="0" x2="10" y2="22"/><polygon class="arrow-head" points="6,18 10,26 14,18"/></svg>
+          </div>
+          <div class="deferred-bucket">Deferred</div>
+        </div>
+      </div>
+      <div class="deferred-text">
+        <strong>Not blocked, just redirected.</strong><br>
+        If a user raises a technical question during the UX phase, it is captured in a deferred bucket. It surfaces automatically when the Architecture phase begins — no question is lost.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Anti-pattern ── -->
+  <div class="section-label">Anti-Pattern</div>
+  <div class="antipattern">
+    <div class="antipattern-icon">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M20 25 L60 25" class="arrow-line-red"/>
+        <polygon class="arrow-head-red" points="56,21 64,25 56,29"/>
+        <path d="M60 31 L20 31" class="arrow-line-red"/>
+        <polygon class="arrow-head-red" points="24,27 16,31 24,35"/>
+        <path d="M20 37 L60 37" class="arrow-line-red"/>
+        <polygon class="arrow-head-red" points="56,33 64,37 56,41"/>
+        <text x="40" y="56" text-anchor="middle" fill="rgba(231,76,60,0.6)" font-size="8" font-family="system-ui">loop</text>
+        <rect x="12" y="18" width="56" height="28" rx="4" stroke="rgba(231,76,60,0.25)" stroke-width="1" fill="none" stroke-dasharray="3,3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="antipattern-label-top">Danger Zone</div>
+      <div class="antipattern-title">Architecture-First Trap</div>
+      <div class="antipattern-desc">Starting with technical decisions before understanding the user experience constrains UX options and forces costly backtracking.</div>
+      <div class="antipattern-chain">Architecture first → constrains UX → backtracking → wasted work</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

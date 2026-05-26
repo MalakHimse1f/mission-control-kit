@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCK v5 — Dashboard Auto-Launch Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+  }
+
+  .section {
+    max-width: 960px;
+    margin: 0 auto 4rem;
+  }
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6a8caf;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #1e2e3a;
+  }
+
+  /* ── Flow Diagram ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+  }
+
+  .trigger-bank {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .trigger-bank-label {
+    grid-column: 1 / -1;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 0.25rem;
+  }
+  .trigger {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    color: #c0c8d8;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .trigger::before {
+    content: "";
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6a8caf;
+  }
+
+  .arrow-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.3rem 0;
+    color: #444;
+  }
+  .arrow-down .stem {
+    width: 2px;
+    height: 18px;
+    background: #333;
+  }
+  .arrow-down .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #444;
+  }
+  .arrow-down .label {
+    font-size: 0.65rem;
+    color: #666;
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  .step-box {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    width: 100%;
+  }
+  .step-box.check {
+    border-color: #3a3a20;
+    background: #16160e;
+  }
+  .step-box.action {
+    border-color: #1e3a2a;
+    background: #0f1a14;
+  }
+  .step-box.result {
+    border-color: #2a3a4a;
+    background: #0f1420;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #6a8caf;
+    color: #0a0a0a;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e0e0e0;
+  }
+  .step-detail {
+    font-size: 0.78rem;
+    color: #888;
+    margin-left: 1.9rem;
+  }
+  .step-detail code {
+    background: #1e1e1e;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: #aaa;
+  }
+
+  .branch-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+  }
+  .branch {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+  .branch-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.35rem;
+  }
+  .branch-label.yes { color: #5de8a0; }
+  .branch-label.no { color: #e8a05d; }
+  .branch-content {
+    font-size: 0.75rem;
+    color: #999;
+  }
+  .branch-content code {
+    background: #1e1e1e;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: #aaa;
+  }
+  .branch-sub {
+    margin-top: 0.3rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid #2a2a2a;
+    font-size: 0.72rem;
+    color: #777;
+  }
+
+  .route-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+    margin-left: 1.9rem;
+  }
+  .route {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    padding: 0.5rem 0.65rem;
+  }
+  .route-condition {
+    font-size: 0.68rem;
+    color: #8899bb;
+    margin-bottom: 0.2rem;
+  }
+  .route-path {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: #6a8caf;
+  }
+
+  .final-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+  }
+  .final-box {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+  .final-box.browser {
+    background: #0f1a14;
+    border: 1px solid #1e3a2a;
+  }
+  .final-box.chat {
+    background: #141420;
+    border: 1px solid #2a2a4a;
+  }
+  .final-box .step-header { margin-bottom: 0.3rem; }
+  .final-box .step-detail { margin-left: 1.9rem; }
+
+  /* ── Browser Mockup ── */
+  .browser-frame {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+  .browser-chrome {
+    background: #111;
+    padding: 0.6rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .window-dots {
+    display: flex;
+    gap: 5px;
+  }
+  .window-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .window-dots .close { background: #e85d5d; }
+  .window-dots .minimize { background: #e8c95d; }
+  .window-dots .maximize { background: #5de8a0; }
+  .url-bar {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: #888;
+  }
+  .url-bar .protocol { color: #555; }
+  .url-bar .host { color: #999; }
+  .url-bar .path { color: #6a8caf; }
+
+  .browser-body {
+    padding: 1.5rem;
+    min-height: 320px;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .back-link {
+    font-size: 0.72rem;
+    color: #6a8caf;
+    text-decoration: none;
+    border: 1px solid #2a3a4a;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+  }
+  .feature-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .stage-badge {
+    background: #1a2a1e;
+    border: 1px solid #2a4a3a;
+    color: #5de8a0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+  }
+
+  .diagram-panel {
+    background: #0f0f0f;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .diagram-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 1rem;
+  }
+
+  .ux-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .ux-node {
+    background: #141428;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 0.5rem 0.7rem;
+    text-align: center;
+    min-width: 90px;
+  }
+  .ux-node.active {
+    border-color: #6a8caf;
+    box-shadow: 0 0 12px rgba(106, 140, 175, 0.15);
+  }
+  .ux-node-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #ccc;
+  }
+  .ux-node-sub {
+    font-size: 0.6rem;
+    color: #666;
+    margin-top: 0.15rem;
+  }
+  .ux-arrow {
+    color: #444;
+    font-size: 0.85rem;
+    padding: 0 0.25rem;
+  }
+  .ux-branch-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .ux-branch-label {
+    font-size: 0.58rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ux-branch-options {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .btn {
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: #6a8caf;
+    color: #0a0a0a;
+  }
+  .btn-ghost {
+    background: none;
+    border: 1px solid #2a2a2a;
+    color: #888;
+  }
+
+  /* ── Chat Mockup ── */
+  .chat-mockup {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .chat-mockup-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+    margin-bottom: 0.6rem;
+  }
+  .chat-msg {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #c0c8d8;
+  }
+  .chat-msg .link {
+    color: #6a8caf;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .chat-msg .arrow { color: #5de8a0; }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #2a2a2a, transparent);
+    margin: 3rem 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Dashboard Auto-Launch</h1>
+<p class="subtitle">When and how the dashboard opens automatically — Mission Control Kit v5</p>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PART 1: FLOW DIAGRAM                    -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Part 1 — Trigger &amp; Launch Flow</div>
+
+  <div class="flow">
+
+    <!-- Triggers -->
+    <div class="trigger-bank">
+      <div class="trigger-bank-label">Trigger Events</div>
+      <div class="trigger">Subagent creates a visual artifact</div>
+      <div class="trigger">User says "I want to review" or "show me"</div>
+      <div class="trigger">Brainstorming reaches a decision point</div>
+      <div class="trigger">Research completes — patterns ready</div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="stem"></div>
+      <div class="head"></div>
+      <div class="label">event fires</div>
+    </div>
+
+    <!-- Step 1: Trigger -->
+    <div class="step-box" style="border-left: 3px solid #6a8caf;">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Trigger Event Received</div>
+      </div>
+      <div class="step-detail">Hook or skill identifies a dashboard-worthy moment</div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="stem"></div>
+      <div class="head"></div>
+    </div>
+
+    <!-- Step 2: Check server -->
+    <div class="step-box check">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Is Dashboard Server Running?</div>
+      </div>
+      <div class="step-detail">Read <code>.mc/dashboard-server.json</code> for status, port, PID</div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="stem"></div>
+      <div class="head"></div>
+    </div>
+
+    <!-- Branch: YES / NO -->
+    <div class="branch-row">
+      <div class="branch">
+        <div class="branch-label yes">Yes — Server Running</div>
+        <div class="branch-content">Extract URL and port from config</div>
+        <div class="branch-sub"><code>{ "port": 9470, "pid": 42381 }</code></div>
+      </div>
+      <div class="branch">
+        <div class="branch-label no">No — Server Stopped</div>
+        <div class="branch-content">Launch server process</div>
+        <div class="branch-sub"><code>node control/scripts/dashboard-server.mjs</code></div>
+        <div class="branch-sub" style="margin-top: 0.2rem;">Wait for port to become available</div>
+      </div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="stem"></div>
+      <div class="head"></div>
+      <div class="label">server ready</div>
+    </div>
+
+    <!-- Step 3: Route -->
+    <div class="step-box result">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Determine Target Page</div>
+      </div>
+      <div class="route-grid">
+        <div class="route">
+          <div class="route-condition">Specific feature artifact</div>
+          <div class="route-path">/feature/{slug}</div>
+        </div>
+        <div class="route">
+          <div class="route-condition">Decision needed</div>
+          <div class="route-path">/feature/{slug}#decisions</div>
+        </div>
+        <div class="route">
+          <div class="route-condition">General review</div>
+          <div class="route-path">/</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="stem"></div>
+      <div class="head"></div>
+    </div>
+
+    <!-- Steps 4 & 5: Open + Message -->
+    <div class="final-row">
+      <div class="final-box browser">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-title">Open Browser</div>
+        </div>
+        <div class="step-detail"><code>open http://127.0.0.1:{port}/{path}</code></div>
+      </div>
+      <div class="final-box chat">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-title">Chat Confirmation</div>
+        </div>
+        <div class="step-detail">Notify user with artifact name &amp; link</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PART 2: UI MOCKUP                       -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Part 2 — What the User Sees</div>
+
+  <!-- Browser Window -->
+  <div class="browser-frame">
+    <div class="browser-chrome">
+      <div class="window-dots">
+        <span class="close"></span>
+        <span class="minimize"></span>
+        <span class="maximize"></span>
+      </div>
+      <div class="url-bar">
+        <span class="protocol">http://</span><span class="host">127.0.0.1:9470</span><span class="path">/feature/user-onboarding</span>
+      </div>
+    </div>
+
+    <div class="browser-body">
+      <!-- Page Header -->
+      <div class="page-header">
+        <a class="back-link" href="#">← Dashboard</a>
+        <span class="feature-name">User Onboarding</span>
+        <span class="stage-badge">UX Design</span>
+      </div>
+
+      <!-- Diagram Area -->
+      <div class="diagram-panel">
+        <div class="diagram-title">UX Flow — Navigation Pattern</div>
+        <div class="ux-flow">
+          <div class="ux-node active">
+            <div class="ux-node-label">Welcome</div>
+            <div class="ux-node-sub">splash screen</div>
+          </div>
+          <div class="ux-arrow">→</div>
+          <div class="ux-node">
+            <div class="ux-node-label">Profile</div>
+            <div class="ux-node-sub">name &amp; avatar</div>
+          </div>
+          <div class="ux-arrow">→</div>
+          <div class="ux-branch-container">
+            <div class="ux-branch-label">choose path</div>
+            <div class="ux-branch-options">
+              <div class="ux-node" style="border-color: #5de8a0;">
+                <div class="ux-node-label">Guided Tour</div>
+                <div class="ux-node-sub">step-by-step</div>
+              </div>
+              <div class="ux-node" style="border-color: #e8c95d;">
+                <div class="ux-node-label">Quick Start</div>
+                <div class="ux-node-sub">skip ahead</div>
+              </div>
+            </div>
+          </div>
+          <div class="ux-arrow">→</div>
+          <div class="ux-node">
+            <div class="ux-node-label">Dashboard</div>
+            <div class="ux-node-sub">main app</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="page-actions">
+        <button class="btn btn-ghost">Back to Dashboard</button>
+        <button class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Message Mockup -->
+  <div class="chat-mockup">
+    <div class="chat-mockup-label">Editor Chat Panel</div>
+    <div class="chat-msg">
+      I've created a UX flow diagram for the onboarding feature.<br>
+      Opening the dashboard for you to review and make selections.<br>
+      <span class="arrow">→</span> <span class="link">http://127.0.0.1:9470/feature/user-onboarding#decisions</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
