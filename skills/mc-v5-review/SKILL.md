@@ -32,8 +32,11 @@ Call `openDashboard({ slug, anchor, controlRoot })` from `lib/v5/auto-launch.mjs
 
 ## How to call it (one-liner from the orchestrator)
 
+`controlRoot` is the **project root** — the directory that CONTAINS `control/v5/`,
+not `control/v5/` itself. Most often this is `process.cwd()`.
+
 ```bash
-node -e "import('./lib/v5/auto-launch.mjs').then(m => m.openDashboard({slug: 'user-onboarding', anchor: 'decisions', controlRoot: process.cwd() + '/control'}).then(r => console.log(JSON.stringify(r))))"
+node -e "import('./lib/v5/auto-launch.mjs').then(m => m.openDashboard({slug: 'user-onboarding', anchor: 'decisions', controlRoot: process.cwd()}).then(r => console.log(JSON.stringify(r))))"
 ```
 
 Or programmatically when the orchestrator already has a Node context:
@@ -43,7 +46,7 @@ import { openDashboard } from './lib/v5/auto-launch.mjs';
 const { url, alreadyRunning } = await openDashboard({
   slug: 'user-onboarding',
   anchor: 'decisions',
-  controlRoot: '/abs/path/to/control',
+  controlRoot: '/abs/path/to/project', // contains control/v5/
 });
 ```
 

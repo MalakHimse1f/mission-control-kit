@@ -2,10 +2,17 @@
 /**
  * Mission Control Kit v5 dashboard server.
  *
+ * CLI usage:
+ *   node control/scripts/v5/dashboard-server.mjs <project-root>
+ *
+ * The argument is the PROJECT ROOT (the directory CONTAINING `control/v5/`),
+ * not `control/v5/` itself. If omitted, the server walks up from cwd looking
+ * for `control/v5/` and uses that directory's parent.
+ *
  * Stdlib only (`node:http`). Endpoints:
  *   - GET  /                              → placeholder v5 dashboard HTML
  *   - GET  /feature/:slug                 → placeholder feature detail HTML
- *   - GET  /api/v5/features               → list of features in {controlRoot}/features/
+ *   - GET  /api/v5/features               → list of features in {controlRoot}/control/v5/features/
  *   - GET  /api/v5/decisions/:slug        → saved decisions JSON
  *   - POST /api/v5/decisions/:slug        → validate + write decisions JSON
  *   - GET  /diagrams/*                    → static files from {diagramsRoot}
@@ -159,14 +166,15 @@ function renderDashboardPlaceholder() {
 // ---------------------------------------------------------------------------
 
 /**
- * List feature directories under `{controlRoot}/features/`. For each, read
- * `status.json` and `decisions.json` (both optional) and surface a summary
- * record.
+ * List feature directories under `{controlRoot}/control/v5/features/`. For
+ * each, read `status.json` and `decisions.json` (both optional) and surface
+ * a summary record.
  *
- * @param {string} controlRoot — absolute path to e.g. `.../control/v5`
+ * @param {string} controlRoot — absolute path to the project root (the
+ *   directory CONTAINING `control/v5/`).
  */
 export async function listFeatures(controlRoot) {
-  const featuresRoot = path.join(controlRoot, 'features');
+  const featuresRoot = path.join(controlRoot, 'control', 'v5', 'features');
   let entries;
   try {
     entries = await fsp.readdir(featuresRoot, { withFileTypes: true });
@@ -542,19 +550,20 @@ export async function startServerInRange({
 // ---------------------------------------------------------------------------
 
 async function main() {
-  // Resolve controlRoot: argv[2] or walk up from cwd.
+  // Resolve controlRoot (project root, containing control/v5/) from argv[2]
+  // or by walking up from cwd looking for control/v5/.
   const argRoot = process.argv[2];
   let controlRootAbs;
   if (argRoot) {
     controlRootAbs = path.resolve(argRoot);
   } else {
-    // Walk up from cwd looking for control/v5.
+    // Walk up from cwd looking for control/v5; return its parent.
     let dir = process.cwd();
     let found = null;
     for (let i = 0; i < 64; i++) {
       const candidate = path.join(dir, 'control', 'v5');
       if (fs.existsSync(candidate)) {
-        found = candidate;
+        found = dir;
         break;
       }
       const parent = path.dirname(dir);
@@ -566,15 +575,17 @@ async function main() {
         'v5 dashboard-server: could not find control/v5/ by walking up from',
         process.cwd(),
       );
-      console.error('Pass the path as the first argument.');
+      console.error(
+        'Pass the project root (directory containing control/v5/) as the first argument.',
+      );
       process.exit(1);
     }
     controlRootAbs = found;
   }
 
-  // controlRootAbs is `.../control/v5`. The .mc state lives at `.../control/.mc/`.
-  const controlParent = path.dirname(controlRootAbs); // .../control
-  let diagramsRootAbs = path.join(controlParent, 'layout', 'diagrams');
+  // controlRootAbs is the project root (.../<project>). The .mc state lives
+  // at .../<project>/control/.mc/, and diagrams at .../<project>/control/layout/diagrams.
+  let diagramsRootAbs = path.join(controlRootAbs, 'control', 'layout', 'diagrams');
   // If the project hasn't been seeded with diagram primitives yet, fall back
   // to the kit's bundled copy so the per-feature page's diagram.css link
   // still resolves.
@@ -590,11 +601,11 @@ async function main() {
     diagramsRoot: diagramsRootAbs,
   });
   const { server, url, port } = handle;
-  const { pid, startedAt } = claimPort(port, { controlRoot: controlParent });
+  const { pid, startedAt } = claimPort(port, { controlRoot: controlRootAbs });
 
   const shutdown = () => {
     try {
-      clearServerStatus({ controlRoot: controlParent });
+      clearServerStatus({ controlRoot: controlRootAbs });
     } catch {
       // best-effort
     }
@@ -604,9 +615,9 @@ async function main() {
   process.on('SIGTERM', shutdown);
 
   console.log(`Mission Control Kit v5 dashboard: ${url}`);
-  console.log(`Control root: ${controlRootAbs}`);
+  console.log(`Project root: ${controlRootAbs}`);
   console.log(`Diagrams root: ${diagramsRootAbs}`);
-  console.log(`Status file: ${statusFilePath(controlParent)}`);
+  console.log(`Status file: ${statusFilePath(controlRootAbs)}`);
   console.log(`pid=${pid}, startedAt=${startedAt}`);
 }
 

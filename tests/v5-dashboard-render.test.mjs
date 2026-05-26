@@ -21,7 +21,9 @@ import { startServer } from '../control/scripts/v5/dashboard-server.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
-const SAMPLE_V5 = path.join(REPO_ROOT, 'sample-project', 'control', 'v5');
+// SAMPLE_V5 is the project root that CONTAINS `control/v5/` — passed to APIs
+// as `controlRoot`. (Was previously the `control/v5/` directory itself.)
+const SAMPLE_V5 = path.join(REPO_ROOT, 'sample-project');
 
 // ---------------------------------------------------------------------------
 // loadDashboardData
@@ -81,7 +83,7 @@ test('loadDashboardData handles missing features directory gracefully', async ()
 test('loadDashboardData reads status.stage (not pipelineStage)', async () => {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-stage-'));
   try {
-    const featureDir = path.join(tmp, 'features', 'alpha');
+    const featureDir = path.join(tmp, 'control', 'v5', 'features', 'alpha');
     await fs.mkdir(featureDir, { recursive: true });
     await fs.writeFile(
       path.join(featureDir, 'status.json'),
@@ -105,7 +107,7 @@ test('loadDashboardData picks first ready feature for upNext when several are re
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-upnext-'));
   try {
     for (const slug of ['zeta', 'alpha', 'beta']) {
-      const dir = path.join(tmp, 'features', slug);
+      const dir = path.join(tmp, 'control', 'v5', 'features', slug);
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(
         path.join(dir, 'status.json'),

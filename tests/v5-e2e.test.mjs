@@ -39,8 +39,9 @@ const DIAGRAMS_ROOT = path.join(REPO_ROOT, 'control', 'layout', 'diagrams');
  */
 async function makeFixtureCopy() {
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'mck-v5-e2e-'));
-  const controlRoot = path.join(tmpRoot, 'control', 'v5');
-  await fs.cp(SAMPLE_V5, controlRoot, { recursive: true });
+  // `controlRoot` is now the project root containing `control/v5/`.
+  const controlRoot = tmpRoot;
+  await fs.cp(SAMPLE_V5, path.join(controlRoot, 'control', 'v5'), { recursive: true });
   // Snapshot the original sample-project decisions.json so we can verify
   // (defense in depth) it was not mutated even though the server points at
   // the tmpdir copy.

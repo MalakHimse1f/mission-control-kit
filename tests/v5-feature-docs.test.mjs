@@ -23,11 +23,14 @@ import {
 } from '../lib/v5/feature-docs.mjs';
 
 async function makeControlRoot() {
-  return fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-feature-docs-'));
+  // `controlRoot` is the project root — the directory CONTAINING `control/v5/`.
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-feature-docs-'));
+  await fs.mkdir(path.join(dir, 'control', 'v5'), { recursive: true });
+  return dir;
 }
 
 async function featureDir(controlRoot, slug) {
-  const dir = path.join(controlRoot, 'features', slug);
+  const dir = path.join(controlRoot, 'control', 'v5', 'features', slug);
   await fs.mkdir(dir, { recursive: true });
   return dir;
 }

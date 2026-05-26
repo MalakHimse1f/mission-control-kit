@@ -81,9 +81,10 @@ const SAMPLE_DECISIONS = {
 };
 
 async function makeTmpControlRoot(slug = 'sample-feature') {
+  // `controlRoot` is the project root — the directory CONTAINING `control/v5/`.
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-cli-build-decision-'));
-  const controlRoot = path.join(tmpDir, 'control', 'v5');
-  const featureDir = path.join(controlRoot, 'features', slug);
+  const controlRoot = tmpDir;
+  const featureDir = path.join(controlRoot, 'control', 'v5', 'features', slug);
   await fs.mkdir(featureDir, { recursive: true });
   await fs.writeFile(
     path.join(featureDir, 'decisions.json'),
@@ -100,6 +101,7 @@ test('writes a fragment file at the expected path', async () => {
     decisionId: 'arch-store',
     controlRoot,
   });
+  // featureDir is now {controlRoot}/control/v5/features/{slug}
   const expected = path.join(featureDir, 'decisions', 'arch-store.html');
   assert.equal(result.path, expected);
   const onDisk = await fs.readFile(expected, 'utf8');
@@ -164,8 +166,9 @@ test('re-running is idempotent — overwrites cleanly with same content', async 
 
 test('missing slug (no decisions.json) rejects with clear message', async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-cli-missing-slug-'));
-  const controlRoot = path.join(tmpDir, 'control', 'v5');
-  await fs.mkdir(controlRoot, { recursive: true });
+  // `controlRoot` is the project root containing `control/v5/`.
+  const controlRoot = tmpDir;
+  await fs.mkdir(path.join(controlRoot, 'control', 'v5'), { recursive: true });
   await assert.rejects(
     () =>
       buildDecisionFragment({
@@ -255,7 +258,15 @@ test('CLI subprocess: writes fragment and prints path on success', async () => {
     controlRoot,
   ]);
   assert.equal(stderr, '');
-  const expected = path.join(controlRoot, 'features', slug, 'decisions', 'ui-placement.html');
+  const expected = path.join(
+    controlRoot,
+    'control',
+    'v5',
+    'features',
+    slug,
+    'decisions',
+    'ui-placement.html',
+  );
   assert.equal(stdout.trim(), expected);
   const onDisk = await fs.readFile(expected, 'utf8');
   assert.ok(onDisk.includes('data-group="ui-placement"'));

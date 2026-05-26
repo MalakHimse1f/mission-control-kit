@@ -16,10 +16,10 @@ import {
 import { DECISIONS_SCHEMA, validateDecisions } from '../lib/v5/decisions-schema.mjs';
 
 async function makeTmpControlRoot() {
+  // `controlRoot` is the project root — the directory CONTAINING `control/v5/`.
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-decisions-'));
-  const controlRoot = path.join(dir, 'control', 'v5');
-  await fs.mkdir(controlRoot, { recursive: true });
-  return { tmpDir: dir, controlRoot };
+  await fs.mkdir(path.join(dir, 'control', 'v5'), { recursive: true });
+  return { tmpDir: dir, controlRoot: dir };
 }
 
 test('default empty structure has all three phase keys', async () => {
@@ -72,7 +72,14 @@ test('round-trip: write then read returns same data', async () => {
 test('writeDecisions creates the feature directory if it does not exist (mkdir -p)', async () => {
   const { controlRoot } = await makeTmpControlRoot();
   await writeDecisions('brand-new-slug', { feature: 'brand-new-slug' }, { controlRoot });
-  const filePath = path.join(controlRoot, 'features', 'brand-new-slug', 'decisions.json');
+  const filePath = path.join(
+    controlRoot,
+    'control',
+    'v5',
+    'features',
+    'brand-new-slug',
+    'decisions.json',
+  );
   const stat = await fs.stat(filePath);
   assert.ok(stat.isFile(), 'expected decisions.json to be a file');
 });

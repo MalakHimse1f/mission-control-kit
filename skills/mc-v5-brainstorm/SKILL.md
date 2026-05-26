@@ -104,7 +104,8 @@ import('./lib/v5/auto-launch.mjs').then(async ({ openDashboard }) => {
   const { url } = await openDashboard({
     slug: process.argv[1],
     anchor: 'decisions',
-    controlRoot: process.cwd() + '/control',
+    // controlRoot is the project root (directory containing control/v5/)
+    controlRoot: process.cwd(),
   });
   console.log(url);
 });

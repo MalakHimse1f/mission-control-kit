@@ -24,14 +24,14 @@ import { deferQuestion, isTechStackQuestion } from '../lib/v5/defer-question.mjs
 import { surfaceDeferred, markDeferredResolved } from '../lib/v5/surface-deferred.mjs';
 
 async function makeTmpControlRoot() {
+  // `controlRoot` is the project root — the directory CONTAINING `control/v5/`.
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-seq-'));
-  const controlRoot = path.join(dir, 'control', 'v5');
-  await fs.mkdir(controlRoot, { recursive: true });
-  return { tmpDir: dir, controlRoot };
+  await fs.mkdir(path.join(dir, 'control', 'v5'), { recursive: true });
+  return { tmpDir: dir, controlRoot: dir };
 }
 
 async function writeStatus(controlRoot, slug, payload) {
-  const dir = path.join(controlRoot, 'features', slug);
+  const dir = path.join(controlRoot, 'control', 'v5', 'features', slug);
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, 'status.json'), JSON.stringify(payload, null, 2), 'utf8');
 }

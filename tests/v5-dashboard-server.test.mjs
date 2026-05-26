@@ -28,9 +28,10 @@ import {
 // ---------------------------------------------------------------------------
 
 async function makeTmpProject() {
+  // `controlRoot` is now the project root — the directory CONTAINING `control/v5/`.
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-server-'));
-  const controlRoot = path.join(tmp, 'control', 'v5');
-  await fs.mkdir(path.join(controlRoot, 'features'), { recursive: true });
+  const controlRoot = tmp;
+  await fs.mkdir(path.join(controlRoot, 'control', 'v5', 'features'), { recursive: true });
   const diagramsRoot = path.join(tmp, 'control', 'layout', 'diagrams');
   await fs.mkdir(path.join(diagramsRoot, '_shared'), { recursive: true });
   await fs.writeFile(
@@ -38,7 +39,10 @@ async function makeTmpProject() {
     ':root { --diagram-bg: #111; }\n',
     'utf8',
   );
-  return { tmp, controlRoot, diagramsRoot, controlParent: path.join(tmp, 'control') };
+  // `controlParent` retained as a name for backward-compat with existing
+  // server-port API calls — under the unified semantics it's also the project
+  // root (server-port joins `'control'` onto controlRoot internally).
+  return { tmp, controlRoot, diagramsRoot, controlParent: controlRoot };
 }
 
 async function startTestServer(controlRoot, diagramsRoot) {
@@ -102,7 +106,7 @@ test('GET /feature/foo returns 404 when the feature does not exist on disk', asy
 test('GET /feature/:slug returns rendered HTML when the feature exists', async () => {
   const { controlRoot, diagramsRoot } = await makeTmpProject();
   // Create a minimal feature on disk.
-  const featureDir = path.join(controlRoot, 'features', 'foo');
+  const featureDir = path.join(controlRoot, 'control', 'v5', 'features', 'foo');
   await fs.mkdir(featureDir, { recursive: true });
   await fs.writeFile(
     path.join(featureDir, 'status.json'),
@@ -136,7 +140,7 @@ test('GET /api/v5/features returns [] when no features directory entries', async
 test('GET /api/v5/features lists feature dirs with stage + phase status', async () => {
   const { controlRoot, diagramsRoot } = await makeTmpProject();
   // Seed a feature with status.json and decisions.json.
-  const featureDir = path.join(controlRoot, 'features', 'alpha');
+  const featureDir = path.join(controlRoot, 'control', 'v5', 'features', 'alpha');
   await fs.mkdir(featureDir, { recursive: true });
   await fs.writeFile(
     path.join(featureDir, 'status.json'),
@@ -206,7 +210,7 @@ test('POST /api/v5/decisions/:slug with valid payload writes to disk and GET ret
     // Verify on disk.
     const onDisk = JSON.parse(
       await fs.readFile(
-        path.join(controlRoot, 'features', 'test-feature', 'decisions.json'),
+        path.join(controlRoot, 'control', 'v5', 'features', 'test-feature', 'decisions.json'),
         'utf8',
       ),
     );
@@ -278,7 +282,8 @@ test('GET /diagrams/_shared/diagram.css returns 200 with text/css', async () => 
 test('GET /diagrams/..%2Fsecret.txt traversal attempts return 404', async () => {
   const { controlRoot, diagramsRoot } = await makeTmpProject();
   // Write a file outside the diagrams root that traversal might try to reach.
-  await fs.writeFile(path.join(controlRoot, '..', 'secret.txt'), 'nope', 'utf8');
+  // (Lives at the project root, one level up from diagrams root.)
+  await fs.writeFile(path.join(controlRoot, 'secret.txt'), 'nope', 'utf8');
   const handle = await startTestServer(controlRoot, diagramsRoot);
   try {
     // Use a percent-encoded path so fetch doesn't normalize ../ away.
@@ -323,8 +328,8 @@ test('claimPort writes { port, pid, startedAt } to control/.mc/v5-dashboard-serv
   const onDisk = readServerStatus({ controlRoot: controlParent });
   assert.deepEqual(onDisk, result);
 
-  // File is in the right location.
-  const expectedPath = path.join(controlParent, '.mc', 'v5-dashboard-server.json');
+  // File is in the right location: `{controlRoot}/control/.mc/...`
+  const expectedPath = path.join(controlParent, 'control', '.mc', 'v5-dashboard-server.json');
   assert.equal(statusFilePath(controlParent), expectedPath);
   const stat = await fs.stat(expectedPath);
   assert.ok(stat.isFile());

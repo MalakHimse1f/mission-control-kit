@@ -9,20 +9,35 @@ import os from 'node:os';
 import { lintDecisions, lintAllFeatures } from '../lib/v5/lint-decisions.mjs';
 
 async function makeTmpControlRoot() {
+  // `controlRoot` is the project root — the directory CONTAINING `control/v5/`.
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-lint-'));
-  const controlRoot = path.join(dir, 'control', 'v5');
-  await fs.mkdir(controlRoot, { recursive: true });
-  return { tmpDir: dir, controlRoot };
+  await fs.mkdir(path.join(dir, 'control', 'v5'), { recursive: true });
+  return { tmpDir: dir, controlRoot: dir };
 }
 
 async function writeDecisionsJson(controlRoot, slug, decisions) {
-  const filePath = path.join(controlRoot, 'features', slug, 'decisions.json');
+  const filePath = path.join(
+    controlRoot,
+    'control',
+    'v5',
+    'features',
+    slug,
+    'decisions.json',
+  );
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, JSON.stringify(decisions, null, 2) + '\n', 'utf8');
 }
 
 async function writeFragment(controlRoot, slug, decisionId, content) {
-  const filePath = path.join(controlRoot, 'features', slug, 'decisions', `${decisionId}.html`);
+  const filePath = path.join(
+    controlRoot,
+    'control',
+    'v5',
+    'features',
+    slug,
+    'decisions',
+    `${decisionId}.html`,
+  );
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, content, 'utf8');
 }

@@ -22,7 +22,9 @@ import { startServer } from '../control/scripts/v5/dashboard-server.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
-const SAMPLE_V5 = path.join(REPO_ROOT, 'sample-project', 'control', 'v5');
+// SAMPLE_V5 is the project root that CONTAINS `control/v5/` — passed to APIs
+// as `controlRoot`. (Was previously the `control/v5/` directory itself.)
+const SAMPLE_V5 = path.join(REPO_ROOT, 'sample-project');
 
 // ---------------------------------------------------------------------------
 // loadFeatureData
@@ -73,7 +75,7 @@ test('loadFeatureData throws on missing slug or controlRoot', async () => {
 test('loadFeatureData synthesizes defaults when status.json is missing', async () => {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-feature-'));
   try {
-    const featureDir = path.join(tmp, 'features', 'minimal');
+    const featureDir = path.join(tmp, 'control', 'v5', 'features', 'minimal');
     await fs.mkdir(featureDir, { recursive: true });
     // No status.json, no decisions.json.
     const data = await loadFeatureData({ slug: 'minimal', controlRoot: tmp });
@@ -235,7 +237,7 @@ test('renderFeature escapes HTML in slug, name, and decision text', () => {
 test('loadFeatureData attaches fragmentHtml when decision fragment file exists', async () => {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-frag-'));
   try {
-    const featureDir = path.join(tmp, 'features', 'frag-feature');
+    const featureDir = path.join(tmp, 'control', 'v5', 'features', 'frag-feature');
     await fs.mkdir(featureDir, { recursive: true });
     const decisionsDir = path.join(featureDir, 'decisions');
     await fs.mkdir(decisionsDir, { recursive: true });
@@ -699,7 +701,7 @@ test('POST /api/v5/decisions/:slug round-trips: save then GET feature page refle
   // Use a temp control root so we don't mutate the sample-project fixture.
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-feat-server-'));
   try {
-    const featureDir = path.join(tmp, 'features', 'rt-feature');
+    const featureDir = path.join(tmp, 'control', 'v5', 'features', 'rt-feature');
     await fs.mkdir(featureDir, { recursive: true });
     await fs.writeFile(
       path.join(featureDir, 'status.json'),
