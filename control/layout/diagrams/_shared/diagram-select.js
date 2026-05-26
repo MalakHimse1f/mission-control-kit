@@ -54,8 +54,16 @@
   function selectOption(opt) {
     var group = findGroup(opt);
     if (!group) return;
-    findOptions(group).forEach(function (o) { o.classList.remove('selected'); });
+    findOptions(group).forEach(function (o) {
+      o.classList.remove('selected');
+      if (o.hasAttribute('role') && o.getAttribute('role') === 'radio') {
+        o.setAttribute('aria-checked', 'false');
+      }
+    });
     opt.classList.add('selected');
+    if (opt.hasAttribute('role') && opt.getAttribute('role') === 'radio') {
+      opt.setAttribute('aria-checked', 'true');
+    }
   }
 
   function handleClick(e) {
@@ -130,10 +138,14 @@
       var groupId = group.getAttribute('data-group');
       var desired = map[groupId];
       findOptions(group).forEach(function (opt) {
-        if (desired && opt.getAttribute('data-value') === desired) {
+        var isMatch = desired && opt.getAttribute('data-value') === desired;
+        if (isMatch) {
           opt.classList.add('selected');
         } else {
           opt.classList.remove('selected');
+        }
+        if (opt.hasAttribute('role') && opt.getAttribute('role') === 'radio') {
+          opt.setAttribute('aria-checked', isMatch ? 'true' : 'false');
         }
       });
     });

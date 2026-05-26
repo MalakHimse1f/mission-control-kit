@@ -151,16 +151,15 @@ test('renderFeature marks the saved option with .selected for hydration', async 
   const selectedFragment = `data-value="${selectedValue}"`;
   assert.ok(html.includes(selectedFragment), 'expected selected option attribute');
 
-  // The selected card should carry .selected. We check that the class
-  // marker appears in the HTML next to the picked value (within the card).
-  // A regex covering: class="option-card selected" data-value="..."
-  // OR: class="option-card selected" ... data-value="..."
+  // The selected card should carry .selected. Personal-library-import has
+  // seeded visual fragments, so the markup uses the .mc-option-card class.
+  // A regex covering: class="mc-option-card selected" data-value="..."
   const re = new RegExp(
-    'class="option-card selected"[^>]*data-value="' +
+    'class="mc-option-card selected"[^>]*data-value="' +
       selectedValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
       '"',
   );
-  assert.match(html, re, 'expected the chosen card to have class="option-card selected"');
+  assert.match(html, re, 'expected the chosen card to have class="mc-option-card selected"');
 });
 
 test('renderFeature escapes HTML in slug, name, and decision text', () => {
@@ -233,6 +232,239 @@ test('renderFeature escapes HTML in slug, name, and decision text', () => {
   );
 });
 
+test('loadFeatureData attaches fragmentHtml when decision fragment file exists', async () => {
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-frag-'));
+  try {
+    const featureDir = path.join(tmp, 'features', 'frag-feature');
+    await fs.mkdir(featureDir, { recursive: true });
+    const decisionsDir = path.join(featureDir, 'decisions');
+    await fs.mkdir(decisionsDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(featureDir, 'status.json'),
+      JSON.stringify({
+        slug: 'frag-feature',
+        feature: 'Fragment Feature',
+        stage: 'in-progress',
+      }),
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(featureDir, 'decisions.json'),
+      JSON.stringify({
+        feature: 'frag-feature',
+        phases: {
+          ux: {
+            status: 'in-progress',
+            decisions: [
+              {
+                id: 'with-fragment',
+                category: 'ux',
+                question: 'Which path?',
+                options: ['A', 'B'],
+                selected: 'A',
+                decidedAt: '2026-05-26T10:00:00.000Z',
+              },
+              {
+                id: 'no-fragment',
+                category: 'ux',
+                question: 'Other?',
+                options: ['X', 'Y'],
+                selected: 'X',
+                decidedAt: '2026-05-26T10:00:00.000Z',
+              },
+            ],
+            pending: [],
+          },
+          ui: { status: 'not-started', decisions: [], pending: [] },
+          architecture: { status: 'not-started', decisions: [], pending: [] },
+        },
+        deferred: [],
+        updatedAt: '2026-05-26T10:00:00.000Z',
+      }),
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(decisionsDir, 'with-fragment.html'),
+      '<div class="mc-options-grid" data-group="with-fragment" data-category="ux" data-question="Which path?"><div class="mc-option-card" data-value="A">A</div><div class="mc-option-card" data-value="B">B</div></div>',
+      'utf8',
+    );
+
+    const data = await loadFeatureData({ slug: 'frag-feature', controlRoot: tmp });
+    const decisions = data.tabs.ux.decisions;
+    const withFrag = decisions.find((d) => d.id === 'with-fragment');
+    const noFrag = decisions.find((d) => d.id === 'no-fragment');
+    assert.ok(withFrag, 'with-fragment decision should be loaded');
+    assert.ok(typeof withFrag.fragmentHtml === 'string');
+    assert.match(withFrag.fragmentHtml, /mc-options-grid/);
+    assert.equal(noFrag.fragmentHtml, null);
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
+test('renderFeature inlines fragment HTML when fragmentHtml is present and marks selected', () => {
+  const data = {
+    status: { slug: 'inline', feature: 'Inline' },
+    decisions: {
+      feature: 'inline',
+      phases: {
+        ux: {
+          status: 'in-progress',
+          decisions: [
+            {
+              id: 'd1',
+              category: 'ux',
+              question: 'Q1',
+              options: ['A', 'B'],
+              selected: 'B',
+              fragmentHtml:
+                '<div class="mc-options-grid" data-group="d1" data-category="ux" data-question="Q1">\n' +
+                '  <div class="mc-option-card selected" data-value="A" aria-checked="true">A</div>\n' +
+                '  <div class="mc-option-card" data-value="B" aria-checked="false">B</div>\n' +
+                '</div>',
+            },
+          ],
+          pending: [],
+        },
+        ui: { status: 'not-started', decisions: [], pending: [] },
+        architecture: { status: 'not-started', decisions: [], pending: [] },
+      },
+      deferred: [],
+      updatedAt: '2026-05-26T10:00:00.000Z',
+    },
+    tabs: {
+      ux: {
+        key: 'ux',
+        label: 'UX',
+        status: 'in-progress',
+        statusLabel: 'In progress',
+        decisions: [
+          {
+            id: 'd1',
+            category: 'ux',
+            question: 'Q1',
+            options: ['A', 'B'],
+            selected: 'B',
+            fragmentHtml:
+              '<div class="mc-options-grid" data-group="d1" data-category="ux" data-question="Q1">\n' +
+              '  <div class="mc-option-card selected" data-value="A" aria-checked="true">A</div>\n' +
+              '  <div class="mc-option-card" data-value="B" aria-checked="false">B</div>\n' +
+              '</div>',
+          },
+        ],
+        pending: [],
+      },
+      ui: {
+        key: 'ui',
+        label: 'UI',
+        status: 'not-started',
+        statusLabel: 'Not started',
+        decisions: [],
+        pending: [],
+      },
+      architecture: {
+        key: 'architecture',
+        label: 'Architecture',
+        status: 'not-started',
+        statusLabel: 'Not started',
+        decisions: [],
+        pending: [],
+      },
+    },
+  };
+  const html = renderFeature({ slug: 'inline', data });
+  // Fragment class survives inlining.
+  assert.ok(html.includes('class="mc-options-grid"'));
+  assert.ok(html.includes('data-group="d1"'));
+  // .selected was on A in the fragment; renderer must move it to B (the
+  // server-side selection wins).
+  assert.match(
+    html,
+    /<div class="mc-option-card selected"[^>]*data-value="B"/,
+    'expected B card to be marked selected',
+  );
+  // A card must no longer have the selected class.
+  assert.ok(
+    !/data-value="A"[^>]*class="mc-option-card selected"/.test(html),
+  );
+  assert.ok(
+    !/class="mc-option-card selected"[^>]*data-value="A"/.test(html),
+  );
+  // aria-checked must be flipped.
+  assert.match(html, /aria-checked="true"[^>]*data-value="B"|data-value="B"[^>]*aria-checked="true"/);
+});
+
+test('renderFeature falls back to text-only card when fragmentHtml is absent', () => {
+  const data = {
+    status: { slug: 'plain', feature: 'Plain' },
+    decisions: {
+      feature: 'plain',
+      phases: {
+        ux: {
+          status: 'in-progress',
+          decisions: [
+            {
+              id: 'plain-d',
+              category: 'ux',
+              question: 'Q?',
+              options: ['Opt1'],
+              selected: 'Opt1',
+              // fragmentHtml deliberately absent
+            },
+          ],
+          pending: [],
+        },
+        ui: { status: 'not-started', decisions: [], pending: [] },
+        architecture: { status: 'not-started', decisions: [], pending: [] },
+      },
+      deferred: [],
+      updatedAt: '2026-05-26T10:00:00.000Z',
+    },
+    tabs: {
+      ux: {
+        key: 'ux',
+        label: 'UX',
+        status: 'in-progress',
+        statusLabel: 'In progress',
+        decisions: [
+          {
+            id: 'plain-d',
+            category: 'ux',
+            question: 'Q?',
+            options: ['Opt1'],
+            selected: 'Opt1',
+          },
+        ],
+        pending: [],
+      },
+      ui: {
+        key: 'ui',
+        label: 'UI',
+        status: 'not-started',
+        statusLabel: 'Not started',
+        decisions: [],
+        pending: [],
+      },
+      architecture: {
+        key: 'architecture',
+        label: 'Architecture',
+        status: 'not-started',
+        statusLabel: 'Not started',
+        decisions: [],
+        pending: [],
+      },
+    },
+  };
+  const html = renderFeature({ slug: 'plain', data });
+  // Falls back to the legacy text-card markup.
+  assert.match(html, /class="options-grid"[^>]*data-group="plain-d"/);
+  assert.match(
+    html,
+    /class="option-card selected"[^>]*data-value="Opt1"/,
+  );
+});
+
 test('renderFeature handles tabs with no decisions (empty state)', () => {
   const data = {
     status: { slug: 'blank', feature: 'Blank' },
@@ -287,6 +519,7 @@ test('renderFeature links to feature.css, feature-client.js, and shared diagram 
   const html = renderFeature({ slug: 'personal-library-import', data });
   assert.ok(html.includes('/feature.css'), 'expected /feature.css link');
   assert.ok(html.includes('/feature-client.js'), 'expected /feature-client.js script');
+  assert.ok(html.includes('/diagrams/_shared/diagram.css'), 'expected diagram.css link');
   assert.ok(html.includes('/diagrams/_shared/diagram-select.js'));
   assert.ok(html.includes('/diagrams/_shared/decisions-client.js'));
 });

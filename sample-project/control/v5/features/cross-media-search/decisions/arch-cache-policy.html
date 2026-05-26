@@ -1,0 +1,47 @@
+<div class="mc-options-grid" data-group="arch-cache-policy" data-category="engineering" data-question="How do we cache external catalog responses?">
+    <div class="mc-option-card selected" data-value="Redis with 24h TTL keyed on (source, normalized-query)" tabindex="0" role="radio" aria-checked="true">
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="mc-diagram-surface">
+    <div class="mc-arch-node accent">App</div>
+    <div class="mc-arch-arrow"><div class="line"></div><span class="label">queries</span></div>
+    <div class="mc-arch-node green">Database</div>
+  </div>
+      <div class="mc-card-label">Redis with 24h TTL keyed on</div>
+      <div class="mc-card-desc">source, normalized-query</div>
+    </div>
+    <div class="mc-option-card" data-value="No cache — every query hits the external API" tabindex="0" role="radio" aria-checked="false">
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="mc-diagram-surface">
+    <div class="mc-arch-node accent">Client</div>
+    <div class="mc-arch-arrow"><div class="line"></div><span class="label">REST</span></div>
+    <div class="mc-arch-node violet">Service</div>
+    <div class="mc-arch-arrow"><div class="line"></div><span class="label">writes</span></div>
+    <div class="mc-arch-node green">Store</div>
+  </div>
+      <div class="mc-card-label">No cache</div>
+      <div class="mc-card-desc">every query hits the external API</div>
+    </div>
+    <div class="mc-option-card" data-value="On-disk cache with manual invalidation" tabindex="0" role="radio" aria-checked="false">
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="mc-diagram-surface">
+    <div class="mc-arch-node warn">Edge / CDN</div>
+    <div class="mc-arch-arrow"><div class="line"></div><span class="label">invokes</span></div>
+    <div class="mc-arch-node accent">Function</div>
+    <div class="mc-arch-arrow"><div class="line"></div><span class="label">reads</span></div>
+    <div class="mc-arch-node green">KV Store</div>
+  </div>
+      <div class="mc-card-label">On-disk cache with manual invalidation</div>
+    </div>
+  </div>

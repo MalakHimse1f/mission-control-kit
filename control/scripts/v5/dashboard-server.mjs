@@ -42,6 +42,10 @@ const DASHBOARD_CSS_PATH = path.join(__dirname, 'dashboard.css');
 const DASHBOARD_CLIENT_JS_PATH = path.join(__dirname, 'dashboard-client.js');
 const FEATURE_CSS_PATH = path.join(__dirname, 'feature.css');
 const FEATURE_CLIENT_JS_PATH = path.join(__dirname, 'feature-client.js');
+// Default diagrams root inside the kit itself — used when no diagramsRoot is
+// passed (e.g. from tests). The CLI entry point still derives diagramsRoot
+// from the caller's controlRoot when available.
+const KIT_DIAGRAMS_ROOT = path.resolve(__dirname, '..', '..', 'layout', 'diagrams');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -292,7 +296,12 @@ function matchSlugRoute(pathname, prefix) {
 export function createServer({ controlRoot, diagramsRoot } = {}) {
   if (!controlRoot) throw new Error('createServer: opts.controlRoot is required');
   const controlRootAbs = path.resolve(controlRoot);
-  const diagramsRootAbs = diagramsRoot ? path.resolve(diagramsRoot) : null;
+  // If the caller didn't pass diagramsRoot, fall back to the kit's bundled
+  // primitives so the feature detail page can still link to
+  // /diagrams/_shared/diagram.css.
+  const diagramsRootAbs = diagramsRoot
+    ? path.resolve(diagramsRoot)
+    : KIT_DIAGRAMS_ROOT;
 
   const server = http.createServer(async (req, res) => {
     let url;
@@ -565,7 +574,13 @@ async function main() {
 
   // controlRootAbs is `.../control/v5`. The .mc state lives at `.../control/.mc/`.
   const controlParent = path.dirname(controlRootAbs); // .../control
-  const diagramsRootAbs = path.join(controlParent, 'layout', 'diagrams');
+  let diagramsRootAbs = path.join(controlParent, 'layout', 'diagrams');
+  // If the project hasn't been seeded with diagram primitives yet, fall back
+  // to the kit's bundled copy so the per-feature page's diagram.css link
+  // still resolves.
+  if (!fs.existsSync(diagramsRootAbs)) {
+    diagramsRootAbs = KIT_DIAGRAMS_ROOT;
+  }
 
   // Bind first, then claim. This eliminates the probe→bind race window: by the
   // time we write the status file, the OS has already handed us the port and

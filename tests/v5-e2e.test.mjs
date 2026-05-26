@@ -172,9 +172,11 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
     assert.ok(html.includes('UI'), 'expected UI label');
     assert.ok(html.includes('Architecture'), 'expected Architecture label');
 
-    // At least one decision card.
+    // At least one decision card. Personal-library-import has seeded
+    // visual fragments, so cards use the `mc-option-card` class. The
+    // legacy text-only fallback uses `option-card`. Accept either.
     assert.ok(
-      /class="option-card[^"]*"/.test(html),
+      /class="(?:mc-)?option-card[^"]*"/.test(html),
       'expected at least one option-card decision card',
     );
 
@@ -257,13 +259,16 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
     const html = await res.text();
 
     const escapedValue = NEW_ARCH_SELECTION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Accept either the legacy text-only card markup or the v5 visual
+    // fragment markup (mc-option-card) — both render `.selected` next to
+    // a matching `data-value`.
     const selectedRe = new RegExp(
-      'class="option-card selected"[^>]*data-value="' + escapedValue + '"',
+      'class="(?:mc-)?option-card selected"[^>]*data-value="' + escapedValue + '"',
     );
     assert.match(
       html,
       selectedRe,
-      'expected the new selection to be rendered with class="option-card selected"',
+      'expected the new selection to be rendered with class="(mc-)?option-card selected"',
     );
   });
 });

@@ -107,9 +107,79 @@ function renderTabs(tabs, activeKey) {
 }
 
 /**
+ * Apply the `.selected` / `aria-checked` / class flag to whichever
+ * `mc-option-card` has a matching `data-value` inside a pre-built fragment,
+ * stripping any pre-existing `.selected` markers first so server-rendered
+ * state always wins over whatever was baked into the fragment file.
+ *
+ * Uses simple regex transforms — fragments are trusted (live under control/,
+ * written by the orchestrator) so no full HTML parser is needed.
+ */
+function inlineFragment(fragmentHtml, selectedValue) {
+  if (typeof fragmentHtml !== 'string' || fragmentHtml.length === 0) return '';
+  let html = fragmentHtml;
+
+  // 1) Strip any existing `selected` token from `mc-option-card` class lists.
+  html = html.replace(
+    /class="(mc-option-card[^"]*)"/g,
+    (_match, classes) => {
+      const cleaned = classes
+        .split(/\s+/)
+        .filter((c) => c && c !== 'selected')
+        .join(' ');
+      return `class="${cleaned}"`;
+    },
+  );
+
+  // 2) Reset aria-checked on every option card to "false".
+  html = html.replace(
+    /(<div\b[^>]*class="mc-option-card[^"]*"[^>]*aria-checked=)"(?:true|false)"/g,
+    '$1"false"',
+  );
+
+  // 3) Add `selected` to the card whose data-value matches selectedValue.
+  if (typeof selectedValue === 'string' && selectedValue.length > 0) {
+    // Build an HTML-attribute-escaped form of the selected value so we can
+    // match it inside data-value="...".
+    const escVal = String(selectedValue).replace(/[&<>"']/g, (ch) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[ch],
+    );
+    const dataAttrRe = new RegExp(
+      'data-value="' + escVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"',
+    );
+
+    html = html.replace(
+      /<div\b([^>]*?)class="(mc-option-card[^"]*)"([^>]*)>/g,
+      (match, before, classes, after) => {
+        const wholeTag = match;
+        if (!dataAttrRe.test(wholeTag)) return match;
+        const merged = classes + ' selected';
+        // Also flip aria-checked → true on this card.
+        let rebuilt = `<div${before}class="${merged}"${after}>`;
+        rebuilt = rebuilt.replace(/aria-checked="false"/, 'aria-checked="true"');
+        return rebuilt;
+      },
+    );
+  }
+
+  return html;
+}
+
+/**
  * Render one decision as a card group with N option cards (radio behavior).
  * Wires the `data-group=decision.id` / `data-value=optionText` convention so
  * Task 1's diagram-select.js picks it up automatically.
+ *
+ * If the decision carries a pre-built `fragmentHtml` (attached by
+ * `loadFeatureData`), the fragment is inlined verbatim and the `.selected`
+ * marker is patched to match `decision.selected`. Otherwise, falls back to a
+ * text-only card rendering.
  *
  * The card matching `decision.selected` gets the `.selected` class on first
  * paint (no client hydration needed).
@@ -119,6 +189,15 @@ function renderDecisionCard(decision) {
   const question = decision.question || '';
   const options = Array.isArray(decision.options) ? decision.options : [];
   const selected = decision.selected || '';
+
+  if (typeof decision.fragmentHtml === 'string' && decision.fragmentHtml.length > 0) {
+    const fragment = inlineFragment(decision.fragmentHtml, selected);
+    return `
+      <div class="decision-block">
+        <h2 class="section-title">${escapeHtml(question)}</h2>
+        ${fragment}
+      </div>`;
+  }
 
   const cards = options
     .map((opt) => {
@@ -255,6 +334,7 @@ export function renderFeature({ slug, data } = {}) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mission Control Kit v5 — ${escapeHtml(displayName)}</title>
   <link rel="stylesheet" href="/feature.css" />
+  <link rel="stylesheet" href="/diagrams/_shared/diagram.css" />
 </head>
 <body>
   <div class="container">${renderBreadcrumb(displayName)}${renderHeader({ displayName, description, stageLabel })}
@@ -273,4 +353,4 @@ ${renderToast()}
 }
 
 // Exported for tests
-export const __test__ = { escapeHtml, escapeJsonForScript, humanizeSlug, pickInitialTab };
+export const __test__ = { escapeHtml, escapeJsonForScript, humanizeSlug, pickInitialTab, inlineFragment };

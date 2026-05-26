@@ -1,0 +1,48 @@
+<div class="mc-options-grid" data-group="arch-transport" data-category="engineering" data-question="How do we obtain auth for sources that require it (Goodreads, Steam, Letterboxd)?">
+    <div class="mc-option-card selected" data-value="OAuth redirect with per-provider client credentials" tabindex="0" role="radio" aria-checked="true">
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="mc-diagram-surface">
+        <div class="mc-arch-node accent">App</div>
+        <div class="mc-arch-arrow"><div class="line"></div><span class="label">redirect</span></div>
+        <div class="mc-arch-node violet">Provider OAuth</div>
+        <div class="mc-arch-arrow"><div class="line"></div><span class="label">code</span></div>
+        <div class="mc-arch-node green">Token Store</div>
+      </div>
+      <div class="mc-card-label">OAuth redirect with per-provider client credentials</div>
+    </div>
+    <div class="mc-option-card" data-value="User pastes a long-lived API token" tabindex="0" role="radio" aria-checked="false">
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="mc-diagram-surface">
+        <div class="mc-arch-node warn">User</div>
+        <div class="mc-arch-arrow"><div class="line"></div><span class="label">paste token</span></div>
+        <div class="mc-arch-node accent">App</div>
+        <div class="mc-arch-arrow"><div class="line"></div><span class="label">stores</span></div>
+        <div class="mc-arch-node green">Secrets DB</div>
+      </div>
+      <div class="mc-card-label">User pastes a long-lived API token</div>
+    </div>
+    <div class="mc-option-card" data-value="User uploads an export file only (no live auth at all)" tabindex="0" role="radio" aria-checked="false">
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="mc-diagram-surface">
+        <div class="mc-arch-node warn">User</div>
+        <div class="mc-arch-arrow"><div class="line"></div><span class="label">upload</span></div>
+        <div class="mc-arch-node accent">Parser</div>
+        <div class="mc-arch-arrow"><div class="line"></div><span class="label">writes</span></div>
+        <div class="mc-arch-node green">Library</div>
+      </div>
+      <div class="mc-card-label">User uploads an export file only</div>
+      <div class="mc-card-desc">no live auth at all</div>
+    </div>
+  </div>
