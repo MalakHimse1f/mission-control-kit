@@ -316,6 +316,98 @@
     font-style: italic;
   }
 
+  /* ── Defer-gate table ── */
+  .defer-section { margin-bottom: 2.5rem; }
+
+  .defer-table {
+    max-width: 720px;
+    margin: 0 auto;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #141414;
+  }
+
+  .defer-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid #1e1e1e;
+  }
+
+  .defer-row:last-child { border-bottom: none; }
+
+  .defer-phase {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.85rem 1rem;
+    border-right: 1px solid #1e1e1e;
+    background: #101010;
+    text-align: center;
+  }
+
+  .defer-phase.p-ux { color: #9b59b6; }
+  .defer-phase.p-ui { color: #5b8dd9; }
+  .defer-phase.p-arch { color: #e67e22; }
+
+  .defer-blocked {
+    padding: 0.7rem 1rem;
+    font-size: 0.78rem;
+    color: #aaa;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .defer-tag {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #bbb;
+  }
+
+  .defer-tag.blocked { background: #2a1818; border-color: #4a2828; color: #e8a0a0; }
+  .defer-tag.advisory { background: #182a18; border-color: #284a28; color: #a0e8a0; }
+  .defer-tag.passthru { background: #1a1a24; border-color: #2a2a4a; color: #aab; }
+
+  .defer-note {
+    font-size: 0.72rem;
+    color: #666;
+    text-align: center;
+    margin-top: 0.85rem;
+    font-style: italic;
+  }
+
+  /* Bucket pass-through note */
+  .bucket-passthrough {
+    max-width: 720px;
+    margin: 1rem auto 0;
+    background: #141420;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 0.85rem 1.15rem;
+    font-size: 0.75rem;
+    color: #99a;
+    line-height: 1.55;
+  }
+
+  .bucket-passthrough strong { color: #c0c8e0; font-weight: 600; }
+  .bucket-passthrough code {
+    background: #1e1e2a;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: #b0b8d0;
+  }
+
   /* ── Deferred questions ── */
   .deferred-section { margin-bottom: 2.5rem; }
 
@@ -569,13 +661,69 @@
 
   </div>
 
+  <!-- ── Defer Gate ── -->
+  <div class="defer-section">
+    <div class="section-label">Gate Logic — Which Task Types Are Deferred In Each Phase</div>
+    <div class="defer-table">
+      <div class="defer-row">
+        <div class="defer-phase p-ux">During UX</div>
+        <div class="defer-blocked">
+          <span style="color: #777;">deferred →</span>
+          <span class="defer-tag blocked">ui-implementation</span>
+          <span class="defer-tag blocked">architecture</span>
+          <span class="defer-tag blocked">build</span>
+        </div>
+      </div>
+      <div class="defer-row">
+        <div class="defer-phase p-ui">During UI</div>
+        <div class="defer-blocked">
+          <span style="color: #777;">deferred →</span>
+          <span class="defer-tag blocked">architecture</span>
+          <span class="defer-tag blocked">build</span>
+        </div>
+      </div>
+      <div class="defer-row">
+        <div class="defer-phase p-arch">During Architecture</div>
+        <div class="defer-blocked">
+          <span style="color: #777;">deferred →</span>
+          <span class="defer-tag blocked">build</span>
+        </div>
+      </div>
+      <div class="defer-row">
+        <div class="defer-phase" style="color: #888;">Any phase</div>
+        <div class="defer-blocked">
+          <span style="color: #777;">advisory (never deferred) →</span>
+          <span class="defer-tag advisory">research</span>
+          <span class="defer-tag advisory">brainstorm</span>
+        </div>
+      </div>
+    </div>
+    <div class="defer-note">
+      <code style="font-family:'SF Mono','Fira Code',monospace;background:#1a1a1a;padding:1px 6px;border-radius:3px;color:#aaa;">shouldDefer(taskType, stage)</code>
+      in <code style="font-family:'SF Mono','Fira Code',monospace;background:#1a1a1a;padding:1px 6px;border-radius:3px;color:#aaa;">lib/v5/mc-router.mjs</code> compares each task's required phase against the canonical phase order.
+    </div>
+
+    <div class="bucket-passthrough">
+      <strong>Non-canonical stages pass through the gate.</strong>
+      Dashboard buckets (<span class="defer-tag passthru" style="padding:1px 6px;">needs-input</span>
+      <span class="defer-tag passthru" style="padding:1px 6px;">ready</span>
+      <span class="defer-tag passthru" style="padding:1px 6px;">in-progress</span>
+      <span class="defer-tag passthru" style="padding:1px 6px;">complete</span>)
+      are <em>not</em> canonical phases — they don't trigger the gate.
+      The orchestrator MUST resolve a canonical phase via
+      <code>currentPhase({ slug, controlRoot })</code> from
+      <code>lib/v5/decision-gate.mjs</code> before calling
+      <code>resolveRoute</code>.
+    </div>
+  </div>
+
   <!-- ── Tech-stack exception ── -->
   <div class="exception-section">
     <div class="section-label">Exception — Tech-Stack Items</div>
     <div class="exception-flow">
       <div class="exception-node ts">
         <div class="en-label">Trigger</div>
-        <div class="en-title">Tech-Stack Item</div>
+        <div class="en-title">status.json.featureType === 'tech-stack'</div>
       </div>
       <div class="exception-arrow">
         <svg viewBox="0 0 48 20"><line class="arrow-line" x1="0" y1="10" x2="40" y2="10"/><polygon class="arrow-head" points="36,5 44,10 36,15"/></svg>
@@ -592,25 +740,28 @@
         <div class="en-title">Build</div>
       </div>
     </div>
-    <div class="exception-note">No UX / UI phase needed for scaffolding, CI, database, infrastructure, etc.</div>
+    <div class="exception-note">Detected by <code style="font-family:'SF Mono','Fira Code',monospace;background:#1a1a1a;padding:1px 6px;border-radius:3px;color:#aaa;">isTechStackFeature(slug, controlRoot)</code> — scaffolding, CI, database, infrastructure, etc. skip UX/UI entirely.</div>
   </div>
 
   <!-- ── Deferred questions ── -->
   <div class="deferred-section">
-    <div class="section-label">Deferred Questions Mechanism</div>
+    <div class="section-label">Deferred-Question Queue</div>
     <div class="deferred-panel">
       <div class="deferred-diagram">
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <div class="deferred-bubble">Tech question during UX</div>
+          <div class="deferred-bubble">Tech question during UX / UI</div>
           <div class="deferred-arrow-down">
             <svg viewBox="0 0 20 28"><line class="arrow-line" x1="10" y1="0" x2="10" y2="22"/><polygon class="arrow-head" points="6,18 10,26 14,18"/></svg>
           </div>
-          <div class="deferred-bucket">Deferred</div>
+          <div class="deferred-bucket">decisions.json<br>.deferred[]</div>
         </div>
       </div>
       <div class="deferred-text">
         <strong>Not blocked, just redirected.</strong><br>
-        If a user raises a technical question during the UX phase, it is captured in a deferred bucket. It surfaces automatically when the Architecture phase begins — no question is lost.
+        <code style="font-family:'SF Mono','Fira Code',monospace;background:#1a1a1a;padding:1px 6px;border-radius:3px;color:#aaa;">defer-question.mjs</code> appends the question to
+        <code style="font-family:'SF Mono','Fira Code',monospace;background:#1a1a1a;padding:1px 6px;border-radius:3px;color:#aaa;">decisions.json.deferred[]</code>.
+        When the Architecture phase begins,
+        <code style="font-family:'SF Mono','Fira Code',monospace;background:#1a1a1a;padding:1px 6px;border-radius:3px;color:#aaa;">surface-deferred.mjs</code> returns the relevant entries so the orchestrator can re-ask — no question is lost.
       </div>
     </div>
   </div>

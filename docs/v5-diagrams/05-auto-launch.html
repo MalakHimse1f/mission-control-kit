@@ -89,6 +89,8 @@
     border-radius: 50%;
     background: #6a8caf;
   }
+  .trigger.self-serve { padding-left: 1.5rem; }
+  .trigger.self-serve::before { background: #5de8a0; }
 
   .arrow-down {
     display: flex;
@@ -482,6 +484,9 @@
       <div class="trigger">User says "I want to review" or "show me"</div>
       <div class="trigger">Brainstorming reaches a decision point</div>
       <div class="trigger">Research completes — patterns ready</div>
+      <div class="trigger self-serve" style="grid-column: 1 / -1; background: #102018; border-color: #2a4a3a;">
+        <span style="color: #5de8a0; font-weight: 600;">Self-serve</span> — Pickup panel + per-row Pickup buttons make manual "show me" mostly unnecessary; the user can launch the dashboard themselves and click Copy.
+      </div>
     </div>
 
     <div class="arrow-down">
@@ -510,7 +515,7 @@
         <div class="step-num">2</div>
         <div class="step-title">Is Dashboard Server Running?</div>
       </div>
-      <div class="step-detail">Read <code>.mc/dashboard-server.json</code> for status, port, PID</div>
+      <div class="step-detail"><code>ensureRunning({controlRoot})</code> reads <code>&lt;controlRoot&gt;/control/.mc/v5-dashboard-server.json</code>; if PID is alive, reuse it.</div>
     </div>
 
     <div class="arrow-down">
@@ -521,15 +526,37 @@
     <!-- Branch: YES / NO -->
     <div class="branch-row">
       <div class="branch">
-        <div class="branch-label yes">Yes — Server Running</div>
-        <div class="branch-content">Extract URL and port from config</div>
-        <div class="branch-sub"><code>{ "port": 9470, "pid": 42381 }</code></div>
+        <div class="branch-label yes">Yes — PID alive</div>
+        <div class="branch-content">Return <code>{ port, url, alreadyRunning: true }</code></div>
+        <div class="branch-sub"><code>{ "port": 9471, "pid": 42381, "startedAt": "…" }</code></div>
       </div>
       <div class="branch">
-        <div class="branch-label no">No — Server Stopped</div>
-        <div class="branch-content">Launch server process</div>
-        <div class="branch-sub"><code>node control/scripts/dashboard-server.mjs</code></div>
-        <div class="branch-sub" style="margin-top: 0.2rem;">Wait for port to become available</div>
+        <div class="branch-label no">No — Stale or missing</div>
+        <div class="branch-content">Spawn detached server process</div>
+        <div class="branch-sub"><code>node control/scripts/v5/dashboard-server.mjs &lt;controlRoot&gt;</code></div>
+        <div class="branch-sub" style="margin-top: 0.2rem;">Poll status file (≤5s) for a fresh <code>startedAt</code></div>
+      </div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="stem"></div>
+      <div class="head"></div>
+      <div class="label">bind-then-claim</div>
+    </div>
+
+    <!-- Step 2b: Port binding (replaces old probe-then-bind) -->
+    <div class="step-box action">
+      <div class="step-header">
+        <div class="step-num">2b</div>
+        <div class="step-title">Bind Port (Then Claim)</div>
+      </div>
+      <div class="step-detail">
+        <code>startServerInRange({ minPort: 9470, maxPort: 9499 })</code> walks the range calling
+        <code>server.listen()</code> directly — retrying on <code>EADDRINUSE</code>. No probe step, no TOCTOU window.
+      </div>
+      <div class="step-detail" style="margin-top: 0.4rem;">
+        After <code>listen</code> succeeds, the actual <code>server.address().port</code> is recorded via
+        <code>claimPort(port, { controlRoot })</code> → writes <code>v5-dashboard-server.json</code>.
       </div>
     </div>
 
@@ -604,7 +631,7 @@
         <span class="maximize"></span>
       </div>
       <div class="url-bar">
-        <span class="protocol">http://</span><span class="host">127.0.0.1:9470</span><span class="path">/feature/user-onboarding</span>
+        <span class="protocol">http://</span><span class="host">127.0.0.1:9471</span><span class="path">/feature/user-onboarding</span>
       </div>
     </div>
 
@@ -665,7 +692,7 @@
     <div class="chat-msg">
       I've created a UX flow diagram for the onboarding feature.<br>
       Opening the dashboard for you to review and make selections.<br>
-      <span class="arrow">→</span> <span class="link">http://127.0.0.1:9470/feature/user-onboarding#decisions</span>
+      <span class="arrow">→</span> <span class="link">http://127.0.0.1:9471/feature/user-onboarding#decisions</span>
     </div>
   </div>
 </div>
