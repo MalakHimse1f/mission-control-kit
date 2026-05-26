@@ -93,13 +93,13 @@ function renderLiveAgent(feature) {
         </div>`
     : '';
   return `
-      <div class="live-item" data-feature="${escapeAttr(slug)}">
+      <a class="live-item" href="/feature/${slugPath}" data-feature="${escapeAttr(slug)}">
         <div class="live-item-header">
           <span class="pulse-dot"></span>
-          <span class="live-item-name"><a href="/feature/${slugPath}">${slugEsc}</a></span>
+          <span class="live-item-name">${slugEsc}</span>
           <span class="phase-badge">${escapeHtml(phase)}</span>
         </div>${progressRow}
-      </div>`;
+      </a>`;
 }
 
 function capitalize(s) {
@@ -140,16 +140,16 @@ function renderUpNextPanel(upNext) {
   return `
     <div class="section-label">Up Next</div>
     <div class="panel">
-      <div class="next-item" data-feature="${escapeAttr(slug)}">
+      <a class="next-item" href="/feature/${slugPath}" data-feature="${escapeAttr(slug)}">
         <div class="next-item-header">
-          <span class="next-item-name"><a href="/feature/${slugPath}">${slugEsc}</a></span>
+          <span class="next-item-name">${slugEsc}</span>
         </div>
         ${description}
         <div class="next-item-footer">
           <span class="stage-badge">${escapeHtml(stageLabel)}</span>
-          <a class="open-link" href="/feature/${slugPath}">Open →</a>
+          <span class="open-arrow">→</span>
         </div>
-      </div>
+      </a>
     </div>`;
 }
 

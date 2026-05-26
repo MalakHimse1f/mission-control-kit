@@ -168,6 +168,56 @@ test('renderDashboard item rows link to /feature/:slug', async () => {
   }
 });
 
+test('renderDashboard makes Live Agents rows fully clickable (outer <a class="live-item">)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  // Outer element is an <a class="live-item" ...>
+  assert.ok(
+    /<a\s+class="live-item"[^>]*href="\/feature\/[^"]+"/.test(html),
+    'expected <a class="live-item" href="/feature/..."> as the outer Live Agents row',
+  );
+
+  // No nested <a> inside .live-item-name
+  assert.ok(
+    !/<span class="live-item-name"><a\b/.test(html),
+    'expected no nested <a> inside .live-item-name',
+  );
+});
+
+test('renderDashboard makes Up Next entry fully clickable (outer <a class="next-item">)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  // Outer element is an <a class="next-item" ...>
+  assert.ok(
+    /<a\s+class="next-item"[^>]*href="\/feature\/[^"]+"/.test(html),
+    'expected <a class="next-item" href="/feature/..."> as the outer Up Next row',
+  );
+
+  // No nested <a> inside .next-item-name
+  assert.ok(
+    !/<span class="next-item-name"><a\b/.test(html),
+    'expected no nested <a> inside .next-item-name',
+  );
+
+  // No standalone Open link anchor inside .next-item — replaced by decorative arrow
+  assert.ok(
+    !/<a class="open-link"/.test(html),
+    'expected no <a class="open-link"> (replaced by decorative arrow span)',
+  );
+});
+
+test('renderDashboard All Items rows continue to use <a class="item-row"> (regression guard)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  assert.ok(
+    /<a\s+class="item-row"[^>]*href="\/feature\/[^"]+"/.test(html),
+    'expected <a class="item-row" href="/feature/..."> for All Items rows',
+  );
+});
+
 test('renderDashboard links to /dashboard.css and /dashboard-client.js', async () => {
   const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
   const html = renderDashboard(data);

@@ -77,6 +77,16 @@ h1 {
 /* Live agent item */
 .live-item {
   position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.live-item:hover {
+  background: #1a1a1a;
 }
 
 .live-item + .live-item {
@@ -117,7 +127,7 @@ h1 {
   color: #e8e8e8;
 }
 
-.live-item-name a:hover {
+.live-item:hover .live-item-name {
   color: #fff;
 }
 
@@ -162,6 +172,16 @@ h1 {
 /* Up next item */
 .next-item {
   position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.next-item:hover {
+  background: #1a1a1a;
 }
 
 .next-item-header {
@@ -198,16 +218,14 @@ h1 {
   color: #ccc;
 }
 
-.open-link {
+.open-arrow {
   font-size: 0.8rem;
   color: #6a8caf;
-  text-decoration: none;
-  cursor: pointer;
   margin-left: auto;
   transition: color 0.15s;
 }
 
-.open-link:hover {
+.next-item:hover .open-arrow {
   color: #8cafc6;
 }
 
