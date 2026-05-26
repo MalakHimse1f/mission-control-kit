@@ -275,3 +275,55 @@ test('buildPacket forwards deferred state from route', async () => {
   assert.ok(packet.deferredReason && packet.deferredReason.length > 0);
   assert.equal(packet.tokensEstimate, 0, 'deferred packet should have 0 tokens estimate');
 });
+
+// ---------------------------------------------------------------------------
+// usageNote / visual-fragment contract
+// ---------------------------------------------------------------------------
+
+test('every task type route exposes a non-empty usageNote', async () => {
+  for (const taskType of listTaskTypes()) {
+    const route = await resolveRoute({ taskType, slug: 'demo' });
+    assert.equal(
+      typeof route.usageNote,
+      'string',
+      `${taskType} route should expose a string usageNote`,
+    );
+    assert.ok(
+      route.usageNote.length > 0,
+      `${taskType} usageNote should be non-empty`,
+    );
+  }
+});
+
+test('UX / UI / Architecture routes carry the verbatim hard rule about decision fragments', async () => {
+  const visualTypes = ['ux-decisions', 'ui-implementation', 'architecture'];
+  for (const taskType of visualTypes) {
+    const route = await resolveRoute({ taskType, slug: 'demo' });
+    assert.ok(
+      route.usageNote.includes('MUST NOT write HTML for a decision card by hand'),
+      `${taskType} usageNote should contain the hard rule about not hand-writing decision card HTML`,
+    );
+    assert.ok(
+      route.usageNote.includes('lib/v5/cli/build-decision.mjs'),
+      `${taskType} usageNote should reference build-decision.mjs CLI`,
+    );
+  }
+});
+
+test('research / build / brainstorm routes carry a shorter routing-docs note', async () => {
+  const otherTypes = ['research', 'build', 'brainstorm'];
+  for (const taskType of otherTypes) {
+    const route = await resolveRoute({ taskType, slug: 'demo' });
+    assert.ok(
+      /routing docs in `control\/v5\/routing\/`/i.test(route.usageNote),
+      `${taskType} usageNote should reference control/v5/routing/ docs; got: ${route.usageNote}`,
+    );
+  }
+});
+
+test('deferred route still forwards usageNote so orchestrator can see the contract', async () => {
+  const route = await resolveRoute({ taskType: 'architecture', stage: 'ux', slug: 'demo' });
+  assert.equal(route.deferred, true);
+  assert.equal(typeof route.usageNote, 'string');
+  assert.ok(route.usageNote.length > 0);
+});
