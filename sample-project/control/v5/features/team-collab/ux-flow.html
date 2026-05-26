@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Collaboration — UX Flow</title>
+<link rel="stylesheet" href="../../_diagram-assets/diagram.css">
+</head>
+<body class="mc-diagram">
+
+<div class="mc-diagram-container">
+
+  <h1 class="mc-diagram-title">Team Collaboration</h1>
+  <p class="mc-diagram-subtitle">Real-time multi-user editing on shared documents.</p>
+
+  <div class="mc-section-label">User Journey — Opening to Auto-save</div>
+
+  <div class="mc-flow-timeline">
+
+    <div class="mc-flow-step active">
+      <span class="mc-flow-num">1</span>
+      <div class="mc-flow-circle">📄</div>
+      <span class="mc-flow-label">Open doc</span>
+    </div>
+
+    <div class="mc-flow-step active">
+      <span class="mc-flow-num">2</span>
+      <div class="mc-flow-circle">👥</div>
+      <span class="mc-flow-label">See collaborators</span>
+    </div>
+
+    <div class="mc-flow-step active">
+      <span class="mc-flow-num">3</span>
+      <div class="mc-flow-circle">✏️</div>
+      <span class="mc-flow-label">Edit with cursors</span>
+    </div>
+
+    <div class="mc-flow-step">
+      <span class="mc-flow-num">4</span>
+      <div class="mc-flow-circle">⚠️</div>
+      <span class="mc-flow-label">Conflict indicator</span>
+    </div>
+
+    <div class="mc-flow-step">
+      <span class="mc-flow-num">5</span>
+      <div class="mc-flow-circle">💾</div>
+      <span class="mc-flow-label">Auto-save</span>
+    </div>
+
+  </div>
+
+  <div class="mc-decision-node">
+    <h4>Presence surface (step 2)</h4>
+    <p class="mc-decision-context">When the doc opens, how do collaborators first appear?</p>
+
+    <div class="mc-radio-list" data-group="ux-presence-display" data-category="ux">
+
+      <button type="button" class="mc-radio-choice selected" data-value="avatar-stack-header">
+        <span class="mc-radio-dot"></span>
+        Avatar stack in top-right header
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="inline-cursor-labels">
+        <span class="mc-radio-dot"></span>
+        Inline name labels next to remote cursors
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="sidebar-list">
+        <span class="mc-radio-dot"></span>
+        Sidebar list of active collaborators
+      </button>
+
+    </div>
+  </div>
+
+  <div class="mc-decision-node">
+    <h4>Conflict indicator (step 4)</h4>
+    <p class="mc-decision-context">When two people edit the same passage simultaneously, what does the user see?</p>
+
+    <div class="mc-radio-list" data-group="ux-conflict-indicator" data-category="ux">
+
+      <button type="button" class="mc-radio-choice selected" data-value="inline-highlight">
+        <span class="mc-radio-dot"></span>
+        Inline highlight on the conflicting passage
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="toast-jump">
+        <span class="mc-radio-dot"></span>
+        Toast notification with jump-to-conflict link
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="silent-auto-merge">
+        <span class="mc-radio-dot"></span>
+        Silent auto-merge with revision history entry
+      </button>
+
+    </div>
+  </div>
+
+  <div class="mc-save-bar">
+    <button class="mc-save-btn" data-mc-save type="button">Save Flow Decisions</button>
+  </div>
+
+</div>
+
+<div class="mc-toast" id="mc-toast"></div>
+
+<script src="../../_diagram-assets/diagram-select.js"></script>
+<script src="../../_diagram-assets/decisions-client.js"></script>
+<script>
+  (function () {
+    var SLUG = 'team-collab';
+    var toast = document.getElementById('mc-toast');
+
+    function showToast(msg, isError) {
+      toast.innerHTML = '<span class="check">✓</span>' + msg;
+      toast.classList.toggle('error', !!isError);
+      toast.classList.add('visible');
+      setTimeout(function () { toast.classList.remove('visible'); }, 3500);
+    }
+
+    MCDiagramSelect.onSave(function (selections) {
+      if (!SLUG || SLUG.indexOf('{{') === 0) {
+        showToast('Preview save — selections: ' + JSON.stringify(selections));
+        return;
+      }
+      MCDecisions.save(SLUG, { decisions: selections })
+        .then(function () { showToast('Flow decisions saved.'); })
+        .catch(function (err) { showToast(err.message, true); });
+    });
+  }());
+</script>
+
+</body>
+</html>

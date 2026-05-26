@@ -1,0 +1,97 @@
+{
+  "feature": "notifications",
+  "phases": {
+    "ux": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ux-feed-entry",
+          "category": "ux",
+          "question": "Where does the user access the notification feed?",
+          "options": [
+            "Bell icon in the top navigation",
+            "Dedicated /notifications page",
+            "Slide-in panel from the right edge"
+          ],
+          "selected": "Bell icon in the top navigation",
+          "decidedAt": "2026-05-02T11:00:00.000Z"
+        },
+        {
+          "id": "ux-preferences-entry",
+          "category": "ux",
+          "question": "How does a user find notification preferences?",
+          "options": [
+            "Account settings → Notifications tab",
+            "Inline 'manage' link in the notification feed",
+            "Both"
+          ],
+          "selected": "Both",
+          "decidedAt": "2026-05-03T15:25:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "ui": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ui-feed-density",
+          "category": "ui",
+          "question": "Notification feed row density?",
+          "options": [
+            "Compact (single line per notification)",
+            "Comfortable (avatar + two-line body)",
+            "Roomy (full preview card)"
+          ],
+          "selected": "Comfortable (avatar + two-line body)",
+          "decidedAt": "2026-05-05T10:10:00.000Z"
+        },
+        {
+          "id": "ui-unread-indicator",
+          "category": "ui",
+          "question": "How are unread notifications visually distinguished?",
+          "options": [
+            "Bold text + blue dot",
+            "Tinted background row",
+            "Left-edge color bar"
+          ],
+          "selected": "Tinted background row",
+          "decidedAt": "2026-05-05T14:30:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "architecture": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "arch-event-source",
+          "category": "engineering",
+          "question": "How are notification events produced?",
+          "options": [
+            "Direct emit from feature code (tight coupling)",
+            "Outbox table polled by notification worker",
+            "Domain event bus with notification subscriber"
+          ],
+          "selected": "Domain event bus with notification subscriber",
+          "decidedAt": "2026-05-15T12:00:00.000Z"
+        },
+        {
+          "id": "arch-email-provider",
+          "category": "engineering",
+          "question": "Which email delivery provider?",
+          "options": [
+            "Self-hosted SMTP",
+            "Postmark",
+            "Resend"
+          ],
+          "selected": "Postmark",
+          "decidedAt": "2026-05-16T17:40:00.000Z"
+        }
+      ],
+      "pending": []
+    }
+  },
+  "deferred": [],
+  "updatedAt": "2026-05-26T09:30:00.000Z"
+}

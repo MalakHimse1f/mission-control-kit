@@ -1,0 +1,93 @@
+{
+  "feature": "team-collab",
+  "phases": {
+    "ux": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ux-presence-display",
+          "category": "ux",
+          "question": "How should collaborator presence be displayed in the editor?",
+          "options": [
+            "Avatar stack in top-right header",
+            "Inline name labels next to remote cursors",
+            "Sidebar list of active collaborators"
+          ],
+          "selected": "Avatar stack in top-right header",
+          "decidedAt": "2026-05-18T16:22:00.000Z"
+        },
+        {
+          "id": "ux-conflict-indicator",
+          "category": "ux",
+          "question": "How should we surface concurrent-edit conflicts to the user?",
+          "options": [
+            "Inline highlight on the conflicting passage",
+            "Toast notification with jump-to-conflict link",
+            "Silent auto-merge with revision history entry"
+          ],
+          "selected": "Inline highlight on the conflicting passage",
+          "decidedAt": "2026-05-19T10:05:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "ui": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ui-cursor-style",
+          "category": "ui",
+          "question": "What visual style should remote cursors use?",
+          "options": [
+            "Colored caret with floating name tag",
+            "Subtle colored underline beneath text",
+            "Animated halo on the cursor character"
+          ],
+          "selected": "Colored caret with floating name tag",
+          "decidedAt": "2026-05-21T09:30:00.000Z"
+        },
+        {
+          "id": "ui-presence-layout",
+          "category": "ui",
+          "question": "Where does the collaborators panel live?",
+          "options": [
+            "Right-hand collapsible drawer",
+            "Top-of-document avatar bar",
+            "Bottom status strip"
+          ],
+          "selected": "Top-of-document avatar bar",
+          "decidedAt": "2026-05-21T15:10:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "architecture": {
+      "status": "in-progress",
+      "decisions": [
+        {
+          "id": "arch-transport",
+          "category": "engineering",
+          "question": "What transport should we use for real-time sync?",
+          "options": [
+            "WebSocket with custom protocol",
+            "Server-Sent Events + REST writes",
+            "WebRTC peer-to-peer with relay fallback"
+          ],
+          "selected": "WebSocket with custom protocol",
+          "decidedAt": "2026-05-25T18:45:00.000Z"
+        }
+      ],
+      "pending": [
+        "arch-sync-algorithm"
+      ]
+    }
+  },
+  "deferred": [
+    {
+      "question": "Should presence include 'currently typing' indicator with debounce?",
+      "raisedDuring": "ux",
+      "raisedAt": "2026-05-19T11:40:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-05-26T13:40:00.000Z"
+}

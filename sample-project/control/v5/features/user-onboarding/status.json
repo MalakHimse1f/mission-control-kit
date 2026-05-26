@@ -1,0 +1,9 @@
+{
+  "feature": "User Onboarding",
+  "slug": "user-onboarding",
+  "stage": "ready",
+  "pipelineStage": "ready",
+  "currentPhase": "build",
+  "lastUpdatedAt": "2026-05-24T11:15:00.000Z",
+  "description": "First-run experience: welcome, workspace setup, and an interactive product tour."
+}
