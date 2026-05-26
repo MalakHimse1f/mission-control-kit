@@ -133,15 +133,94 @@ test('architecture during architecture stage is NOT deferred', async () => {
   assert.ok(route.docs.length > 0);
 });
 
-test('ui-implementation during ux stage is NOT deferred (only architecture is blocked)', async () => {
+test('ui-implementation during ux stage IS deferred (UI follows UX)', async () => {
   const route = await resolveRoute({ taskType: 'ui-implementation', stage: 'ux', slug: 'demo' });
-  assert.equal(route.deferred, false);
+  assert.equal(route.deferred, true);
+  assert.ok(/ui/i.test(route.deferredReason));
 });
 
 test('ui-implementation during ui stage is NOT deferred', async () => {
   const route = await resolveRoute({ taskType: 'ui-implementation', stage: 'ui', slug: 'demo' });
   assert.equal(route.deferred, false);
   assert.ok(route.docs.length > 0);
+});
+
+test('build during ux/ui stage IS deferred', async () => {
+  for (const stage of ['ux', 'ui']) {
+    const route = await resolveRoute({ taskType: 'build', stage, slug: 'demo' });
+    assert.equal(route.deferred, true, `expected build deferred during ${stage}`);
+  }
+});
+
+test('build during architecture stage IS deferred (architecture must complete first)', async () => {
+  const route = await resolveRoute({ taskType: 'build', stage: 'architecture', slug: 'demo' });
+  assert.equal(route.deferred, true);
+});
+
+test('build during build stage is NOT deferred', async () => {
+  const route = await resolveRoute({ taskType: 'build', stage: 'build', slug: 'demo' });
+  assert.equal(route.deferred, false);
+  assert.ok(route.docs.length > 0);
+});
+
+test('non-canonical stage values (dashboard buckets) pass through the gate', async () => {
+  // The orchestrator is expected to resolve a canonical phase via
+  // currentPhase() before calling resolveRoute. If it doesn't, the router
+  // should not block — but the test pins this contract.
+  for (const stage of ['needs-input', 'ready', 'in-progress', 'complete', 'mock']) {
+    const route = await resolveRoute({ taskType: 'architecture', stage, slug: 'demo' });
+    assert.equal(route.deferred, false, `non-canonical stage ${stage} must not trigger the gate`);
+  }
+});
+
+test('research and brainstorm task types are never deferred (advisory routes)', async () => {
+  for (const stage of ['ux', 'ui', 'architecture', 'build']) {
+    for (const taskType of ['research', 'brainstorm']) {
+      const route = await resolveRoute({ taskType, stage, slug: 'demo' });
+      assert.equal(route.deferred, false, `${taskType} during ${stage} should not be deferred`);
+    }
+  }
+});
+
+test('stageToDefaultTaskType maps every canonical stage to a valid task type', async () => {
+  const { stageToDefaultTaskType } = await import('../lib/v5/mc-router.mjs');
+  const valid = new Set(listTaskTypes());
+  for (const [stage, taskType] of Object.entries({
+    ux: 'ux-decisions',
+    ui: 'ui-implementation',
+    architecture: 'architecture',
+    build: 'build',
+    brainstorm: 'brainstorm',
+    'needs-input': 'brainstorm',
+    ready: 'build',
+    'in-progress': 'build',
+    complete: 'build',
+    mock: 'ui-implementation',
+  })) {
+    assert.equal(stageToDefaultTaskType(stage), taskType);
+    assert.ok(valid.has(taskType), `${taskType} (for stage ${stage}) must be a valid taskType`);
+  }
+});
+
+test('stageToDefaultTaskType falls back to "brainstorm" for unknown stages', async () => {
+  const { stageToDefaultTaskType } = await import('../lib/v5/mc-router.mjs');
+  assert.equal(stageToDefaultTaskType('whatever'), 'brainstorm');
+  assert.equal(stageToDefaultTaskType(''), 'brainstorm');
+  assert.equal(stageToDefaultTaskType(null), 'brainstorm');
+});
+
+test('mc-v5-resume command file invokes the mc-v5 skill', async () => {
+  const fs = await import('node:fs/promises');
+  const path = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const cmdPath = path.join(here, '..', 'commands', 'mc-v5-resume.md');
+  const body = await fs.readFile(cmdPath, 'utf8');
+  assert.match(
+    body,
+    /Invoke skill:\s*mc-v5/i,
+    'mc-v5-resume.md must contain an explicit "Invoke skill: mc-v5" directive',
+  );
 });
 
 test('unknown task type throws a descriptive error', async () => {

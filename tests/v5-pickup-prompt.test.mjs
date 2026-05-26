@@ -69,6 +69,40 @@ test('buildPickupPrompt mentions mc-router.mjs or Route', () => {
   );
 });
 
+test('buildPickupPrompt embeds an explicit taskType (no agent guessing)', () => {
+  // Canonical phase → its routed taskType
+  assert.match(buildPickupPrompt({ slug: 'x', stage: 'ux' }), /taskType.*ux-decisions/);
+  assert.match(buildPickupPrompt({ slug: 'x', stage: 'ui' }), /taskType.*ui-implementation/);
+  assert.match(buildPickupPrompt({ slug: 'x', stage: 'architecture' }), /taskType.*architecture/);
+  assert.match(buildPickupPrompt({ slug: 'x', stage: 'build' }), /taskType.*build/);
+  // Dashboard buckets get sensible defaults
+  assert.match(buildPickupPrompt({ slug: 'x', stage: 'needs-input' }), /taskType.*brainstorm/);
+  assert.match(buildPickupPrompt({ slug: 'x', stage: 'ready' }), /taskType.*build/);
+});
+
+test('buildPickupPrompt respects explicit taskType override', () => {
+  const prompt = buildPickupPrompt({ slug: 'x', stage: 'ux', taskType: 'research' });
+  assert.match(prompt, /taskType.*research/);
+});
+
+test('buildPickupPrompt does not assume chat memory', () => {
+  const prompt = buildPickupPrompt({ slug: 'demo', stage: 'ux' });
+  // These phrases would silently lean on chat history — they must not appear.
+  for (const phrase of [
+    'as discussed',
+    'as we agreed',
+    'previously',
+    'earlier in the session',
+    'continue from',
+    'from our last conversation',
+  ]) {
+    assert.ok(
+      !new RegExp(phrase, 'i').test(prompt),
+      `pickup prompt must not reference chat memory ("${phrase}"):\n${prompt}`,
+    );
+  }
+});
+
 test('buildPickupPrompt throws without args', () => {
   assert.throws(() => buildPickupPrompt(), /slug|stage|required/i);
 });
