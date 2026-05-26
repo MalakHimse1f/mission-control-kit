@@ -82,14 +82,38 @@ test('GET / returns placeholder HTML containing "Mission Control Kit v5"', async
   }
 });
 
-test('GET /feature/foo returns placeholder HTML containing "foo"', async () => {
+test('GET /feature/foo returns 404 when the feature does not exist on disk', async () => {
+  // As of Task 6, the feature route renders the real feature page and
+  // returns 404 JSON when the slug has no matching directory under
+  // `{controlRoot}/features/`.
   const { controlRoot, diagramsRoot } = await makeTmpProject();
+  const handle = await startTestServer(controlRoot, diagramsRoot);
+  try {
+    const { status, json } = await httpRequest(`${handle.url}/feature/foo`);
+    assert.equal(status, 404);
+    assert.ok(json && typeof json.error === 'string');
+  } finally {
+    await handle.close();
+  }
+});
+
+test('GET /feature/:slug returns rendered HTML when the feature exists', async () => {
+  const { controlRoot, diagramsRoot } = await makeTmpProject();
+  // Create a minimal feature on disk.
+  const featureDir = path.join(controlRoot, 'features', 'foo');
+  await fs.mkdir(featureDir, { recursive: true });
+  await fs.writeFile(
+    path.join(featureDir, 'status.json'),
+    JSON.stringify({ slug: 'foo', feature: 'Foo Feature' }),
+    'utf8',
+  );
   const handle = await startTestServer(controlRoot, diagramsRoot);
   try {
     const { status, text, headers } = await httpRequest(`${handle.url}/feature/foo`);
     assert.equal(status, 200);
     assert.ok((headers.get('content-type') || '').includes('text/html'));
-    assert.ok(text.includes('foo'), `expected slug "foo" in body; got: ${text.slice(0, 200)}`);
+    assert.ok(text.includes('Foo Feature'), 'expected feature name in body');
+    assert.ok(text.includes('Save All Decisions'), 'expected save bar in body');
   } finally {
     await handle.close();
   }

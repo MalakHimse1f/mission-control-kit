@@ -30,12 +30,16 @@ import {
   statusFilePath,
 } from '../../../lib/v5/server-port.mjs';
 import { loadDashboardData } from '../../../lib/v5/dashboard-data.mjs';
+import { loadFeatureData } from '../../../lib/v5/feature-data.mjs';
 import { renderDashboard } from './render-dashboard.mjs';
+import { renderFeature } from './render-feature.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DASHBOARD_CSS_PATH = path.join(__dirname, 'dashboard.css');
 const DASHBOARD_CLIENT_JS_PATH = path.join(__dirname, 'dashboard-client.js');
+const FEATURE_CSS_PATH = path.join(__dirname, 'feature.css');
+const FEATURE_CLIENT_JS_PATH = path.join(__dirname, 'feature-client.js');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,28 +143,6 @@ function renderDashboardPlaceholder() {
     <li><code>GET /api/v5/decisions/:slug</code> — read decisions</li>
     <li><code>POST /api/v5/decisions/:slug</code> — write decisions</li>
   </ul>
-</body>
-</html>
-`;
-}
-
-function renderFeaturePlaceholder(slug) {
-  const safe = escapeHtml(slug);
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Mission Control Kit v5 — ${safe}</title>
-  <style>
-    body { font-family: -apple-system, system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-    code { background: #f4f4f4; padding: 0.15em 0.35em; border-radius: 4px; }
-  </style>
-</head>
-<body>
-  <h1>Feature: ${safe}</h1>
-  <p>This is a placeholder feature detail page for <code>${safe}</code>. Task 6 of the v5 refactor will replace this with the real feature view.</p>
-  <p><a href="/">&larr; Back to dashboard</a></p>
-  <p><a href="/api/v5/decisions/${encodeURIComponent(slug)}">View decisions JSON</a></p>
 </body>
 </html>
 `;
@@ -355,11 +337,43 @@ export function createServer({ controlRoot, diagramsRoot } = {}) {
         }
       }
 
+      // GET /feature.css
+      if (method === 'GET' && pathname === '/feature.css') {
+        try {
+          const css = await fsp.readFile(FEATURE_CSS_PATH, 'utf8');
+          return sendText(res, 200, MIME_TYPES['.css'], css);
+        } catch (err) {
+          return sendJson(res, 404, { error: `feature.css missing: ${err.message}` });
+        }
+      }
+
+      // GET /feature-client.js
+      if (method === 'GET' && pathname === '/feature-client.js') {
+        try {
+          const js = await fsp.readFile(FEATURE_CLIENT_JS_PATH, 'utf8');
+          return sendText(res, 200, MIME_TYPES['.js'], js);
+        } catch (err) {
+          return sendJson(res, 404, { error: `feature-client.js missing: ${err.message}` });
+        }
+      }
+
       // GET /feature/:slug
       if (method === 'GET') {
         const featureSlug = matchSlugRoute(pathname, '/feature');
         if (featureSlug) {
-          return sendText(res, 200, MIME_TYPES['.html'], renderFeaturePlaceholder(featureSlug));
+          try {
+            const data = await loadFeatureData({
+              slug: featureSlug,
+              controlRoot: controlRootAbs,
+            });
+            const html = renderFeature({ slug: featureSlug, data });
+            return sendText(res, 200, MIME_TYPES['.html'], html);
+          } catch (err) {
+            if (err && err.code === 'ENOFEATURE') {
+              return sendJson(res, 404, { error: err.message });
+            }
+            throw err;
+          }
         }
       }
 
