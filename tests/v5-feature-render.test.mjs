@@ -28,15 +28,15 @@ const SAMPLE_V5 = path.join(REPO_ROOT, 'sample-project', 'control', 'v5');
 // loadFeatureData
 // ---------------------------------------------------------------------------
 
-test('loadFeatureData returns the expected shape for team-collab', async () => {
+test('loadFeatureData returns the expected shape for personal-library-import', async () => {
   const data = await loadFeatureData({
-    slug: 'team-collab',
+    slug: 'personal-library-import',
     controlRoot: SAMPLE_V5,
   });
-  assert.equal(data.slug, 'team-collab');
-  assert.equal(data.status.feature, 'Team Collaboration');
+  assert.equal(data.slug, 'personal-library-import');
+  assert.equal(data.status.feature, 'Personal Library Import');
   assert.ok(data.decisions);
-  assert.equal(data.decisions.feature, 'team-collab');
+  assert.equal(data.decisions.feature, 'personal-library-import');
 
   // Three tabs, canonical order.
   assert.ok(data.tabs.ux);
@@ -55,7 +55,7 @@ test('loadFeatureData returns the expected shape for team-collab', async () => {
   assert.equal(data.tabs.ux.decisions.length, 2);
   assert.equal(data.tabs.ui.decisions.length, 2);
   assert.equal(data.tabs.architecture.decisions.length, 1);
-  assert.deepEqual(data.tabs.architecture.pending, ['arch-sync-algorithm']);
+  assert.deepEqual(data.tabs.architecture.pending, ['arch-connector-pattern']);
 });
 
 test('loadFeatureData throws ENOFEATURE for a missing slug', async () => {
@@ -67,7 +67,7 @@ test('loadFeatureData throws ENOFEATURE for a missing slug', async () => {
 
 test('loadFeatureData throws on missing slug or controlRoot', async () => {
   await assert.rejects(() => loadFeatureData({ controlRoot: SAMPLE_V5 }), /slug/);
-  await assert.rejects(() => loadFeatureData({ slug: 'team-collab' }), /controlRoot/);
+  await assert.rejects(() => loadFeatureData({ slug: 'personal-library-import' }), /controlRoot/);
 });
 
 test('loadFeatureData synthesizes defaults when status.json is missing', async () => {
@@ -94,10 +94,10 @@ test('loadFeatureData synthesizes defaults when status.json is missing', async (
 
 test('renderFeature contains breadcrumb, three tabs, save button', async () => {
   const data = await loadFeatureData({
-    slug: 'team-collab',
+    slug: 'personal-library-import',
     controlRoot: SAMPLE_V5,
   });
-  const html = renderFeature({ slug: 'team-collab', data });
+  const html = renderFeature({ slug: 'personal-library-import', data });
 
   assert.ok(
     html.startsWith('<!doctype html') || html.startsWith('<!DOCTYPE html'),
@@ -105,7 +105,7 @@ test('renderFeature contains breadcrumb, three tabs, save button', async () => {
 
   // Breadcrumb back to dashboard.
   assert.ok(html.includes('href="/"'), 'expected breadcrumb back-link to /');
-  assert.ok(html.includes('Team Collaboration'), 'expected feature name in breadcrumb/header');
+  assert.ok(html.includes('Personal Library Import'), 'expected feature name in breadcrumb/header');
 
   // Three tab labels.
   assert.ok(/data-tab="ux"/.test(html), 'expected UX tab');
@@ -122,10 +122,10 @@ test('renderFeature contains breadcrumb, three tabs, save button', async () => {
 
 test('renderFeature includes at least one decision card per non-empty tab', async () => {
   const data = await loadFeatureData({
-    slug: 'team-collab',
+    slug: 'personal-library-import',
     controlRoot: SAMPLE_V5,
   });
-  const html = renderFeature({ slug: 'team-collab', data });
+  const html = renderFeature({ slug: 'personal-library-import', data });
 
   // Each decision id should appear as a data-group attribute.
   for (const phase of ['ux', 'ui', 'architecture']) {
@@ -140,12 +140,12 @@ test('renderFeature includes at least one decision card per non-empty tab', asyn
 
 test('renderFeature marks the saved option with .selected for hydration', async () => {
   const data = await loadFeatureData({
-    slug: 'team-collab',
+    slug: 'personal-library-import',
     controlRoot: SAMPLE_V5,
   });
-  const html = renderFeature({ slug: 'team-collab', data });
+  const html = renderFeature({ slug: 'personal-library-import', data });
 
-  // The architecture decision picked "WebSocket with custom protocol".
+  // The architecture decision picked "OAuth redirect with per-provider client credentials".
   const arch = data.tabs.architecture.decisions[0];
   const selectedValue = arch.selected;
   const selectedFragment = `data-value="${selectedValue}"`;
@@ -281,10 +281,10 @@ test('renderFeature handles tabs with no decisions (empty state)', () => {
 
 test('renderFeature links to feature.css, feature-client.js, and shared diagram scripts', async () => {
   const data = await loadFeatureData({
-    slug: 'team-collab',
+    slug: 'personal-library-import',
     controlRoot: SAMPLE_V5,
   });
-  const html = renderFeature({ slug: 'team-collab', data });
+  const html = renderFeature({ slug: 'personal-library-import', data });
   assert.ok(html.includes('/feature.css'), 'expected /feature.css link');
   assert.ok(html.includes('/feature-client.js'), 'expected /feature-client.js script');
   assert.ok(html.includes('/diagrams/_shared/diagram-select.js'));
@@ -293,28 +293,28 @@ test('renderFeature links to feature.css, feature-client.js, and shared diagram 
 
 test('renderFeature embeds preloaded decisions as JSON for client merge', async () => {
   const data = await loadFeatureData({
-    slug: 'team-collab',
+    slug: 'personal-library-import',
     controlRoot: SAMPLE_V5,
   });
-  const html = renderFeature({ slug: 'team-collab', data });
+  const html = renderFeature({ slug: 'personal-library-import', data });
   assert.ok(html.includes('id="mc-feature-state"'));
   // The slug should be embedded in the state blob.
-  assert.ok(html.includes('"slug":"team-collab"'));
+  assert.ok(html.includes('"slug":"personal-library-import"'));
 });
 
 // ---------------------------------------------------------------------------
 // Server integration
 // ---------------------------------------------------------------------------
 
-test('GET /feature/team-collab returns the rendered feature page', async () => {
+test('GET /feature/personal-library-import returns the rendered feature page', async () => {
   const handle = await startServer({ controlRoot: SAMPLE_V5, port: 0 });
   try {
-    const res = await fetch(`${handle.url}/feature/team-collab`);
+    const res = await fetch(`${handle.url}/feature/personal-library-import`);
     assert.equal(res.status, 200);
     const ct = res.headers.get('content-type') || '';
     assert.ok(ct.includes('text/html'));
     const html = await res.text();
-    assert.ok(html.includes('Team Collaboration'));
+    assert.ok(html.includes('Personal Library Import'));
     assert.ok(html.includes('Save All Decisions'));
     assert.ok(html.includes('data-tab="ux"'));
     assert.ok(html.includes('data-tab="ui"'));

@@ -3,95 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team Collaboration — UX Flow</title>
+<title>Personal Library Import — UX Flow</title>
 <link rel="stylesheet" href="../../_diagram-assets/diagram.css">
 </head>
 <body class="mc-diagram">
 
 <div class="mc-diagram-container">
 
-  <h1 class="mc-diagram-title">Team Collaboration</h1>
-  <p class="mc-diagram-subtitle">Real-time multi-user editing on shared documents.</p>
+  <h1 class="mc-diagram-title">Personal Library Import</h1>
+  <p class="mc-diagram-subtitle">Bulk-import existing collections from Goodreads, Letterboxd, Steam, Open Library, or a manual CSV.</p>
 
-  <div class="mc-section-label">User Journey — Opening to Auto-save</div>
+  <div class="mc-section-label">UX Flow — Import Wizard</div>
 
   <div class="mc-flow-timeline">
 
     <div class="mc-flow-step active">
       <span class="mc-flow-num">1</span>
-      <div class="mc-flow-circle">📄</div>
-      <span class="mc-flow-label">Open doc</span>
+      <div class="mc-flow-circle">📚</div>
+      <span class="mc-flow-label">Pick source</span>
     </div>
 
     <div class="mc-flow-step active">
       <span class="mc-flow-num">2</span>
-      <div class="mc-flow-circle">👥</div>
-      <span class="mc-flow-label">See collaborators</span>
+      <div class="mc-flow-circle">🔑</div>
+      <span class="mc-flow-label">Auth or upload</span>
     </div>
 
     <div class="mc-flow-step active">
       <span class="mc-flow-num">3</span>
-      <div class="mc-flow-circle">✏️</div>
-      <span class="mc-flow-label">Edit with cursors</span>
+      <div class="mc-flow-circle">⚖️</div>
+      <span class="mc-flow-label">Review conflicts</span>
     </div>
 
     <div class="mc-flow-step">
       <span class="mc-flow-num">4</span>
-      <div class="mc-flow-circle">⚠️</div>
-      <span class="mc-flow-label">Conflict indicator</span>
+      <div class="mc-flow-circle">✅</div>
+      <span class="mc-flow-label">Confirm &amp; commit</span>
     </div>
 
     <div class="mc-flow-step">
       <span class="mc-flow-num">5</span>
-      <div class="mc-flow-circle">💾</div>
-      <span class="mc-flow-label">Auto-save</span>
+      <div class="mc-flow-circle">📥</div>
+      <span class="mc-flow-label">Library populated</span>
     </div>
 
   </div>
 
   <div class="mc-decision-node">
-    <h4>Presence surface (step 2)</h4>
-    <p class="mc-decision-context">When the doc opens, how do collaborators first appear?</p>
+    <h4>Source picker pattern (step 1)</h4>
+    <p class="mc-decision-context">How does the user pick which source to import from?</p>
 
-    <div class="mc-radio-list" data-group="ux-presence-display" data-category="ux">
+    <div class="mc-radio-list" data-group="ux-source-picker-pattern" data-category="ux">
 
-      <button type="button" class="mc-radio-choice selected" data-value="avatar-stack-header">
+      <button type="button" class="mc-radio-choice selected" data-value="wizard-stepped">
         <span class="mc-radio-dot"></span>
-        Avatar stack in top-right header
+        Stepped wizard (pick source → authenticate/upload → review → confirm)
       </button>
 
-      <button type="button" class="mc-radio-choice" data-value="inline-cursor-labels">
+      <button type="button" class="mc-radio-choice" data-value="unified-dropzone">
         <span class="mc-radio-dot"></span>
-        Inline name labels next to remote cursors
+        Unified dropzone that auto-detects file type
       </button>
 
-      <button type="button" class="mc-radio-choice" data-value="sidebar-list">
+      <button type="button" class="mc-radio-choice" data-value="source-list">
         <span class="mc-radio-dot"></span>
-        Sidebar list of active collaborators
+        Flat source list with per-source CTA buttons
       </button>
 
     </div>
   </div>
 
   <div class="mc-decision-node">
-    <h4>Conflict indicator (step 4)</h4>
-    <p class="mc-decision-context">When two people edit the same passage simultaneously, what does the user see?</p>
+    <h4>Conflict handling (step 3)</h4>
+    <p class="mc-decision-context">How should the import flow handle items that already exist in the library?</p>
 
-    <div class="mc-radio-list" data-group="ux-conflict-indicator" data-category="ux">
+    <div class="mc-radio-list" data-group="ux-conflict-handling" data-category="ux">
 
-      <button type="button" class="mc-radio-choice selected" data-value="inline-highlight">
+      <button type="button" class="mc-radio-choice selected" data-value="inline-review">
         <span class="mc-radio-dot"></span>
-        Inline highlight on the conflicting passage
+        Inline review — surface each duplicate with keep/replace/skip choices
       </button>
 
-      <button type="button" class="mc-radio-choice" data-value="toast-jump">
+      <button type="button" class="mc-radio-choice" data-value="batch-report">
         <span class="mc-radio-dot"></span>
-        Toast notification with jump-to-conflict link
+        Batch report after the import completes
       </button>
 
-      <button type="button" class="mc-radio-choice" data-value="silent-auto-merge">
+      <button type="button" class="mc-radio-choice" data-value="silent-skip">
         <span class="mc-radio-dot"></span>
-        Silent auto-merge with revision history entry
+        Silent skip — never overwrite, no prompt
       </button>
 
     </div>
@@ -109,7 +109,7 @@
 <script src="../../_diagram-assets/decisions-client.js"></script>
 <script>
   (function () {
-    var SLUG = 'team-collab';
+    var SLUG = 'personal-library-import';
     var toast = document.getElementById('mc-toast');
 
     function showToast(msg, isError) {

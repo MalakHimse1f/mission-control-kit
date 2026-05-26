@@ -5,13 +5,13 @@
  *   1. Dashboard server boots against the sample-project's control/v5.
  *   2. GET /api/v5/features returns the 4 sample features.
  *   3. GET / renders the dashboard with all expected section labels and slugs.
- *   4. GET /feature/team-collab renders the feature page with tabs, cards,
- *      and the save bar.
- *   5. POST /api/v5/decisions/team-collab persists a changed architecture
- *      decision selection.
- *   6. GET /api/v5/decisions/team-collab returns the new selection.
- *   7. Re-GET /feature/team-collab shows the new selection on the .selected
- *      option card.
+ *   4. GET /feature/personal-library-import renders the feature page with
+ *      tabs, cards, and the save bar.
+ *   5. POST /api/v5/decisions/personal-library-import persists a changed
+ *      architecture decision selection.
+ *   6. GET /api/v5/decisions/personal-library-import returns the new selection.
+ *   7. Re-GET /feature/personal-library-import shows the new selection on the
+ *      .selected option card.
  *
  * The sample-project's on-disk fixtures are NOT mutated — the test copies
  * sample-project/control/v5/ to a tmpdir before booting the server.
@@ -33,8 +33,9 @@ const DIAGRAMS_ROOT = path.join(REPO_ROOT, 'control', 'layout', 'diagrams');
 
 /**
  * Copy sample-project/control/v5 to a fresh tmpdir and return the path to the
- * copied v5 root. Also returns a checksum of the original team-collab
- * decisions.json so the test can assert the fixture is unchanged.
+ * copied v5 root. Also returns a checksum of the original
+ * personal-library-import decisions.json so the test can assert the fixture
+ * is unchanged.
  */
 async function makeFixtureCopy() {
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'mck-v5-e2e-'));
@@ -46,7 +47,7 @@ async function makeFixtureCopy() {
   const originalDecisionsPath = path.join(
     SAMPLE_V5,
     'features',
-    'team-collab',
+    'personal-library-import',
     'decisions.json',
   );
   const originalDecisions = await fs.readFile(originalDecisionsPath, 'utf8');
@@ -93,7 +94,12 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
     assert.equal(body.length, 4, `expected 4 features, got ${body.length}`);
 
     const slugs = body.map((f) => f.slug).sort();
-    assert.deepEqual(slugs, ['dark-mode', 'notifications', 'team-collab', 'user-onboarding']);
+    assert.deepEqual(slugs, [
+      'backlog-prioritization',
+      'cross-media-search',
+      'personal-library-import',
+      'progress-tracker',
+    ]);
 
     for (const feature of body) {
       assert.ok(
@@ -136,22 +142,27 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
       assert.ok(html.includes(label), `expected dashboard to include "${label}"`);
     }
 
-    for (const slug of ['team-collab', 'user-onboarding', 'notifications', 'dark-mode']) {
+    for (const slug of [
+      'personal-library-import',
+      'backlog-prioritization',
+      'progress-tracker',
+      'cross-media-search',
+    ]) {
       assert.ok(html.includes(slug), `expected dashboard to include slug "${slug}"`);
     }
   });
 
   // -------------------------------------------------------------------------
-  // Step 4: GET /feature/team-collab → feature detail HTML
+  // Step 4: GET /feature/personal-library-import → feature detail HTML
   // -------------------------------------------------------------------------
-  await t.test('GET /feature/team-collab renders feature page with tabs and save bar', async () => {
-    const res = await fetch(`${handle.url}/feature/team-collab`);
+  await t.test('GET /feature/personal-library-import renders feature page with tabs and save bar', async () => {
+    const res = await fetch(`${handle.url}/feature/personal-library-import`);
     assert.equal(res.status, 200);
     const ct = res.headers.get('content-type') || '';
     assert.ok(ct.includes('text/html'), `expected text/html, got: ${ct}`);
     const html = await res.text();
 
-    assert.ok(html.includes('Team Collaboration'), 'expected feature name');
+    assert.ok(html.includes('Personal Library Import'), 'expected feature name');
 
     // Three tab labels (the tabs are rendered with data-tab attributes).
     assert.ok(/data-tab="ux"/.test(html), 'expected UX tab');
@@ -174,14 +185,14 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
   // -------------------------------------------------------------------------
   // Step 5 + 6: POST a changed architecture selection, GET to confirm.
   // -------------------------------------------------------------------------
-  const NEW_ARCH_SELECTION = 'Server-Sent Events + REST writes';
-  await t.test('POST /api/v5/decisions/team-collab persists a new architecture selection', async () => {
+  const NEW_ARCH_SELECTION = 'User pastes a long-lived API token';
+  await t.test('POST /api/v5/decisions/personal-library-import persists a new architecture selection', async () => {
     // Start from the current saved decisions to preserve all other fields.
-    const currentRes = await fetch(`${handle.url}/api/v5/decisions/team-collab`);
+    const currentRes = await fetch(`${handle.url}/api/v5/decisions/personal-library-import`);
     assert.equal(currentRes.status, 200);
     const current = await currentRes.json();
 
-    // Sanity: starting selection is the WebSocket option.
+    // Sanity: starting selection is the OAuth-redirect option.
     const archDecisionsBefore = current.phases.architecture.decisions;
     assert.equal(archDecisionsBefore.length, 1);
     assert.equal(archDecisionsBefore[0].id, 'arch-transport');
@@ -210,7 +221,7 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
       updatedAt: '2026-05-26T20:00:00.000Z',
     };
 
-    const postRes = await fetch(`${handle.url}/api/v5/decisions/team-collab`, {
+    const postRes = await fetch(`${handle.url}/api/v5/decisions/personal-library-import`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedPayload),
@@ -218,7 +229,7 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
     const postRawText = await postRes.text();
     assert.equal(postRes.status, 200, `POST failed: ${postRawText}`);
     const postBody = JSON.parse(postRawText);
-    assert.equal(postBody.feature, 'team-collab');
+    assert.equal(postBody.feature, 'personal-library-import');
     assert.equal(
       postBody.phases.architecture.decisions[0].selected,
       NEW_ARCH_SELECTION,
@@ -226,8 +237,8 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
     );
   });
 
-  await t.test('GET /api/v5/decisions/team-collab returns the persisted change', async () => {
-    const res = await fetch(`${handle.url}/api/v5/decisions/team-collab`);
+  await t.test('GET /api/v5/decisions/personal-library-import returns the persisted change', async () => {
+    const res = await fetch(`${handle.url}/api/v5/decisions/personal-library-import`);
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(
@@ -240,8 +251,8 @@ test('v5 end-to-end smoke test against sample-project fixtures', async (t) => {
   // -------------------------------------------------------------------------
   // Step 7: Re-render the feature page; .selected should move to new option.
   // -------------------------------------------------------------------------
-  await t.test('GET /feature/team-collab reflects the new selection on the option card', async () => {
-    const res = await fetch(`${handle.url}/feature/team-collab`);
+  await t.test('GET /feature/personal-library-import reflects the new selection on the option card', async () => {
+    const res = await fetch(`${handle.url}/feature/personal-library-import`);
     assert.equal(res.status, 200);
     const html = await res.text();
 

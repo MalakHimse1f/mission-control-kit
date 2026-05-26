@@ -1,0 +1,93 @@
+{
+  "feature": "personal-library-import",
+  "phases": {
+    "ux": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ux-source-picker-pattern",
+          "category": "ux",
+          "question": "How does the user pick which source to import from?",
+          "options": [
+            "Stepped wizard (pick source → authenticate/upload → review → confirm)",
+            "Unified dropzone that auto-detects file type",
+            "Flat source list with per-source CTA buttons"
+          ],
+          "selected": "Stepped wizard (pick source → authenticate/upload → review → confirm)",
+          "decidedAt": "2026-05-14T11:20:00.000Z"
+        },
+        {
+          "id": "ux-conflict-handling",
+          "category": "ux",
+          "question": "How should the import flow handle items that already exist in the library?",
+          "options": [
+            "Inline review — surface each duplicate with keep/replace/skip choices",
+            "Batch report after the import completes",
+            "Silent skip — never overwrite, no prompt"
+          ],
+          "selected": "Inline review — surface each duplicate with keep/replace/skip choices",
+          "decidedAt": "2026-05-15T16:05:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "ui": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ui-surface-placement",
+          "category": "ui",
+          "question": "Where does the import flow live in the app?",
+          "options": [
+            "Dedicated /import page reachable from library + onboarding",
+            "Settings tab under Account → Import & Export",
+            "Modal flow over the library view"
+          ],
+          "selected": "Dedicated /import page reachable from library + onboarding",
+          "decidedAt": "2026-05-19T10:45:00.000Z"
+        },
+        {
+          "id": "ui-progress-display",
+          "category": "ui",
+          "question": "How is import progress shown during long-running imports?",
+          "options": [
+            "Inline progress bar with item-count + ETA",
+            "Toast that links to a background jobs page",
+            "Full-screen blocking modal"
+          ],
+          "selected": "Inline progress bar with item-count + ETA",
+          "decidedAt": "2026-05-20T13:12:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "architecture": {
+      "status": "in-progress",
+      "decisions": [
+        {
+          "id": "arch-transport",
+          "category": "engineering",
+          "question": "How do we obtain auth for sources that require it (Goodreads, Steam, Letterboxd)?",
+          "options": [
+            "OAuth redirect with per-provider client credentials",
+            "User pastes a long-lived API token",
+            "User uploads an export file only (no live auth at all)"
+          ],
+          "selected": "OAuth redirect with per-provider client credentials",
+          "decidedAt": "2026-05-23T09:00:00.000Z"
+        }
+      ],
+      "pending": [
+        "arch-connector-pattern"
+      ]
+    }
+  },
+  "deferred": [
+    {
+      "question": "Should we rate-limit per-source independently or have a global token bucket?",
+      "raisedDuring": "ux",
+      "raisedAt": "2026-05-15T17:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-05-26T14:00:00.000Z"
+}

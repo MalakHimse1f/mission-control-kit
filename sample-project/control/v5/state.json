@@ -1,11 +1,11 @@
 {
   "version": "5.0.0",
-  "activeFeature": "team-collab",
+  "activeFeature": "personal-library-import",
   "features": [
-    { "slug": "team-collab", "stage": "needs-input", "currentPhase": "architecture" },
-    { "slug": "user-onboarding", "stage": "ready", "currentPhase": "build" },
-    { "slug": "notifications", "stage": "in-progress", "currentPhase": "build" },
-    { "slug": "dark-mode", "stage": "complete", "currentPhase": "complete" }
+    { "slug": "personal-library-import", "stage": "needs-input", "currentPhase": "architecture" },
+    { "slug": "backlog-prioritization", "stage": "ready", "currentPhase": "build" },
+    { "slug": "progress-tracker", "stage": "in-progress", "currentPhase": "build" },
+    { "slug": "cross-media-search", "stage": "complete", "currentPhase": "complete" }
   ],
   "updatedAt": "2026-05-26T14:00:00.000Z"
 }

@@ -1,0 +1,26 @@
+# Backlog Prioritization — Braindump
+
+- The problem: I have 400 unread books and 80 unwatched movies. When I open the app I freeze.
+- "What should I play next" is the actual question I'm trying to answer.
+- Doesn't need to be smart. Just needs to surface 5-10 plausible things.
+- Pinning matters. If I've explicitly said "next up: Anna Karenina", show that first. Don't make me re-explain.
+- After pins, algorithm fills. Should NOT compete with user intent.
+- Recency: I touched something 3 days ago, more likely to want to continue it than something I shelved 2 years ago.
+- Series continuity: I'm in the middle of a trilogy. Next book in the series is the obvious suggestion.
+- Completability: short stuff scores higher when my recent pattern is short stuff. Long stuff when I'm in "long" mode. Maybe v2.
+- Dismiss button. If I say "not now" the system needs to listen.
+- Don't dismiss-then-show-again. That's the bad pattern that makes notification feeds awful.
+- Dashboard widget at the top. NOT a separate page. Adding a click for the most-used feature is dumb.
+- Card grid. Cover art is what my eye actually parses. Title + progress bar secondary.
+- Empty state should push to import flow (if no library yet) or "browse" if library exists but nothing on backlog.
+- Server-side scoring. Nightly cron. None of this needs to recompute in real time. Last-touched within a day = fresh enough.
+- The signals: recency, series, completability, explicit pin. Maybe later add "time-of-day match" (e.g. games on weekends).
+- Where to store the signals... I want a materialized view. Joining per-request is too slow at 100k+ items.
+- The score is a weighted sum. Pin = enormous weight (e.g. +1000) so it always wins.
+- Don't ML this. A simple formula will be 90% as good and 100x easier to debug.
+- Cold start: new user with no signals → just show "recently added" until cron runs once. Solved.
+- Tuning the weights is a fight I want to avoid in v1. Hard-code sane defaults. Add per-user tuning when someone complains.
+- Don't ship this without the dismiss feedback loop. Otherwise it's just a worse version of the library page.
+- The widget header should say "Next Up" not "Recommended" — recommended implies external taste, this is your own stuff.
+- If someone has zero backlog (everything started or done), surface "finished anything recently?" prompt instead.
+- Tracking: clicks on widget cards, dismissals, "did the user actually engage with the suggested item within 7 days."

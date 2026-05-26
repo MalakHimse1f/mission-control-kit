@@ -1,0 +1,97 @@
+{
+  "feature": "progress-tracker",
+  "phases": {
+    "ux": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ux-progress-unit",
+          "category": "ux",
+          "question": "What unit do we show on the progress widget per media type?",
+          "options": [
+            "Native units — page/chapter for books, episode for TV, hours for games",
+            "Universal percentage across all media types",
+            "Both — native unit primary, percentage secondary"
+          ],
+          "selected": "Both — native unit primary, percentage secondary",
+          "decidedAt": "2026-04-18T10:30:00.000Z"
+        },
+        {
+          "id": "ux-update-affordance",
+          "category": "ux",
+          "question": "How does the user log a progress update?",
+          "options": [
+            "Inline stepper directly on the item card",
+            "Modal with a slider + notes field",
+            "Quick-add bar at the top of the library"
+          ],
+          "selected": "Inline stepper directly on the item card",
+          "decidedAt": "2026-04-19T14:15:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "ui": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ui-widget-shape",
+          "category": "ui",
+          "question": "What does the progress widget look like?",
+          "options": [
+            "Horizontal bar with numeric label on the right",
+            "Circular ring with center label",
+            "Stepped segments (one segment per chapter/episode)"
+          ],
+          "selected": "Horizontal bar with numeric label on the right",
+          "decidedAt": "2026-04-22T11:00:00.000Z"
+        },
+        {
+          "id": "ui-completion-marker",
+          "category": "ui",
+          "question": "How do completed items signal completion in lists?",
+          "options": [
+            "Green checkmark + dimmed cover",
+            "Subtle strikethrough on title only",
+            "Move to a separate 'completed' tab"
+          ],
+          "selected": "Green checkmark + dimmed cover",
+          "decidedAt": "2026-04-22T16:40:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "architecture": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "arch-data-model",
+          "category": "engineering",
+          "question": "How do we model progress across heterogeneous media types?",
+          "options": [
+            "Single polymorphic ProgressRecord with a JSON details column",
+            "One table per media type (BookProgress, TVProgress, GameProgress)",
+            "Universal float (0..1) only — discard native units"
+          ],
+          "selected": "Single polymorphic ProgressRecord with a JSON details column",
+          "decidedAt": "2026-04-29T09:00:00.000Z"
+        },
+        {
+          "id": "arch-frontend-pattern",
+          "category": "engineering",
+          "question": "What frontend pattern do we use for the progress feature?",
+          "options": [
+            "MVVM — split into progress.model.ts / progress.view.tsx / progress.viewmodel.ts",
+            "Plain functional components with hooks colocated",
+            "Redux-style global store"
+          ],
+          "selected": "MVVM — split into progress.model.ts / progress.view.tsx / progress.viewmodel.ts",
+          "decidedAt": "2026-04-30T15:30:00.000Z"
+        }
+      ],
+      "pending": []
+    }
+  },
+  "deferred": [],
+  "updatedAt": "2026-05-26T14:00:00.000Z"
+}

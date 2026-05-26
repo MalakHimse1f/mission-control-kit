@@ -1,0 +1,97 @@
+{
+  "feature": "backlog-prioritization",
+  "phases": {
+    "ux": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ux-ranking-model",
+          "category": "ux",
+          "question": "How are items ranked in the 'Next Up' surface?",
+          "options": [
+            "Hybrid — user-pinned items first, then algorithmic suggestions",
+            "Pure algorithmic — system decides, user can dismiss",
+            "Pure manual — only items the user explicitly pinned"
+          ],
+          "selected": "Hybrid — user-pinned items first, then algorithmic suggestions",
+          "decidedAt": "2026-05-04T09:30:00.000Z"
+        },
+        {
+          "id": "ux-surface-location",
+          "category": "ux",
+          "question": "Where does the 'Next Up' surface live in the app?",
+          "options": [
+            "Dashboard widget at the top of the home page",
+            "Dedicated /next route",
+            "Slide-out drawer triggered from the global nav"
+          ],
+          "selected": "Dashboard widget at the top of the home page",
+          "decidedAt": "2026-05-04T16:10:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "ui": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "ui-card-style",
+          "category": "ui",
+          "question": "What does each 'Next Up' item look like?",
+          "options": [
+            "Card with cover art, progress bar, and dismiss button",
+            "Compact list row with title + media-type icon",
+            "Full-bleed hero card, one item at a time"
+          ],
+          "selected": "Card with cover art, progress bar, and dismiss button",
+          "decidedAt": "2026-05-07T11:00:00.000Z"
+        },
+        {
+          "id": "ui-empty-state",
+          "category": "ui",
+          "question": "What shows when the backlog is empty?",
+          "options": [
+            "Friendly empty-state with a 'Browse library' CTA",
+            "Hide the widget entirely",
+            "Show last-completed item with a 'finished it?' prompt"
+          ],
+          "selected": "Friendly empty-state with a 'Browse library' CTA",
+          "decidedAt": "2026-05-08T13:45:00.000Z"
+        }
+      ],
+      "pending": []
+    },
+    "architecture": {
+      "status": "complete",
+      "decisions": [
+        {
+          "id": "arch-scoring-locus",
+          "category": "engineering",
+          "question": "Where do we compute ranking scores?",
+          "options": [
+            "Server-side, nightly cron — cache results, client reads pre-computed scores",
+            "Server-side, on every dashboard request",
+            "Client-side, recompute in the browser"
+          ],
+          "selected": "Server-side, nightly cron — cache results, client reads pre-computed scores",
+          "decidedAt": "2026-05-11T17:00:00.000Z"
+        },
+        {
+          "id": "arch-signal-store",
+          "category": "engineering",
+          "question": "How do we store the ranking signals (recency, progress, series continuity)?",
+          "options": [
+            "Denormalized columns on the library_item table",
+            "Separate ranking_signals table, joined at scoring time",
+            "Materialized view rebuilt nightly"
+          ],
+          "selected": "Materialized view rebuilt nightly",
+          "decidedAt": "2026-05-12T10:20:00.000Z"
+        }
+      ],
+      "pending": []
+    }
+  },
+  "deferred": [],
+  "updatedAt": "2026-05-26T14:00:00.000Z"
+}

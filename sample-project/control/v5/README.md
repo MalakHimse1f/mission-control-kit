@@ -1,12 +1,20 @@
 # sample-project / control / v5
 
 Seeded v5 control surface used as the test bed for the v5 dashboard, decision UI,
-and end-to-end flow. Four features in different pipeline states:
+and end-to-end flow.
 
-- `features/team-collab` — **Needs Your Input** (architecture decision pending)
-- `features/user-onboarding` — **Ready** (all phases complete)
-- `features/notifications` — **In Progress** (build underway, 3/7 tasks done)
-- `features/dark-mode` — **Complete** (shipped)
+This mock represents **MediaFlow** — a personal media ownership and backlog
+tracker for one user managing books, comic books, movies, TV shows, and video
+games (web app, mobile-responsive, no social). Four features sit in different
+pipeline states so the dashboard exercises every bucket:
+
+- `features/personal-library-import` — **Needs Your Input** (architecture
+  decision pending: source-connector pattern; one deferred UX question)
+- `features/backlog-prioritization` — **Ready** (all phases complete; awaiting
+  build dispatch)
+- `features/progress-tracker` — **In Progress** (build underway, 3/7 tasks
+  done; MVVM-styled per Task-12)
+- `features/cross-media-search` — **Complete** (shipped 2026-05-22)
 
 ## Diagram assets
 

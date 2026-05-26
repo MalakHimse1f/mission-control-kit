@@ -1,9 +1,0 @@
-{
-  "feature": "Team Collaboration",
-  "slug": "team-collab",
-  "stage": "needs-input",
-  "pipelineStage": "needs-input",
-  "currentPhase": "architecture",
-  "lastUpdatedAt": "2026-05-26T13:40:00.000Z",
-  "description": "Real-time multi-user editing on shared documents with presence, cursors, and conflict resolution."
-}

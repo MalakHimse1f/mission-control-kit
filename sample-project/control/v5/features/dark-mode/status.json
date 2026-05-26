@@ -1,9 +1,0 @@
-{
-  "feature": "Dark Mode",
-  "slug": "dark-mode",
-  "stage": "complete",
-  "pipelineStage": "complete",
-  "currentPhase": "complete",
-  "lastUpdatedAt": "2026-04-18T17:00:00.000Z",
-  "description": "System-respecting dark theme across the web app with per-user override."
-}

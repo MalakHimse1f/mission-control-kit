@@ -32,18 +32,23 @@ test('loadDashboardData buckets sample-project features correctly', async () => 
 
   // liveAgents: in-progress
   assert.equal(data.liveAgents.length, 1);
-  assert.equal(data.liveAgents[0].slug, 'notifications');
+  assert.equal(data.liveAgents[0].slug, 'progress-tracker');
   assert.equal(data.liveAgents[0].stage, 'in-progress');
 
   // upNext: first ready
   assert.ok(data.upNext, 'expected upNext to be present');
-  assert.equal(data.upNext.slug, 'user-onboarding');
+  assert.equal(data.upNext.slug, 'backlog-prioritization');
   assert.equal(data.upNext.stage, 'ready');
 
   // allItems: 4 items
   assert.equal(data.allItems.length, 4);
   const slugs = data.allItems.map((f) => f.slug).sort();
-  assert.deepEqual(slugs, ['dark-mode', 'notifications', 'team-collab', 'user-onboarding']);
+  assert.deepEqual(slugs, [
+    'backlog-prioritization',
+    'cross-media-search',
+    'personal-library-import',
+    'progress-tracker',
+  ]);
 
   // filterCounts add up
   const counts = data.filterCounts;
