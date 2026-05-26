@@ -13,12 +13,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 
-import { startServer } from '../control/scripts/v5/dashboard-server.mjs';
+import { startServer, startServerInRange } from '../control/scripts/v5/dashboard-server.mjs';
 import {
-  resolvePort,
+  claimPort,
   readServerStatus,
   clearServerStatus,
   statusFilePath,
+  V5_DEFAULT_PORT,
+  V5_MAX_PORT,
 } from '../lib/v5/server-port.mjs';
 
 // ---------------------------------------------------------------------------
@@ -308,11 +310,13 @@ test('server gracefully shuts down via close()', async () => {
 // Tests: server-port.mjs
 // ---------------------------------------------------------------------------
 
-test('resolvePort writes { port, pid, startedAt } to control/.mc/v5-dashboard-server.json', async () => {
+test('claimPort writes { port, pid, startedAt } to control/.mc/v5-dashboard-server.json', async () => {
   const { controlParent } = await makeTmpProject();
   const before = Date.now();
-  const result = await resolvePort({ controlRoot: controlParent });
-  assert.ok(result.port >= 9470 && result.port <= 9499);
+  // claimPort just records a port the caller has already bound — pass any
+  // port number (e.g. 12345) since the test doesn't actually bind anything.
+  const result = claimPort(12345, { controlRoot: controlParent });
+  assert.equal(result.port, 12345);
   assert.equal(result.pid, process.pid);
   assert.ok(typeof result.startedAt === 'string' && result.startedAt.length > 0);
 
@@ -329,9 +333,16 @@ test('resolvePort writes { port, pid, startedAt } to control/.mc/v5-dashboard-se
   assert.ok(parsed >= before - 1000, 'startedAt should be recent');
 });
 
+test('claimPort rejects invalid port values', () => {
+  assert.throws(() => claimPort('not-a-port'), /invalid port/);
+  assert.throws(() => claimPort(-1), /invalid port/);
+  assert.throws(() => claimPort(70000), /invalid port/);
+  assert.throws(() => claimPort(NaN), /invalid port/);
+});
+
 test('clearServerStatus removes the v5 status file', async () => {
   const { controlParent } = await makeTmpProject();
-  await resolvePort({ controlRoot: controlParent });
+  claimPort(54321, { controlRoot: controlParent });
   assert.ok(readServerStatus({ controlRoot: controlParent }) != null);
   clearServerStatus({ controlRoot: controlParent });
   assert.equal(readServerStatus({ controlRoot: controlParent }), null);
@@ -340,4 +351,143 @@ test('clearServerStatus removes the v5 status file', async () => {
 test('readServerStatus returns null when file does not exist', async () => {
   const { controlParent } = await makeTmpProject();
   assert.equal(readServerStatus({ controlRoot: controlParent }), null);
+});
+
+// NOTE: these tests pass an explicit minPort/maxPort in the high 49xxx range
+// (outside both v4 (9470) and v5 (9470–9499) production ranges) so they do
+// not collide with a locally-running dashboard during dev.
+const TEST_MIN_PORT = 49600;
+const TEST_MAX_PORT = 49699;
+
+test('startServerInRange picks a port in the configured range', async () => {
+  const { controlRoot, diagramsRoot } = await makeTmpProject();
+  const handle = await startServerInRange({
+    controlRoot,
+    diagramsRoot,
+    minPort: TEST_MIN_PORT,
+    maxPort: TEST_MAX_PORT,
+  });
+  try {
+    assert.ok(
+      handle.port >= TEST_MIN_PORT && handle.port <= TEST_MAX_PORT,
+      `expected bound port in [${TEST_MIN_PORT}, ${TEST_MAX_PORT}], got ${handle.port}`,
+    );
+    // Server is actually accepting connections on that port.
+    const res = await fetch(`${handle.url}/`);
+    assert.equal(res.status, 200);
+    await res.text();
+  } finally {
+    await handle.close();
+  }
+});
+
+test('startServerInRange skips a taken port and picks the next one (TOCTOU-safe)', async () => {
+  const { controlRoot, diagramsRoot } = await makeTmpProject();
+  // First server grabs the lowest port in the test range.
+  const first = await startServerInRange({
+    controlRoot,
+    diagramsRoot,
+    minPort: TEST_MIN_PORT,
+    maxPort: TEST_MIN_PORT + 4,
+  });
+  try {
+    // Second server must skip the first one's port and land on a higher one.
+    // This is the v5-twice-on-9470 acceptance check: when 9470 is taken,
+    // the next v5 launch must land on 9471.
+    const second = await startServerInRange({
+      controlRoot,
+      diagramsRoot,
+      minPort: TEST_MIN_PORT,
+      maxPort: TEST_MIN_PORT + 4,
+    });
+    try {
+      assert.notEqual(second.port, first.port, 'second server should not reuse first port');
+      assert.ok(
+        second.port > first.port,
+        `second port (${second.port}) should be higher than first (${first.port})`,
+      );
+      // Both servers respond.
+      const r1 = await fetch(`${first.url}/`);
+      assert.equal(r1.status, 200);
+      await r1.text();
+      const r2 = await fetch(`${second.url}/`);
+      assert.equal(r2.status, 200);
+      await r2.text();
+    } finally {
+      await second.close();
+    }
+  } finally {
+    await first.close();
+  }
+});
+
+test('startServerInRange falls back to random port when range is exhausted', async () => {
+  const { controlRoot, diagramsRoot } = await makeTmpProject();
+  // Saturate a 2-port range so the third call has to fall back.
+  const a = await startServerInRange({
+    controlRoot,
+    diagramsRoot,
+    minPort: TEST_MIN_PORT + 10,
+    maxPort: TEST_MIN_PORT + 11,
+  });
+  const b = await startServerInRange({
+    controlRoot,
+    diagramsRoot,
+    minPort: TEST_MIN_PORT + 10,
+    maxPort: TEST_MIN_PORT + 11,
+  });
+  try {
+    const c = await startServerInRange({
+      controlRoot,
+      diagramsRoot,
+      minPort: TEST_MIN_PORT + 10,
+      maxPort: TEST_MIN_PORT + 11,
+      fallbackToRandom: true,
+    });
+    try {
+      // Fallback bound to some port (OS-assigned, almost certainly outside the
+      // tiny configured range).
+      assert.ok(typeof c.port === 'number' && c.port > 0);
+      const res = await fetch(`${c.url}/`);
+      assert.equal(res.status, 200);
+      await res.text();
+    } finally {
+      await c.close();
+    }
+  } finally {
+    await a.close();
+    await b.close();
+  }
+});
+
+test('startServerInRange throws when range is exhausted and fallback disabled', async () => {
+  const { controlRoot, diagramsRoot } = await makeTmpProject();
+  const a = await startServerInRange({
+    controlRoot,
+    diagramsRoot,
+    minPort: TEST_MIN_PORT + 20,
+    maxPort: TEST_MIN_PORT + 20,
+  });
+  try {
+    await assert.rejects(
+      () =>
+        startServerInRange({
+          controlRoot,
+          diagramsRoot,
+          minPort: TEST_MIN_PORT + 20,
+          maxPort: TEST_MIN_PORT + 20,
+          fallbackToRandom: false,
+        }),
+      /EADDRINUSE|no free port/i,
+    );
+  } finally {
+    await a.close();
+  }
+});
+
+test('V5_DEFAULT_PORT and V5_MAX_PORT are exported for callers', () => {
+  // Sanity exports — referenced by `startServerInRange` defaults.
+  assert.equal(typeof V5_DEFAULT_PORT, 'number');
+  assert.equal(typeof V5_MAX_PORT, 'number');
+  assert.ok(V5_MAX_PORT > V5_DEFAULT_PORT);
 });

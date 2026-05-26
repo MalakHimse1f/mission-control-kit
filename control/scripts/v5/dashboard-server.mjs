@@ -25,9 +25,11 @@ import { fileURLToPath } from 'node:url';
 import { readDecisions, writeDecisions } from '../../../lib/v5/decisions.mjs';
 import { validateDecisions } from '../../../lib/v5/decisions-schema.mjs';
 import {
-  resolvePort,
+  claimPort,
   clearServerStatus,
   statusFilePath,
+  V5_DEFAULT_PORT,
+  V5_MAX_PORT,
 } from '../../../lib/v5/server-port.mjs';
 import { loadDashboardData } from '../../../lib/v5/dashboard-data.mjs';
 import { loadFeatureData } from '../../../lib/v5/feature-data.mjs';
@@ -476,6 +478,56 @@ export async function startServer({ controlRoot, diagramsRoot, port = 0, host = 
   };
 }
 
+/**
+ * Bind-then-claim port acquisition: walk ports [minPort..maxPort] calling
+ * `startServer({port})`, retrying on EADDRINUSE. Falls back to `port: 0`
+ * (OS-assigned) if the whole range is exhausted. Returns the same handle as
+ * `startServer` so the caller has access to the actual bound port via
+ * `handle.port`.
+ *
+ * This eliminates the TOCTOU window in the old `resolvePort` flow (probe →
+ * close → bind), because we never close between the bind probe and the real
+ * listen — we just retry on the actual listen() error.
+ *
+ * @param {{
+ *   controlRoot: string,
+ *   diagramsRoot?: string,
+ *   host?: string,
+ *   minPort?: number,
+ *   maxPort?: number,
+ *   fallbackToRandom?: boolean,
+ * }} opts
+ */
+export async function startServerInRange({
+  controlRoot,
+  diagramsRoot,
+  host = '127.0.0.1',
+  minPort = V5_DEFAULT_PORT,
+  maxPort = V5_MAX_PORT,
+  fallbackToRandom = true,
+} = {}) {
+  if (!controlRoot) throw new Error('startServerInRange: opts.controlRoot is required');
+  let lastErr = null;
+  for (let p = minPort; p <= maxPort; p++) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      return await startServer({ controlRoot, diagramsRoot, port: p, host });
+    } catch (err) {
+      if (err && (err.code === 'EADDRINUSE' || err.code === 'EACCES')) {
+        lastErr = err;
+        continue;
+      }
+      throw err;
+    }
+  }
+  if (fallbackToRandom) {
+    return startServer({ controlRoot, diagramsRoot, port: 0, host });
+  }
+  throw lastErr || new Error(
+    `startServerInRange: no free port in ${minPort}–${maxPort}`,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // CLI entry
 // ---------------------------------------------------------------------------
@@ -515,13 +567,15 @@ async function main() {
   const controlParent = path.dirname(controlRootAbs); // .../control
   const diagramsRootAbs = path.join(controlParent, 'layout', 'diagrams');
 
-  const { port, pid, startedAt } = await resolvePort({ controlRoot: controlParent });
-
-  const { server, url } = await startServer({
+  // Bind first, then claim. This eliminates the probe→bind race window: by the
+  // time we write the status file, the OS has already handed us the port and
+  // it cannot be stolen by another process.
+  const handle = await startServerInRange({
     controlRoot: controlRootAbs,
     diagramsRoot: diagramsRootAbs,
-    port,
   });
+  const { server, url, port } = handle;
+  const { pid, startedAt } = claimPort(port, { controlRoot: controlParent });
 
   const shutdown = () => {
     try {
