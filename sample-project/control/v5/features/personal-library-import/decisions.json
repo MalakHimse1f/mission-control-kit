@@ -74,7 +74,7 @@
             "User uploads an export file only (no live auth at all)"
           ],
           "selected": "OAuth redirect with per-provider client credentials",
-          "decidedAt": "2026-05-23T09:00:00.000Z"
+          "decidedAt": "2026-05-26T21:22:30.085Z"
         }
       ],
       "pending": [
@@ -89,5 +89,5 @@
       "raisedAt": "2026-05-15T17:00:00.000Z"
     }
   ],
-  "updatedAt": "2026-05-26T14:00:00.000Z"
+  "updatedAt": "2026-05-26T21:23:31.808Z"
 }
