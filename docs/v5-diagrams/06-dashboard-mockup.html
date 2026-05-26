@@ -319,6 +319,330 @@
     font-style: italic;
   }
 
+  /* ───── Pickup panel (top of dashboard) ───── */
+  .panel-pickup {
+    border-color: #6aaf8c55;
+    box-shadow: 0 0 24px #6aaf8c10;
+  }
+
+  .pickup-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.85rem;
+  }
+
+  .pickup-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+
+  .pickup-feature:hover { background: #1a1a1a; }
+
+  .pickup-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+
+  .pickup-prompt-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    margin-bottom: 0.75rem;
+  }
+
+  .pickup-prompt {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 0.78rem;
+    color: #e0e0e0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .pickup-copy {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #6aaf8c22;
+    border: 1px solid #6aaf8c66;
+    color: #88c8a8;
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .pickup-copy:hover {
+    background: #6aaf8c33;
+    border-color: #6aaf8c99;
+  }
+
+  .pickup-hint {
+    font-size: 0.75rem;
+    color: #888;
+    font-style: italic;
+    margin: 0;
+    max-width: 75ch;
+  }
+
+  /* ───── Per-row "Pickup" button (green chip) ───── */
+  .row-pickup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: transparent;
+    border: 1px solid #6aaf8c44;
+    color: #6aaf8c;
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    margin-left: auto;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .row-pickup:hover {
+    background: #6aaf8c22;
+    border-color: #6aaf8c99;
+    color: #88c8a8;
+  }
+
+  .row-pickup .copy-icon { font-size: 0.8rem; }
+
+  /* In Live Agents the phase badge already uses margin-left: auto.
+     Push pickup beside the badge rather than the same slot. */
+  .live-item-header .row-pickup { margin-left: 0.5rem; }
+  .next-item-header .row-pickup { margin-left: auto; }
+  .item-row .row-pickup { margin-left: 0.5rem; }
+
+  /* Full-row anchor — entire row clickable */
+  a.live-item,
+  a.next-item,
+  a.item-row {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  a.item-row { display: flex; }
+
+  /* ───── How to use disclosure ───── */
+  .how-to-use {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .how-to-use > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .how-to-use > summary::-webkit-details-marker { display: none; }
+  .how-to-use > summary:hover { background: #1a1a1a; }
+
+  .how-to-toggle {
+    color: #6a8caf;
+    font-size: 0.9rem;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+
+  .how-to-use[open] .how-to-toggle { transform: rotate(90deg); }
+
+  .how-to-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+
+  .how-to-hint {
+    font-size: 0.75rem;
+    color: #777;
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  .how-to-body {
+    padding: 0.5rem 1.5rem 1.5rem;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .how-section { margin-top: 1.5rem; }
+  .how-section:first-child { margin-top: 1rem; }
+
+  .how-section h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 0.75rem;
+    padding-left: 4px;
+    font-weight: 600;
+  }
+
+  .how-section-desc {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 1rem;
+    max-width: 75ch;
+  }
+
+  /* Skill source tags */
+  .skill-tag {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .skill-tag.tag-mck         { color: #6a8caf; background: rgba(106,140,175,0.12); border: 1px solid rgba(106,140,175,0.35); }
+  .skill-tag.tag-superpowers { color: #b69cd1; background: rgba(155,126,184,0.14); border: 1px solid rgba(155,126,184,0.4);  }
+  .skill-tag.tag-prd         { color: #88c8a8; background: rgba(106,175,140,0.13); border: 1px solid rgba(106,175,140,0.4);  }
+  .skill-tag.tag-designer    { color: #d99a9a; background: rgba(201,124,124,0.12); border: 1px solid rgba(201,124,124,0.4);  }
+  .skill-tag.tag-startup     { color: #d0ae87; background: rgba(175,146,106,0.13); border: 1px solid rgba(175,146,106,0.4);  }
+  a.skill-tag:hover { filter: brightness(1.15); }
+
+  /* Reference tables */
+  .howto-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #0f0f0f;
+    border: 1px solid #232323;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .howto-table thead th {
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    font-weight: 600;
+    padding: 0.65rem 0.9rem;
+    background: #131313;
+    border-bottom: 1px solid #232323;
+  }
+
+  .howto-table tbody td {
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid #1f1f1f;
+    vertical-align: middle;
+    font-size: 0.78rem;
+    color: #c8c8c8;
+  }
+
+  .howto-table tbody tr:last-child td { border-bottom: none; }
+  .howto-table tbody tr:hover { background: #161616; }
+
+  .howto-table .col-name { width: 1%; white-space: nowrap; }
+  .howto-table .col-source { width: 1%; white-space: nowrap; }
+  .howto-table .col-desc { color: #aaa; line-height: 1.55; }
+
+  /* Copy button (chip-like) */
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 5px;
+    padding: 0.25rem 0.55rem 0.25rem 0.5rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .copy-btn code {
+    background: transparent;
+    color: #b6d4f0;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 0.74rem;
+    padding: 0;
+  }
+
+  .copy-btn .copy-icon {
+    color: #666;
+    font-size: 0.8rem;
+    transition: color 0.15s;
+  }
+
+  .copy-btn:hover {
+    background: #222;
+    border-color: #3a3a3a;
+  }
+  .copy-btn:hover .copy-icon { color: #b6d4f0; }
+
+  /* Workflow list */
+  .workflow-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .workflow-list li {
+    font-size: 0.78rem;
+    color: #ccc;
+    padding: 0.4rem 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    line-height: 1.7;
+  }
+
+  .workflow-list li code {
+    background: #1a1a1a;
+    color: #b6d4f0;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .workflow-list li strong {
+    color: #e8e8e8;
+    font-weight: 600;
+  }
+
+  .wf-arrow {
+    color: #555;
+    font-size: 0.75rem;
+  }
+
   /* ───── Detail View ───── */
   .detail-view {
     display: none;
@@ -523,14 +847,40 @@
     <h1>Mission Control Kit</h1>
     <p class="subtitle">v5 Dashboard — Feature pipeline at a glance</p>
 
+    <!-- Section 0: PICKUP WHERE YOU LEFT OFF -->
+    <div class="section-label">Pickup where you left off</div>
+    <div class="panel panel-pickup">
+      <div class="pickup-header">
+        <a class="pickup-feature" href="#" data-feature="user-onboarding">
+          <span class="pickup-name">user-onboarding</span>
+          <span class="phase-badge">Build</span>
+          <span class="stage-badge">In progress</span>
+        </a>
+      </div>
+      <div class="pickup-prompt-row">
+        <pre class="pickup-prompt" id="pickup-prompt-text">Resume feature "user-onboarding" at stage build (taskType: build). Read control/v5/features/user-onboarding/status.json and decisions.json, then call resolveRoute({ taskType: "build", stage: "build", slug: "user-onboarding" }) from lib/v5/mc-router.mjs to load the minimum context for this phase.</pre>
+        <button class="pickup-copy" type="button" data-copy-target="pickup-prompt-text">
+          <span class="copy-icon" aria-hidden="true">⧉</span>
+          <span class="copy-label">Copy pickup prompt</span>
+        </button>
+      </div>
+      <p class="pickup-hint">
+        Paste into a fresh chat to resume without leaning on compaction.
+        The orchestrator reads the rest of its context on demand via the v5 router.
+      </p>
+    </div>
+
     <!-- Section 1: LIVE AGENTS -->
     <div class="section-label">Live Agents</div>
     <div class="panel" style="border-color: #6a8caf55; box-shadow: 0 0 24px #6a8caf10;">
-      <div class="live-item">
+      <a class="live-item" href="#" data-feature="user-onboarding">
         <div class="live-item-header">
           <span class="pulse-dot"></span>
           <span class="live-item-name">user-onboarding</span>
           <span class="phase-badge">Build — Phase 2</span>
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
         </div>
         <div class="progress-row">
           <span class="progress-text">Task 3/7</span>
@@ -538,116 +888,330 @@
             <div class="progress-fill" style="width: 43%;"></div>
           </div>
         </div>
-        <div class="entry-tooltip">Started 2h ago · mc-build subagent active</div>
-      </div>
+      </a>
     </div>
 
     <!-- Section 2: UP NEXT -->
     <div class="section-label">Up Next</div>
     <div class="panel">
-      <div class="next-item">
+      <a class="next-item" href="#" data-feature="payment-integration">
         <div class="next-item-header">
           <span class="next-item-name">payment-integration</span>
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
         </div>
         <div class="next-item-desc">Stripe integration for subscription billing</div>
         <div class="next-item-footer">
           <span class="stage-badge">Ready for development</span>
-          <a class="open-link" data-feature="payment-integration">Open →</a>
+          <span class="open-arrow" style="margin-left:auto;color:#6a8caf;">→</span>
         </div>
-        <div class="entry-tooltip">4 decisions finalized · Spec approved</div>
-      </div>
+      </a>
     </div>
 
     <!-- Section 3: ALL ITEMS -->
     <div class="section-label">All Items</div>
     <div class="panel">
       <div class="filter-bar">
-        <span class="filter-pill active" data-filter="input">Needs Your Input<span class="filter-count">(2)</span></span>
+        <span class="filter-pill active" data-filter="needs-input">Needs Your Input<span class="filter-count">(2)</span></span>
         <span class="filter-pill" data-filter="ready">Ready<span class="filter-count">(3)</span></span>
-        <span class="filter-pill" data-filter="progress">In Progress<span class="filter-count">(1)</span></span>
+        <span class="filter-pill" data-filter="in-progress">In Progress<span class="filter-count">(1)</span></span>
         <span class="filter-pill" data-filter="complete">Complete<span class="filter-count">(4)</span></span>
       </div>
 
       <div class="items-list" id="itemsList">
         <!-- Needs Input -->
-        <div class="item-row" data-category="input" data-feature="social-sharing">
+        <a class="item-row" href="#" data-category="needs-input" data-feature="social-sharing">
           <span class="item-dot dot-input"></span>
           <span class="item-name">social-sharing</span>
           <span class="item-stage">Needs input</span>
           <span class="item-updated">Updated 1d ago</span>
-          <div class="entry-tooltip">UX decisions pending — sharing flow & platform targets</div>
-        </div>
-        <div class="item-row" data-category="input" data-feature="dark-mode">
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
+        </a>
+        <a class="item-row" href="#" data-category="needs-input" data-feature="dark-mode">
           <span class="item-dot dot-input"></span>
           <span class="item-name">dark-mode</span>
           <span class="item-stage">Needs input</span>
           <span class="item-updated">Updated 3d ago</span>
-          <div class="entry-tooltip">Architecture decisions pending — theme system approach</div>
-        </div>
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
+        </a>
 
         <!-- Ready -->
-        <div class="item-row" data-category="ready" data-feature="payment-integration">
+        <a class="item-row" href="#" data-category="ready" data-feature="payment-integration">
           <span class="item-dot dot-ready"></span>
           <span class="item-name">payment-integration</span>
           <span class="item-stage">Ready</span>
           <span class="item-updated">Updated 2h ago</span>
-          <div class="entry-tooltip">Stripe integration — spec approved, decisions finalized</div>
-        </div>
-        <div class="item-row" data-category="ready" data-feature="push-notifications">
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
+        </a>
+        <a class="item-row" href="#" data-category="ready" data-feature="push-notifications">
           <span class="item-dot dot-ready"></span>
           <span class="item-name">push-notifications</span>
           <span class="item-stage">Ready</span>
           <span class="item-updated">Updated 1d ago</span>
-          <div class="entry-tooltip">Firebase Cloud Messaging — all decisions captured</div>
-        </div>
-        <div class="item-row" data-category="ready" data-feature="profile-customization">
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
+        </a>
+        <a class="item-row" href="#" data-category="ready" data-feature="profile-customization">
           <span class="item-dot dot-ready"></span>
           <span class="item-name">profile-customization</span>
           <span class="item-stage">Ready</span>
           <span class="item-updated">Updated 4d ago</span>
-          <div class="entry-tooltip">Avatar upload + bio editing — wireframes approved</div>
-        </div>
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
+        </a>
 
         <!-- In Progress -->
-        <div class="item-row" data-category="progress" data-feature="user-onboarding">
+        <a class="item-row" href="#" data-category="in-progress" data-feature="user-onboarding">
           <span class="item-dot dot-progress"></span>
           <span class="item-name">user-onboarding</span>
           <span class="item-stage">In progress</span>
           <span class="item-updated">Updated 5m ago</span>
-          <div class="entry-tooltip">Build Phase 2 — Task 3/7 active</div>
-        </div>
+          <button class="row-pickup" type="button" title="Copy pickup prompt" onclick="event.preventDefault(); event.stopPropagation();">
+            <span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span>
+          </button>
+        </a>
 
-        <!-- Complete -->
-        <div class="item-row" data-category="complete" data-feature="auth-system">
+        <!-- Complete (no pickup button) -->
+        <a class="item-row" href="#" data-category="complete" data-feature="auth-system">
           <span class="item-dot dot-complete"></span>
           <span class="item-name">auth-system</span>
           <span class="item-stage">Complete</span>
           <span class="item-updated">Updated 1w ago</span>
-          <div class="entry-tooltip">Supabase Auth — email + OAuth, fully shipped</div>
-        </div>
-        <div class="item-row" data-category="complete" data-feature="landing-page">
+        </a>
+        <a class="item-row" href="#" data-category="complete" data-feature="landing-page">
           <span class="item-dot dot-complete"></span>
           <span class="item-name">landing-page</span>
           <span class="item-stage">Complete</span>
           <span class="item-updated">Updated 2w ago</span>
-          <div class="entry-tooltip">Hero, features, pricing sections — deployed</div>
-        </div>
-        <div class="item-row" data-category="complete" data-feature="email-verification">
+        </a>
+        <a class="item-row" href="#" data-category="complete" data-feature="email-verification">
           <span class="item-dot dot-complete"></span>
           <span class="item-name">email-verification</span>
           <span class="item-stage">Complete</span>
           <span class="item-updated">Updated 2w ago</span>
-          <div class="entry-tooltip">Confirmation flow with magic link fallback</div>
-        </div>
-        <div class="item-row" data-category="complete" data-feature="password-reset">
+        </a>
+        <a class="item-row" href="#" data-category="complete" data-feature="password-reset">
           <span class="item-dot dot-complete"></span>
           <span class="item-name">password-reset</span>
           <span class="item-stage">Complete</span>
           <span class="item-updated">Updated 3w ago</span>
-          <div class="entry-tooltip">Reset flow with rate limiting and expiry</div>
-        </div>
+        </a>
       </div>
     </div>
+
+    <!-- Section 4: HOW TO USE (collapsed by default) -->
+    <details class="how-to-use">
+      <summary>
+        <span class="how-to-toggle">▸</span>
+        <span class="how-to-title">How to use Mission Control Kit</span>
+        <span class="how-to-hint">Click to expand — slash commands, bundled skills, common workflows</span>
+      </summary>
+      <div class="how-to-body">
+
+        <section class="how-section">
+          <h3>Slash commands</h3>
+          <table class="howto-table">
+            <thead>
+              <tr><th class="col-name">Command</th><th class="col-desc">How to use it</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Mission Control router — picks the right workflow for your input.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-start</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Start a new project. Establishes the tech stack and seeds the first feature.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-init</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Establish tech-stack context. Run before any feature work in a new project.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-v5</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">v5 orchestrator hub. Entry point for new features in the v5 pipeline.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-v5-resume &lt;slug&gt;</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Resume a v5 feature where you left off. Reads status.json + decisions.json from disk.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-feature</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Add a new feature. Drives braindump → explore → spec → build for one feature.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-refine</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Resume an interrupted braindump. Picks up after a /clear or session crash.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-layout</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Wireframe + layout step. Produces HTML mocks for screens in the active feature.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-plan</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Generate a phased implementation plan from the approved spec.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-portfolio</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Holistic review across all approved specs. Surfaces overlap, contradictions, build order.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-build</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Dispatch the build subagent from the active HANDOFF doc.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-validate</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Orchestrator-internal validation gate. Used between phases of the pipeline.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-handoff</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Structured end-of-chat session handoff. Run before /clear so the next session can pick up.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>/mc-upgrade</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-desc">Safe kit upgrade to the latest release. Runs migrations, preserves your data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="how-section">
+          <h3>Bundled skills</h3>
+          <p class="how-section-desc">
+            MCK auto-invokes these skills during brainstorming, decision encoding, and build phases.
+            They are referenced in routing docs at <code>control/v5/routing/</code> and pulled at install time —
+            none are bundled as code inside this repo.
+          </p>
+          <table class="howto-table howto-table-skills">
+            <thead>
+              <tr><th class="col-name">Skill</th><th class="col-source">Source</th><th class="col-desc">How to use it</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>mc-v5</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-mck" href="https://github.com/MalakHimse1f/mission-control-kit" target="_blank" rel="noopener">MCK</a></td>
+                <td class="col-desc">Orchestrator hub. Routes a fresh user message into the right v5 workflow.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>mc-v5-brainstorm</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-mck" href="https://github.com/MalakHimse1f/mission-control-kit" target="_blank" rel="noopener">MCK</a></td>
+                <td class="col-desc">Brainstorm flow. Always offers research, transforms patterns into a UX flow diagram, opens the dashboard.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>mc-v5-decide</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-mck" href="https://github.com/MalakHimse1f/mission-control-kit" target="_blank" rel="noopener">MCK</a></td>
+                <td class="col-desc">Encodes a single decision. Writes decisions.json + generates the visual fragment via build-decision.mjs.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>mc-v5-build</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-mck" href="https://github.com/MalakHimse1f/mission-control-kit" target="_blank" rel="noopener">MCK</a></td>
+                <td class="col-desc">Build subagent. Enforces MVVM layering and checks every decision has a visual fragment.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>mc-v5-review</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-mck" href="https://github.com/MalakHimse1f/mission-control-kit" target="_blank" rel="noopener">MCK</a></td>
+                <td class="col-desc">Auto-launches the dashboard at decision points so you can review without leaving the loop.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>brainstorming</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-superpowers" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a></td>
+                <td class="col-desc">Question-driven ideation. Drives the conversational arc inside mc-v5-brainstorm.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>parallel-web-search</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-superpowers" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a></td>
+                <td class="col-desc">Dispatched by mc-v5-brainstorm whenever the user says "yes" to research.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>parallel-deep-research</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-superpowers" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a></td>
+                <td class="col-desc">Deeper alternative to parallel-web-search. Used when the user asks for "deep" research.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>writing-plans</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-superpowers" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a></td>
+                <td class="col-desc">Plan authoring. Turns a spec into a phased implementation plan.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>subagent-driven-development</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-superpowers" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a></td>
+                <td class="col-desc">Task dispatch loop. The orchestrator uses this to drive parallel build subagents.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>verification-before-completion</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-superpowers" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a></td>
+                <td class="col-desc">Output verification. Each subagent self-checks before reporting DONE.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>prd-generator</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-prd" href="https://github.com/jamesrochabrun/skills" target="_blank" rel="noopener">prd-generator</a></td>
+                <td class="col-desc">Generates spec.md from approved decisions. Auto-invoked at the end of brainstorming.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>design-research</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-designer" href="https://github.com/Owl-Listener/designer-skills" target="_blank" rel="noopener">designer-skills</a></td>
+                <td class="col-desc">Pattern research for UI decisions. Feeds into UI-tab diagrams.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>ux-strategy</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-designer" href="https://github.com/Owl-Listener/designer-skills" target="_blank" rel="noopener">designer-skills</a></td>
+                <td class="col-desc">UX flow rationale. Used by mc-v5-brainstorm to ground UX decisions.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>interaction-design</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-designer" href="https://github.com/Owl-Listener/designer-skills" target="_blank" rel="noopener">designer-skills</a></td>
+                <td class="col-desc">Affordance + interaction modeling. Used when building diagrams in the UX phase.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>visual-critique</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-designer" href="https://github.com/Owl-Listener/designer-skills" target="_blank" rel="noopener">designer-skills</a></td>
+                <td class="col-desc">Layout and hierarchy review. Auto-invoked during UI decisions.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>startup-design</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-startup" href="https://github.com/ferdinandobons/startup-skill" target="_blank" rel="noopener">startup-skill</a></td>
+                <td class="col-desc">Brand and identity at project-start. Auto-invoked by /mc-start.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>startup-competitors</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-startup" href="https://github.com/ferdinandobons/startup-skill" target="_blank" rel="noopener">startup-skill</a></td>
+                <td class="col-desc">Competitive analysis. Part of the project-start workflow.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>startup-positioning</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-startup" href="https://github.com/ferdinandobons/startup-skill" target="_blank" rel="noopener">startup-skill</a></td>
+                <td class="col-desc">Market positioning. Drafts your "why this, why now" narrative.</td>
+              </tr>
+              <tr>
+                <td class="col-name"><button class="copy-btn" type="button"><code>startup-pitch</code><span class="copy-icon">⧉</span></button></td>
+                <td class="col-source"><a class="skill-tag tag-startup" href="https://github.com/ferdinandobons/startup-skill" target="_blank" rel="noopener">startup-skill</a></td>
+                <td class="col-desc">Pitch deck drafting. Final step of the project-start workflow.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="how-section">
+          <h3>Typical workflows</h3>
+          <ol class="workflow-list">
+            <li><strong>Brand new project</strong>: <code>/mc-start</code> <span class="wf-arrow">→</span> <code>/mc-init</code> <span class="wf-arrow">→</span> <code>/mc-v5 (per feature)</code></li>
+            <li><strong>Add a feature</strong>: <code>/mc-v5</code> <span class="wf-arrow">→</span> <code>brainstorm → decisions saved</code> <span class="wf-arrow">→</span> <code>/mc-v5-resume &lt;slug&gt;</code> <span class="wf-arrow">→</span> <code>/mc-build</code></li>
+            <li><strong>Quick feature (no brainstorm)</strong>: <code>/mc-feature</code> <span class="wf-arrow">→</span> <code>/mc-layout</code> <span class="wf-arrow">→</span> <code>/mc-plan</code> <span class="wf-arrow">→</span> <code>/mc-build</code> <span class="wf-arrow">→</span> <code>/mc-validate</code></li>
+            <li><strong>End of session</strong>: <code>/mc-handoff</code> <span class="wf-arrow">→</span> <code>/clear</code> <span class="wf-arrow">→</span> <code>(new session) /mc-v5-resume &lt;slug&gt;</code></li>
+          </ol>
+        </section>
+
+      </div>
+    </details>
 
   </div>
 
@@ -772,7 +1336,7 @@ tiered pricing and usage-based metering.
   });
 
   // Show initial filter
-  applyFilter('input');
+  applyFilter('needs-input');
 
   // Open detail view
   function openDetail(featureName) {
@@ -784,17 +1348,43 @@ tiered pricing and usage-based metering.
     detailView.classList.add('active');
   }
 
-  // Item row clicks
+  // Item row clicks — anchors, prevent navigation
   itemRows.forEach(row => {
-    row.addEventListener('click', () => openDetail(row.dataset.feature));
+    row.addEventListener('click', (e) => {
+      e.preventDefault();
+      openDetail(row.dataset.feature);
+    });
   });
 
-  // Open link in Up Next
-  const openLinks = document.querySelectorAll('.open-link');
-  openLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
+  // Live-agent + up-next anchors
+  document.querySelectorAll('.live-item, .next-item, .pickup-feature').forEach(el => {
+    el.addEventListener('click', (e) => {
       e.preventDefault();
-      openDetail(link.dataset.feature);
+      const feature = el.dataset.feature;
+      if (feature) openDetail(feature);
+    });
+  });
+
+  // Pickup copy buttons (panel + per-row) — visual feedback only in the mock
+  const pickupCopy = document.querySelector('.pickup-copy');
+  if (pickupCopy) {
+    pickupCopy.addEventListener('click', () => {
+      pickupCopy.classList.add('copied');
+      setTimeout(() => pickupCopy.classList.remove('copied'), 1200);
+    });
+  }
+  document.querySelectorAll('.row-pickup').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1200);
+    });
+  });
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1200);
     });
   });
 
