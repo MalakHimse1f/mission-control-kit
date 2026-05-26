@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}} — UI Options</title>
+<link rel="stylesheet" href="../_shared/diagram.css">
+</head>
+<body class="mc-diagram">
+
+<div class="mc-diagram-container">
+
+  <h1 class="mc-diagram-title">{{TITLE}}</h1>
+  <p class="mc-diagram-subtitle">{{SUBTITLE}}</p>
+
+  <div class="mc-section-label">{{SECTION_LABEL}}</div>
+
+  <!--
+    Side-by-side UI option comparison.
+    Use the .mc-mini-frame helpers to scaffold dialog / drawer / sheet
+    mockups; replace with custom HTML when needed.
+  -->
+  <div class="mc-options-grid"
+       data-group="{{GROUP_ID}}"
+       data-category="ui"
+       data-question="{{QUESTION}}">
+
+    <!-- ================== OPTION 1 — DIALOG ================== -->
+    <div class="mc-option-card selected" data-value="{{OPTION_1_ID}}">
+      <div class="mc-card-tooltip">{{OPTION_1_TOOLTIP}}</div>
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+
+      <!-- PLACEHOLDER:OPTION_1_MOCKUP -->
+      <div class="mc-mini-frame">
+        <div class="mc-mini-bg">
+          <div class="mc-mini-bg-line title"></div>
+          <div class="mc-mini-bg-line lg"></div>
+          <div class="mc-mini-bg-line md"></div>
+          <div class="mc-mini-bg-line sm"></div>
+        </div>
+        <div class="mc-mini-scrim"></div>
+        <div class="mc-mini-dialog">
+          <div class="ln first"></div>
+          <div class="ln"></div>
+          <div class="ln"></div>
+          <div class="actions">
+            <div class="btn"></div>
+            <div class="btn primary"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc-card-label">{{OPTION_1_LABEL}}</div>
+      <div class="mc-card-desc">{{OPTION_1_DESC}}</div>
+    </div>
+
+    <!-- ================== OPTION 2 — DRAWER ================== -->
+    <div class="mc-option-card" data-value="{{OPTION_2_ID}}">
+      <div class="mc-card-tooltip">{{OPTION_2_TOOLTIP}}</div>
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+
+      <!-- PLACEHOLDER:OPTION_2_MOCKUP -->
+      <div class="mc-mini-frame">
+        <div class="mc-mini-bg">
+          <div class="mc-mini-bg-line title"></div>
+          <div class="mc-mini-bg-line lg"></div>
+          <div class="mc-mini-bg-line md"></div>
+          <div class="mc-mini-bg-line sm"></div>
+        </div>
+        <div class="mc-mini-drawer">
+          <div class="item active"><div class="dot"></div><div class="ln"></div></div>
+          <div class="item"><div class="dot"></div><div class="ln"></div></div>
+          <div class="item"><div class="dot"></div><div class="ln"></div></div>
+          <div class="item"><div class="dot"></div><div class="ln"></div></div>
+          <div class="item"><div class="dot"></div><div class="ln"></div></div>
+        </div>
+      </div>
+
+      <div class="mc-card-label">{{OPTION_2_LABEL}}</div>
+      <div class="mc-card-desc">{{OPTION_2_DESC}}</div>
+    </div>
+
+    <!-- ================== OPTION 3 — BOTTOM SHEET ================== -->
+    <div class="mc-option-card" data-value="{{OPTION_3_ID}}">
+      <div class="mc-card-tooltip">{{OPTION_3_TOOLTIP}}</div>
+      <span class="mc-checkmark" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7.5L5.5 10L11 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+
+      <!-- PLACEHOLDER:OPTION_3_MOCKUP -->
+      <div class="mc-mini-frame">
+        <div class="mc-mini-bg">
+          <div class="mc-mini-bg-line title"></div>
+          <div class="mc-mini-bg-line lg"></div>
+          <div class="mc-mini-bg-line md"></div>
+        </div>
+        <div class="mc-mini-sheet">
+          <div class="handle"></div>
+          <div class="item active"><div class="icon"></div><div class="ln"></div></div>
+          <div class="item"><div class="icon"></div><div class="ln"></div></div>
+          <div class="item"><div class="icon"></div><div class="ln"></div></div>
+          <div class="item"><div class="icon"></div><div class="ln"></div></div>
+        </div>
+      </div>
+
+      <div class="mc-card-label">{{OPTION_3_LABEL}}</div>
+      <div class="mc-card-desc">{{OPTION_3_DESC}}</div>
+    </div>
+
+    <!-- ================== OPTION 4 (optional) ================== -->
+    <!-- PLACEHOLDER:OPTION_4
+         Duplicate one of the above for a fourth alternative.
+         Add data-cols="4" to .mc-options-grid above if you do.
+    -->
+
+  </div>
+
+  <div class="mc-save-bar">
+    <button class="mc-save-btn" data-mc-save type="button">Save UI Choice</button>
+  </div>
+
+</div>
+
+<div class="mc-toast" id="mc-toast"></div>
+
+<script src="../_shared/diagram-select.js"></script>
+<script src="../_shared/decisions-client.js"></script>
+<script>
+  (function () {
+    var SLUG = '{{SLUG}}';
+    var toast = document.getElementById('mc-toast');
+
+    function showToast(msg, isError) {
+      toast.innerHTML = '<span class="check">✓</span>' + msg;
+      toast.classList.toggle('error', !!isError);
+      toast.classList.add('visible');
+      setTimeout(function () { toast.classList.remove('visible'); }, 3500);
+    }
+
+    MCDiagramSelect.onSave(function (selections) {
+      if (!SLUG || SLUG.indexOf('{{') === 0) {
+        showToast('Preview save — selections: ' + JSON.stringify(selections));
+        return;
+      }
+      MCDecisions.save(SLUG, { decisions: selections })
+        .then(function () { showToast('UI choice saved.'); })
+        .catch(function (err) { showToast(err.message, true); });
+    });
+  }());
+</script>
+
+</body>
+</html>
