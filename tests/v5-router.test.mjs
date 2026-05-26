@@ -314,7 +314,7 @@ test('TASK_TYPE_ROUTES is exported and extensible (adding a new task type)', asy
   assert.equal(extended['custom-task'][0].scope, 'custom');
 });
 
-test('buildPacket integrates router and produces a packet with tokensEstimate', async () => {
+test('buildPacket integrates router and produces a packet with enriched docs', async () => {
   const { controlRoot, projectRoot } = await makeTmpControlRoot();
   await fs.writeFile(
     path.join(controlRoot, 'routing', 'UI-REQUIREMENTS.md'),
@@ -341,9 +341,9 @@ test('buildPacket integrates router and produces a packet with tokensEstimate', 
   assert.ok(packet.route, 'packet.route present');
   assert.equal(packet.route.taskType, 'ui-implementation');
   assert.ok(Array.isArray(packet.route.docs));
-  assert.ok(typeof packet.tokensEstimate === 'number' && packet.tokensEstimate >= 0);
-  // We wrote one ~1200-char file → ~300 tokens estimate at least.
-  assert.ok(packet.tokensEstimate > 0, 'tokensEstimate should be positive for existing docs');
+  const uiReq = packet.route.docs.find((d) => d.scope === 'ui-requirements');
+  assert.ok(uiReq, 'expected ui-requirements doc in packet');
+  assert.equal(uiReq.exists, true, 'expected ui-requirements to be marked as existing');
 });
 
 test('buildPacket warns and skips docs that do not exist (no throw)', async () => {
@@ -364,8 +364,9 @@ test('buildPacket warns and skips docs that do not exist (no throw)', async () =
       slug: 'demo',
       controlRoot: projectRoot,
     });
-    // Most docs don't exist in our temp root — tokensEstimate may be 0.
-    assert.equal(typeof packet.tokensEstimate, 'number');
+    // Most docs don't exist in our temp root — they should be flagged but not throw.
+    assert.ok(Array.isArray(packet.route.docs));
+    assert.ok(packet.route.docs.some((d) => d.exists === false), 'expected at least one missing doc');
     assert.ok(warnings.length > 0, 'expected at least one warning about missing doc');
   } finally {
     console.warn = original;
@@ -382,7 +383,38 @@ test('buildPacket forwards deferred state from route', async () => {
   });
   assert.equal(packet.deferred, true);
   assert.ok(packet.deferredReason && packet.deferredReason.length > 0);
-  assert.equal(packet.tokensEstimate, 0, 'deferred packet should have 0 tokens estimate');
+  assert.deepEqual(packet.route.docs, [], 'deferred packet should have no docs');
+});
+
+test('buildPacket does not expose a tokensEstimate field (removed; no consumers)', async () => {
+  const { projectRoot } = await makeTmpControlRoot();
+  const route = await resolveRoute({
+    taskType: 'ui-implementation',
+    slug: 'demo',
+    controlRoot: projectRoot,
+  });
+  const original = console.warn;
+  console.warn = () => {};
+  try {
+    const packet = await buildPacket({
+      task: 'thing',
+      route,
+      stage: 'ui',
+      slug: 'demo',
+      controlRoot: projectRoot,
+    });
+    assert.equal('tokensEstimate' in packet, false, 'packet must not expose tokensEstimate');
+  } finally {
+    console.warn = original;
+  }
+  const deferredRoute = await resolveRoute({ taskType: 'architecture', stage: 'ux', slug: 'demo' });
+  const deferredPacket = await buildPacket({
+    task: 'thing',
+    route: deferredRoute,
+    stage: 'ux',
+    slug: 'demo',
+  });
+  assert.equal('tokensEstimate' in deferredPacket, false, 'deferred packet must not expose tokensEstimate either');
 });
 
 // ---------------------------------------------------------------------------
@@ -435,4 +467,64 @@ test('deferred route still forwards usageNote so orchestrator can see the contra
   assert.equal(route.deferred, true);
   assert.equal(typeof route.usageNote, 'string');
   assert.ok(route.usageNote.length > 0);
+});
+
+// ---------------------------------------------------------------------------
+// ROUTING-MANIFEST.md sync — the human-authored route table must stay in
+// lockstep with TASK_TYPE_ROUTES so the docs don't drift from the code.
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse the route table out of ROUTING-MANIFEST.md. Looks for markdown rows
+ * shaped like `| \`task-type\` | ...`. Returns a Set of task-type strings.
+ * Lenient by design — the manifest is hand-maintained.
+ */
+function parseManifestTaskTypes(manifestText, knownTypes) {
+  const found = new Set();
+  const lines = manifestText.split(/\r?\n/);
+  // Match `| \`task-type\` |` or `| task-type |` (with optional backticks).
+  const rowRe = /^\s*\|\s*`?([a-z0-9-]+)`?\s*\|/i;
+  for (const line of lines) {
+    const m = rowRe.exec(line);
+    if (!m) continue;
+    const candidate = m[1];
+    if (knownTypes.has(candidate)) {
+      found.add(candidate);
+    }
+  }
+  return found;
+}
+
+test('ROUTING-MANIFEST.md route table is in sync with TASK_TYPE_ROUTES', async () => {
+  const { fileURLToPath } = await import('node:url');
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const manifestPath = path.join(here, '..', 'control', 'v5', 'routing', 'ROUTING-MANIFEST.md');
+  const manifest = await fs.readFile(manifestPath, 'utf8');
+
+  const codeTypes = new Set(Object.keys(TASK_TYPE_ROUTES));
+  const manifestTypes = parseManifestTaskTypes(manifest, codeTypes);
+
+  assert.ok(
+    manifestTypes.size > 0,
+    'ROUTING-MANIFEST.md is missing the route table (no `| <task-type> |` rows found). ' +
+      'Add a markdown table mapping every task type in TASK_TYPE_ROUTES to its docs.',
+  );
+
+  // Every task type in code must be documented in the manifest.
+  for (const taskType of codeTypes) {
+    assert.ok(
+      manifestTypes.has(taskType),
+      `ROUTING-MANIFEST.md route table is missing task type "${taskType}". ` +
+        `Add a row for it (or remove it from TASK_TYPE_ROUTES).`,
+    );
+  }
+
+  // Every task type referenced in the manifest must exist in code.
+  for (const taskType of manifestTypes) {
+    assert.ok(
+      codeTypes.has(taskType),
+      `ROUTING-MANIFEST.md references unknown task type "${taskType}". ` +
+        `Remove the row or add it to TASK_TYPE_ROUTES.`,
+    );
+  }
 });

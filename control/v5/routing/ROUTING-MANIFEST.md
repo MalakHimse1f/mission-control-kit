@@ -106,12 +106,11 @@ should prefer dispatching that skill over hand-rolled save scripts.
 
 `buildPacket({ task, route, stage, slug, controlRoot })` adds:
 
-- File-size based `tokensEstimate` (`Math.ceil(totalBytes / 4)`).
-- Per-doc `bytes` and `exists` flags.
+- Per-doc `exists` flag (does the file or directory exist on disk).
+- A flat `instructions[]` array carrying each route's `usageNote` so the
+  visual-fragment contract surfaces at dispatch time.
 - Forwarding of `deferred` / `deferredReason` from the route.
-- Missing docs emit `console.warn` and are skipped — never thrown.
-
-Directories (e.g., `phases/`, `wireframes/`) are sized by summing their immediate file children. We don't recurse to keep sizing cheap.
+- Missing docs emit `console.warn` and are flagged (`exists: false`) — never thrown.
 
 ---
 
@@ -246,12 +245,12 @@ const packet = await buildPacket({
   route: {
     taskType: 'ui-implementation',
     docs: [
-      { path: 'control/v5/routing/UI-REQUIREMENTS.md',                            scope: 'ui-requirements', optional: false, exists: true,  bytes: 4123 },
-      { path: 'control/layout/diagrams/ui-options/template.html',                 scope: 'ui-primitives',   optional: false, exists: true,  bytes: 8420 },
-      { path: 'control/v5/features/settings-panel/layout/wireframes/',            scope: 'wireframes',      optional: true,  exists: false, bytes: 0    },
+      { path: 'control/v5/routing/UI-REQUIREMENTS.md',                            scope: 'ui-requirements', optional: false, exists: true  },
+      { path: 'control/layout/diagrams/ui-options/template.html',                 scope: 'ui-primitives',   optional: false, exists: true  },
+      { path: 'control/v5/features/settings-panel/layout/wireframes/',            scope: 'wireframes',      optional: true,  exists: false },
     ],
   },
-  tokensEstimate: 3136,
+  instructions:   [ /* per-route usageNote strings */ ],
   deferred:       false,
   deferredReason: null,
 }
