@@ -1,0 +1,495 @@
+#!/usr/bin/env node
+/**
+ * Mission Control Kit v5 dashboard server.
+ *
+ * Stdlib only (`node:http`). Endpoints:
+ *   - GET  /                              → placeholder v5 dashboard HTML
+ *   - GET  /feature/:slug                 → placeholder feature detail HTML
+ *   - GET  /api/v5/features               → list of features in {controlRoot}/features/
+ *   - GET  /api/v5/decisions/:slug        → saved decisions JSON
+ *   - POST /api/v5/decisions/:slug        → validate + write decisions JSON
+ *   - GET  /diagrams/*                    → static files from {diagramsRoot}
+ *   - *                                   → 404 JSON
+ *
+ * The v4 dashboard server at `control/scripts/dashboard-server.mjs` is left
+ * untouched; this server runs alongside it on its own port and writes to its
+ * own state file (`v5-dashboard-server.json`).
+ */
+
+import http from 'node:http';
+import fs from 'node:fs';
+import fsp from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { readDecisions, writeDecisions } from '../../../lib/v5/decisions.mjs';
+import { validateDecisions } from '../../../lib/v5/decisions-schema.mjs';
+import {
+  resolvePort,
+  clearServerStatus,
+  statusFilePath,
+} from '../../../lib/v5/server-port.mjs';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.txt': 'text/plain; charset=utf-8',
+};
+
+function mimeFor(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+}
+
+function sendJson(res, status, body) {
+  const data = JSON.stringify(body);
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(data),
+  });
+  res.end(data);
+}
+
+function sendText(res, status, contentType, body) {
+  const data = typeof body === 'string' ? body : String(body);
+  res.writeHead(status, {
+    'Content-Type': contentType,
+    'Content-Length': Buffer.byteLength(data),
+  });
+  res.end(data);
+}
+
+function readJsonBody(req, { limit = 1024 * 1024 } = {}) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        reject(new Error(`request body exceeds ${limit} bytes`));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('utf8');
+      if (raw.length === 0) return resolve({});
+      try {
+        resolve(JSON.parse(raw));
+      } catch (err) {
+        reject(new Error(`invalid JSON body: ${err.message}`));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[c]));
+}
+
+// ---------------------------------------------------------------------------
+// HTML placeholders (Tasks 5 and 6 replace these)
+// ---------------------------------------------------------------------------
+
+function renderDashboardPlaceholder() {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mission Control Kit v5 — Dashboard</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    code { background: #f4f4f4; padding: 0.15em 0.35em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Mission Control Kit v5</h1>
+  <p>This is a placeholder dashboard page. Task 5 of the v5 refactor will replace this with the real dashboard.</p>
+  <p>API endpoints:</p>
+  <ul>
+    <li><a href="/api/v5/features">/api/v5/features</a> — list features</li>
+    <li><code>GET /api/v5/decisions/:slug</code> — read decisions</li>
+    <li><code>POST /api/v5/decisions/:slug</code> — write decisions</li>
+  </ul>
+</body>
+</html>
+`;
+}
+
+function renderFeaturePlaceholder(slug) {
+  const safe = escapeHtml(slug);
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mission Control Kit v5 — ${safe}</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    code { background: #f4f4f4; padding: 0.15em 0.35em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Feature: ${safe}</h1>
+  <p>This is a placeholder feature detail page for <code>${safe}</code>. Task 6 of the v5 refactor will replace this with the real feature view.</p>
+  <p><a href="/">&larr; Back to dashboard</a></p>
+  <p><a href="/api/v5/decisions/${encodeURIComponent(slug)}">View decisions JSON</a></p>
+</body>
+</html>
+`;
+}
+
+// ---------------------------------------------------------------------------
+// API: GET /api/v5/features
+// ---------------------------------------------------------------------------
+
+/**
+ * List feature directories under `{controlRoot}/features/`. For each, read
+ * `status.json` and `decisions.json` (both optional) and surface a summary
+ * record.
+ *
+ * @param {string} controlRoot — absolute path to e.g. `.../control/v5`
+ */
+export async function listFeatures(controlRoot) {
+  const featuresRoot = path.join(controlRoot, 'features');
+  let entries;
+  try {
+    entries = await fsp.readdir(featuresRoot, { withFileTypes: true });
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return [];
+    throw err;
+  }
+  const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
+
+  const features = [];
+  for (const slug of dirs) {
+    const statusPath = path.join(featuresRoot, slug, 'status.json');
+    const decisionsPath = path.join(featuresRoot, slug, 'decisions.json');
+    let status = null;
+    let decisions = null;
+    try {
+      status = JSON.parse(await fsp.readFile(statusPath, 'utf8'));
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') {
+        // Surface the parse error in the record but keep going.
+        status = { error: `status.json unreadable: ${err.message}` };
+      }
+    }
+    try {
+      decisions = JSON.parse(await fsp.readFile(decisionsPath, 'utf8'));
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') {
+        decisions = { error: `decisions.json unreadable: ${err.message}` };
+      }
+    }
+
+    const phases = decisions && decisions.phases ? decisions.phases : null;
+    features.push({
+      slug,
+      stage: (status && status.pipelineStage) || null,
+      status,
+      phases: phases
+        ? {
+            ux: (phases.ux && phases.ux.status) || 'not-started',
+            ui: (phases.ui && phases.ui.status) || 'not-started',
+            architecture:
+              (phases.architecture && phases.architecture.status) || 'not-started',
+          }
+        : null,
+    });
+  }
+  return features;
+}
+
+// ---------------------------------------------------------------------------
+// Static asset serving (/diagrams/*)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve a request URL like `/diagrams/_shared/diagram.css` to a real file
+ * under `diagramsRoot`. Returns null if the path escapes the root or doesn't
+ * exist.
+ */
+async function resolveDiagramAsset(diagramsRoot, urlPath) {
+  // Strip /diagrams prefix and any query (caller already passes pathname).
+  const relRaw = urlPath.replace(/^\/diagrams\/?/, '');
+  if (relRaw === '') return null;
+  const rel = decodeURIComponent(relRaw);
+
+  // Reject paths with .. segments after normalization.
+  const target = path.normalize(path.join(diagramsRoot, rel));
+  const rootResolved = path.resolve(diagramsRoot);
+  const targetResolved = path.resolve(target);
+  if (
+    targetResolved !== rootResolved &&
+    !targetResolved.startsWith(rootResolved + path.sep)
+  ) {
+    return null;
+  }
+  try {
+    const stat = await fsp.stat(targetResolved);
+    if (!stat.isFile()) return null;
+    return targetResolved;
+  } catch {
+    return null;
+  }
+}
+
+async function serveStatic(res, filePath) {
+  res.writeHead(200, { 'Content-Type': mimeFor(filePath) });
+  fs.createReadStream(filePath).pipe(res);
+}
+
+// ---------------------------------------------------------------------------
+// Route matching
+// ---------------------------------------------------------------------------
+
+/**
+ * Match `/feature/:slug` or `/api/v5/decisions/:slug` and return the slug, or
+ * null if no match.
+ */
+function matchSlugRoute(pathname, prefix) {
+  if (!pathname.startsWith(prefix)) return null;
+  const rest = pathname.slice(prefix.length);
+  if (rest === '' || rest === '/') return null;
+  // Reject nested paths like /feature/foo/bar
+  const cleaned = rest.startsWith('/') ? rest.slice(1) : rest;
+  if (cleaned.includes('/')) return null;
+  if (!cleaned) return null;
+  return decodeURIComponent(cleaned);
+}
+
+// ---------------------------------------------------------------------------
+// Server factory
+// ---------------------------------------------------------------------------
+
+/**
+ * Create (but do not start) the v5 dashboard HTTP server.
+ *
+ * Caller is responsible for `server.listen(port, host, cb)` — this lets tests
+ * pick `port: 0` for a random free port and shut down cleanly.
+ *
+ * @param {{
+ *   controlRoot: string,
+ *   diagramsRoot?: string,
+ * }} opts
+ */
+export function createServer({ controlRoot, diagramsRoot } = {}) {
+  if (!controlRoot) throw new Error('createServer: opts.controlRoot is required');
+  const controlRootAbs = path.resolve(controlRoot);
+  const diagramsRootAbs = diagramsRoot ? path.resolve(diagramsRoot) : null;
+
+  const server = http.createServer(async (req, res) => {
+    let url;
+    try {
+      url = new URL(req.url || '/', 'http://127.0.0.1');
+    } catch {
+      return sendJson(res, 400, { error: 'invalid request URL' });
+    }
+    const pathname = url.pathname;
+    const method = req.method || 'GET';
+
+    try {
+      // GET /
+      if (method === 'GET' && pathname === '/') {
+        return sendText(res, 200, MIME_TYPES['.html'], renderDashboardPlaceholder());
+      }
+
+      // GET /feature/:slug
+      if (method === 'GET') {
+        const featureSlug = matchSlugRoute(pathname, '/feature');
+        if (featureSlug) {
+          return sendText(res, 200, MIME_TYPES['.html'], renderFeaturePlaceholder(featureSlug));
+        }
+      }
+
+      // GET /api/v5/features
+      if (method === 'GET' && pathname === '/api/v5/features') {
+        const features = await listFeatures(controlRootAbs);
+        return sendJson(res, 200, features);
+      }
+
+      // GET/POST /api/v5/decisions/:slug
+      const decisionsSlug = matchSlugRoute(pathname, '/api/v5/decisions');
+      if (decisionsSlug) {
+        if (method === 'GET') {
+          const data = await readDecisions(decisionsSlug, { controlRoot: controlRootAbs });
+          return sendJson(res, 200, data);
+        }
+        if (method === 'POST') {
+          let body;
+          try {
+            body = await readJsonBody(req);
+          } catch (err) {
+            return sendJson(res, 400, { error: err.message });
+          }
+          // Validate using validateDecisions on the raw payload so callers
+          // can't sneak past schema with empty bodies (writeDecisions itself
+          // re-validates, but we want a clean 400 with field-level errors).
+          const candidate = {
+            feature: typeof body.feature === 'string' ? body.feature : decisionsSlug,
+            phases: body.phases,
+            deferred: body.deferred,
+            updatedAt: body.updatedAt || new Date().toISOString(),
+          };
+          const { valid, errors } = validateDecisions(candidate);
+          if (!valid) {
+            return sendJson(res, 400, { error: 'invalid decisions payload', details: errors });
+          }
+          try {
+            const saved = await writeDecisions(decisionsSlug, body, {
+              controlRoot: controlRootAbs,
+            });
+            return sendJson(res, 200, saved);
+          } catch (err) {
+            return sendJson(res, 400, { error: err.message });
+          }
+        }
+        return sendJson(res, 405, { error: `method ${method} not allowed on ${pathname}` });
+      }
+
+      // GET /diagrams/*
+      if (method === 'GET' && pathname.startsWith('/diagrams/')) {
+        if (!diagramsRootAbs) {
+          return sendJson(res, 404, { error: 'diagrams root not configured' });
+        }
+        const file = await resolveDiagramAsset(diagramsRootAbs, pathname);
+        if (!file) return sendJson(res, 404, { error: 'diagram asset not found' });
+        return serveStatic(res, file);
+      }
+
+      // Fallback 404
+      return sendJson(res, 404, { error: `not found: ${method} ${pathname}` });
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message || String(err) });
+    }
+  });
+
+  return server;
+}
+
+/**
+ * Convenience wrapper: create a server, listen on a port, and return a handle
+ * with the actual bound port and a `close()` that shuts the server down.
+ *
+ * Used by tests (port: 0 → random free port) and the CLI entry below.
+ */
+export async function startServer({ controlRoot, diagramsRoot, port = 0, host = '127.0.0.1' } = {}) {
+  const server = createServer({ controlRoot, diagramsRoot });
+  await new Promise((resolve, reject) => {
+    const onError = (err) => {
+      server.off('listening', onListening);
+      reject(err);
+    };
+    const onListening = () => {
+      server.off('error', onError);
+      resolve();
+    };
+    server.once('error', onError);
+    server.once('listening', onListening);
+    server.listen(port, host);
+  });
+  const addr = server.address();
+  const boundPort = typeof addr === 'object' && addr ? addr.port : port;
+  return {
+    server,
+    port: boundPort,
+    host,
+    url: `http://${host}:${boundPort}`,
+    close() {
+      return new Promise((resolve) => server.close(() => resolve()));
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// CLI entry
+// ---------------------------------------------------------------------------
+
+async function main() {
+  // Resolve controlRoot: argv[2] or walk up from cwd.
+  const argRoot = process.argv[2];
+  let controlRootAbs;
+  if (argRoot) {
+    controlRootAbs = path.resolve(argRoot);
+  } else {
+    // Walk up from cwd looking for control/v5.
+    let dir = process.cwd();
+    let found = null;
+    for (let i = 0; i < 64; i++) {
+      const candidate = path.join(dir, 'control', 'v5');
+      if (fs.existsSync(candidate)) {
+        found = candidate;
+        break;
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+    if (!found) {
+      console.error(
+        'v5 dashboard-server: could not find control/v5/ by walking up from',
+        process.cwd(),
+      );
+      console.error('Pass the path as the first argument.');
+      process.exit(1);
+    }
+    controlRootAbs = found;
+  }
+
+  // controlRootAbs is `.../control/v5`. The .mc state lives at `.../control/.mc/`.
+  const controlParent = path.dirname(controlRootAbs); // .../control
+  const diagramsRootAbs = path.join(controlParent, 'layout', 'diagrams');
+
+  const { port, pid, startedAt } = await resolvePort({ controlRoot: controlParent });
+
+  const { server, url } = await startServer({
+    controlRoot: controlRootAbs,
+    diagramsRoot: diagramsRootAbs,
+    port,
+  });
+
+  const shutdown = () => {
+    try {
+      clearServerStatus({ controlRoot: controlParent });
+    } catch {
+      // best-effort
+    }
+    server.close(() => process.exit(0));
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+
+  console.log(`Mission Control Kit v5 dashboard: ${url}`);
+  console.log(`Control root: ${controlRootAbs}`);
+  console.log(`Diagrams root: ${diagramsRootAbs}`);
+  console.log(`Status file: ${statusFilePath(controlParent)}`);
+  console.log(`pid=${pid}, startedAt=${startedAt}`);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
