@@ -100,6 +100,36 @@ test('build route returns build-related docs (phase plans, build gates, spec)', 
   assert.ok(paths.some((p) => p.includes('BUILD-GATES.md')), 'expected BUILD-GATES.md');
 });
 
+test('build route includes mvvm-rules scope pointing at ARCHITECTURE-MVVM.md', async () => {
+  const route = await resolveRoute({ taskType: 'build', stage: 'build', slug: 'demo' });
+  const mvvmDoc = route.docs.find((d) => d.scope === 'mvvm-rules');
+  assert.ok(mvvmDoc, 'expected a doc with scope "mvvm-rules" on the build route');
+  assert.ok(
+    mvvmDoc.path.includes('ARCHITECTURE-MVVM.md'),
+    `expected mvvm-rules doc to point at ARCHITECTURE-MVVM.md; got ${mvvmDoc.path}`,
+  );
+  assert.equal(mvvmDoc.optional, false, 'mvvm-rules doc must be non-optional');
+});
+
+test('architecture route does NOT load ARCHITECTURE-MVVM.md (kept lean)', async () => {
+  const route = await resolveRoute({ taskType: 'architecture', stage: 'architecture', slug: 'demo' });
+  const paths = route.docs.map((d) => d.path);
+  assert.ok(
+    !paths.some((p) => p.includes('ARCHITECTURE-MVVM.md')),
+    `architecture route should not include ARCHITECTURE-MVVM.md; got ${paths.join(', ')}`,
+  );
+  const scopes = route.docs.map((d) => d.scope);
+  assert.ok(!scopes.includes('mvvm-rules'), 'architecture route should not carry mvvm-rules scope');
+});
+
+test('ARCHITECTURE.md and ARCHITECTURE-MVVM.md both exist in routing/', async () => {
+  const { fileURLToPath } = await import('node:url');
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const routingDir = path.join(here, '..', 'control', 'v5', 'routing');
+  await fs.access(path.join(routingDir, 'ARCHITECTURE.md'));
+  await fs.access(path.join(routingDir, 'ARCHITECTURE-MVVM.md'));
+});
+
 test('brainstorm route returns brainstorm-related docs', async () => {
   const route = await resolveRoute({ taskType: 'brainstorm', slug: 'demo' });
   const scopes = route.docs.map((d) => d.scope);

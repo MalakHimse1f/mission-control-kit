@@ -8,6 +8,7 @@ const ROUTING_FILES = [
   'UI-REQUIREMENTS.md',
   'UX-PATTERNS.md',
   'ARCHITECTURE.md',
+  'ARCHITECTURE-MVVM.md',
   'BUILD-GATES.md',
 ];
 
