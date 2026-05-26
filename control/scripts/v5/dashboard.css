@@ -352,6 +352,284 @@ h1 {
   padding: 1rem 0.25rem;
 }
 
+/* "How to use" disclosure panel — collapsed by default */
+.how-to-use {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.how-to-use > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.how-to-use > summary::-webkit-details-marker {
+  display: none;
+}
+
+.how-to-use > summary:hover {
+  background: #1a1a1a;
+}
+
+.how-to-toggle {
+  color: #6a8caf;
+  font-size: 0.9rem;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.how-to-use[open] .how-to-toggle {
+  transform: rotate(90deg);
+}
+
+.how-to-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e8e8e8;
+}
+
+.how-to-hint {
+  font-size: 0.75rem;
+  color: #777;
+  margin-left: auto;
+  font-style: italic;
+}
+
+.how-to-body {
+  padding: 0.5rem 1.5rem 1.5rem;
+  border-top: 1px solid #2a2a2a;
+}
+
+.how-section {
+  margin-top: 1.5rem;
+}
+
+.how-section:first-child {
+  margin-top: 1rem;
+}
+
+.how-section h3 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a8caf;
+  margin-bottom: 0.75rem;
+  padding-left: 4px;
+  font-weight: 600;
+}
+
+.how-section-desc {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 1rem;
+  max-width: 75ch;
+}
+
+.how-section-desc code {
+  background: #1a1a1a;
+  color: #b6d4f0;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.75rem;
+}
+
+/* Slash command grid */
+.cmd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.cmd-group {
+  background: #0f0f0f;
+  border: 1px solid #232323;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+
+.cmd-group h4 {
+  font-size: 0.78rem;
+  color: #ccc;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+}
+
+.cmd-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cmd-group ul li {
+  font-size: 0.78rem;
+  color: #aaa;
+  padding: 0.2rem 0;
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.cmd-group ul li code {
+  background: #1a1a1a;
+  color: #b6d4f0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cmd-desc {
+  font-size: 0.72rem;
+  color: #888;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Skill tags + bundle cards (shared with the diagram) */
+.skill-tag {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.skill-tag.tag-mck         { color: #6a8caf; background: rgba(106,140,175,0.12); border: 1px solid rgba(106,140,175,0.35); }
+.skill-tag.tag-superpowers { color: #b69cd1; background: rgba(155,126,184,0.14); border: 1px solid rgba(155,126,184,0.4);  }
+.skill-tag.tag-prd         { color: #88c8a8; background: rgba(106,175,140,0.13); border: 1px solid rgba(106,175,140,0.4);  }
+.skill-tag.tag-designer    { color: #d99a9a; background: rgba(201,124,124,0.12); border: 1px solid rgba(201,124,124,0.4);  }
+.skill-tag.tag-startup     { color: #d0ae87; background: rgba(175,146,106,0.13); border: 1px solid rgba(175,146,106,0.4);  }
+
+.bundle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.bundle-card {
+  background: #0f0f0f;
+  border: 1px solid #232323;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+
+.bundle-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.bundle-card-title {
+  font-size: 0.78rem;
+  color: #ddd;
+  font-weight: 600;
+}
+
+.bundle-card ul {
+  list-style: none;
+  margin: 0 0 0.6rem 0;
+  padding: 0;
+}
+
+.bundle-card ul li {
+  font-size: 0.72rem;
+  color: #aaa;
+  padding: 0.18rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.bundle-card ul li code {
+  background: #1a1a1a;
+  color: #b6d4f0;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.li-desc {
+  color: #777;
+  font-size: 0.7rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.bundle-attribution {
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #2a2a2a;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.bundle-attribution a {
+  color: #6a8caf;
+  text-decoration: none;
+}
+
+.bundle-attribution a:hover {
+  text-decoration: underline;
+}
+
+/* Workflow list */
+.workflow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow-list li {
+  font-size: 0.78rem;
+  color: #ccc;
+  padding: 0.4rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  line-height: 1.7;
+}
+
+.workflow-list li code {
+  background: #1a1a1a;
+  color: #b6d4f0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.workflow-list li strong {
+  color: #e8e8e8;
+  font-weight: 600;
+}
+
+.wf-arrow {
+  color: #555;
+  font-size: 0.75rem;
+}
+
 /* Responsive */
 @media (max-width: 700px) {
   body {
@@ -361,6 +639,9 @@ h1 {
     gap: 6px;
   }
   .item-updated {
+    display: none;
+  }
+  .how-to-hint {
     display: none;
   }
 }

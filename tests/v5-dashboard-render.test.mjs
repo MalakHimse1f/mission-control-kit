@@ -140,6 +140,49 @@ test('renderDashboard returns full HTML with all three section labels', async ()
   assert.ok(html.includes('All Items'), 'expected "All Items" section label');
 });
 
+test('renderDashboard includes "How to use" disclosure, collapsed by default', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  // Disclosure container present
+  assert.ok(
+    html.includes('<details class="how-to-use">'),
+    'expected <details class="how-to-use"> wrapper',
+  );
+  // Must NOT have the open attribute — collapsed by default
+  assert.ok(
+    !html.includes('<details class="how-to-use" open'),
+    'expected the disclosure to be collapsed (no `open` attr)',
+  );
+  // Title visible in summary
+  assert.ok(
+    html.includes('How to use Mission Control Kit'),
+    'expected summary title to mention the kit',
+  );
+});
+
+test('renderDashboard lists key slash commands in How to use', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  for (const cmd of ['/mc-v5', '/mc-v5-resume', '/mc-start', '/mc-feature', '/mc-init', '/mc-build', '/mc-handoff']) {
+    assert.ok(
+      html.includes(`<code>${cmd}`),
+      `expected slash command ${cmd} in How to use`,
+    );
+  }
+});
+
+test('renderDashboard lists all five bundled skill sources with attribution', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  // Bundle tag labels (one per source)
+  for (const tag of ['superpowers', 'prd-generator', 'designer-skills', 'startup-skill']) {
+    assert.ok(html.includes(tag), `expected bundle "${tag}" referenced in How to use`);
+  }
+  // Attribution names
+  for (const author of ['Jesse Vincent', 'James Rochabrun', 'Owl-Listener', 'Ferdinando Bons']) {
+    assert.ok(html.includes(author), `expected attribution "${author}" in How to use`);
+  }
+});
+
 test('renderDashboard contains each filter pill name and count', async () => {
   const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
   const html = renderDashboard(data);

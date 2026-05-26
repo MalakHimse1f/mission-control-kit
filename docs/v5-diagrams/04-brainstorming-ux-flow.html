@@ -347,6 +347,116 @@ h1 {
   content: "↓";
   color: #444;
 }
+
+/* Skill attribution badges */
+.invoked-by {
+  margin-top: 0.5rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed #2a2a2a;
+  font-size: 0.65rem;
+  color: #777;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+.invoked-by .via-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555;
+  margin-right: 0.25rem;
+}
+.skill-tag {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.skill-tag.mck         { color: #6a8caf; background: rgba(106,140,175,0.12); border: 1px solid rgba(106,140,175,0.35); }
+.skill-tag.superpowers { color: #b69cd1; background: rgba(155,126,184,0.14); border: 1px solid rgba(155,126,184,0.4);  }
+.skill-tag.prd         { color: #88c8a8; background: rgba(106,175,140,0.13); border: 1px solid rgba(106,175,140,0.4);  }
+.skill-tag.designer    { color: #d99a9a; background: rgba(201,124,124,0.12); border: 1px solid rgba(201,124,124,0.4);  }
+.skill-tag.startup     { color: #d0ae87; background: rgba(175,146,106,0.13); border: 1px solid rgba(175,146,106,0.4);  }
+
+/* Bundle appendix */
+.bundle-appendix {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #2a2a2a;
+}
+.bundle-appendix h2 {
+  font-size: 1.05rem;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+.bundle-appendix .appendix-sub {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 1.5rem;
+  max-width: 75ch;
+}
+.bundle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.bundle-card {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+}
+.bundle-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  color: #eee;
+  font-size: 0.9rem;
+}
+.bundle-card ul {
+  list-style: none;
+  margin: 0 0 0.75rem 0;
+  padding: 0;
+}
+.bundle-card ul li {
+  font-size: 0.75rem;
+  color: #c8c8c8;
+  padding: 0.2rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.bundle-card ul li code {
+  background: #1a1a1a;
+  color: #b6d4f0;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.bundle-card .li-desc {
+  color: #888;
+  font-size: 0.7rem;
+}
+.bundle-attribution {
+  margin-top: 0.5rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed #2a2a2a;
+  font-size: 0.7rem;
+  color: #888;
+}
+.bundle-attribution a {
+  color: #6a8caf;
+  text-decoration: none;
+}
+.bundle-attribution a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -375,6 +485,16 @@ h1 {
       <div class="legend-swatch decision">✓</div>
       <span>Decision Saved</span>
     </div>
+  </div>
+
+  <!-- Skill source key — explains the attribution badges -->
+  <div class="legend" style="margin-top: 0.5rem;">
+    <div class="legend-item" style="margin-right: 0.25rem; color: #999;"><strong>Auto-invoked by:</strong></div>
+    <div class="legend-item"><span class="skill-tag mck">mc-v5-*</span><span>Mission Control built-in</span></div>
+    <div class="legend-item"><span class="skill-tag superpowers">superpowers</span><span>Jesse Vincent (obra)</span></div>
+    <div class="legend-item"><span class="skill-tag prd">prd-generator</span><span>James Rochabrun</span></div>
+    <div class="legend-item"><span class="skill-tag designer">designer-skills</span><span>Owl-Listener</span></div>
+    <div class="legend-item"><span class="skill-tag startup">startup-skill</span><span>Ferdinando Bons</span></div>
   </div>
 
   <div class="tab-bar">
@@ -429,6 +549,10 @@ h1 {
             <span class="pattern-tag">Long Polling</span>
             <span class="pattern-tag">Push API</span>
           </div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag superpowers">superpowers/parallel-web-search</span>
+          </div>
         </div>
       </div>
 
@@ -450,6 +574,14 @@ h1 {
               <span class="diagram-option">SSE one-way stream</span>
               <span class="diagram-option">Polling interval-based</span>
             </div>
+          </div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag mck">mc-v5-brainstorm</span>
+            <span style="color:#555;">→</span>
+            <span class="skill-tag mck">pattern-to-diagram.mjs</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag mck">auto-launch.mjs</span>
           </div>
         </div>
       </div>
@@ -477,6 +609,14 @@ h1 {
         <div class="node node-decision">
           <div class="checkmark">✓</div>
           <div><strong>Decision saved</strong> — Ready for spec generation</div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag mck">mc-v5-decide</span>
+            <span style="color:#555;">→</span>
+            <span class="skill-tag mck">lib/v5/decisions.mjs</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag mck">build-decision.mjs</span>
+          </div>
         </div>
       </div>
     </div>
@@ -528,6 +668,12 @@ h1 {
             <span class="pattern-tag">Contextual Tooltips</span>
             <span class="pattern-tag">Video Walkthrough</span>
           </div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag superpowers">superpowers/parallel-web-search</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag designer">designer-skills/ux-strategy</span>
+          </div>
         </div>
       </div>
 
@@ -550,6 +696,17 @@ h1 {
               <span class="diagram-option">Contextual (in-app tips)</span>
               <span class="diagram-option">Video (guided tour)</span>
             </div>
+          </div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag mck">mc-v5-brainstorm</span>
+            <span style="color:#555;">→</span>
+            <span class="skill-tag mck">pattern-to-diagram.mjs</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag designer">designer-skills/interaction-design</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag prd">prd-generator</span>
+            <span class="li-desc">(downstream, post-decision)</span>
           </div>
         </div>
       </div>
@@ -590,6 +747,14 @@ h1 {
         <div class="node node-decision">
           <div class="checkmark">✓</div>
           <div><strong>Decision saved</strong> — Ready for spec generation</div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag mck">mc-v5-decide</span>
+            <span style="color:#555;">→</span>
+            <span class="skill-tag mck">lib/v5/decisions.mjs</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag mck">build-decision.mjs</span>
+          </div>
         </div>
       </div>
     </div>
@@ -641,6 +806,12 @@ h1 {
             <span class="pattern-tag">Single Scroll</span>
             <span class="pattern-tag">Accordion</span>
           </div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag superpowers">superpowers/parallel-web-search</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag designer">designer-skills/design-research</span>
+          </div>
         </div>
       </div>
 
@@ -663,6 +834,14 @@ h1 {
               <span class="diagram-option">Infinite scroll page</span>
               <span class="diagram-option">Collapsible sections</span>
             </div>
+          </div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag mck">mc-v5-brainstorm</span>
+            <span style="color:#555;">→</span>
+            <span class="skill-tag mck">pattern-to-diagram.mjs</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag designer">designer-skills/visual-critique</span>
           </div>
         </div>
       </div>
@@ -690,10 +869,86 @@ h1 {
         <div class="node node-decision">
           <div class="checkmark">✓</div>
           <div><strong>Decision saved</strong> — Ready for spec generation</div>
+          <div class="invoked-by">
+            <span class="via-label">Auto-invoked:</span>
+            <span class="skill-tag mck">mc-v5-decide</span>
+            <span style="color:#555;">→</span>
+            <span class="skill-tag mck">lib/v5/decisions.mjs</span>
+            <span style="color:#555;">+</span>
+            <span class="skill-tag mck">build-decision.mjs</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Bundled skills appendix — auto-invoked sources across the flow above -->
+  <div class="bundle-appendix">
+    <h2>Bundled Skills &amp; Attribution</h2>
+    <p class="appendix-sub">
+      The Mission Control Kit auto-invokes a curated set of community skill bundles during the brainstorming, decision, and build phases.
+      The badges above show which bundle is responsible at each step. None of these are bundled into MCK's repo as code — they are pulled at install time and credited here.
+    </p>
+    <div class="bundle-grid">
+
+      <div class="bundle-card">
+        <div class="bundle-card-header"><span class="skill-tag mck">MCK</span> Mission Control Kit (built-in)</div>
+        <ul>
+          <li><code>mc-v5</code><span class="li-desc">Orchestrator hub</span></li>
+          <li><code>mc-v5-brainstorm</code><span class="li-desc">Brainstorm flow (this diagram)</span></li>
+          <li><code>mc-v5-decide</code><span class="li-desc">Decision encoding + CLI dispatch</span></li>
+          <li><code>mc-v5-build</code><span class="li-desc">Build subagent (MVVM-enforced)</span></li>
+          <li><code>mc-v5-review</code><span class="li-desc">Dashboard auto-launch</span></li>
+        </ul>
+        <div class="bundle-attribution">— Mission Control Kit · this repository</div>
+      </div>
+
+      <div class="bundle-card">
+        <div class="bundle-card-header"><span class="skill-tag superpowers">superpowers</span></div>
+        <ul>
+          <li><code>brainstorming</code><span class="li-desc">Question-driven ideation pattern</span></li>
+          <li><code>parallel-web-search</code><span class="li-desc">Research dispatch (auto-invoked by mc-v5-brainstorm)</span></li>
+          <li><code>parallel-deep-research</code><span class="li-desc">Alternative for "deep" research</span></li>
+          <li><code>writing-plans</code><span class="li-desc">Plan authoring</span></li>
+          <li><code>subagent-driven-development</code><span class="li-desc">Task dispatch loop</span></li>
+          <li><code>verification-before-completion</code><span class="li-desc">Output verification</span></li>
+        </ul>
+        <div class="bundle-attribution">— <a href="https://github.com/obra/superpowers">Jesse Vincent (obra)</a> · MIT</div>
+      </div>
+
+      <div class="bundle-card">
+        <div class="bundle-card-header"><span class="skill-tag prd">prd-generator</span></div>
+        <ul>
+          <li><code>prd-generator</code><span class="li-desc">Generates spec.md from approved decisions</span></li>
+        </ul>
+        <div class="bundle-attribution">— <a href="https://github.com/jamesrochabrun/skills">James Rochabrun (jamesrochabrun)</a></div>
+      </div>
+
+      <div class="bundle-card">
+        <div class="bundle-card-header"><span class="skill-tag designer">designer-skills</span></div>
+        <ul>
+          <li><code>design-research</code><span class="li-desc">Pattern research for UI decisions</span></li>
+          <li><code>ux-strategy</code><span class="li-desc">UX flow rationale</span></li>
+          <li><code>interaction-design</code><span class="li-desc">Affordance + interaction modeling</span></li>
+          <li><code>visual-critique</code><span class="li-desc">Layout and hierarchy review</span></li>
+        </ul>
+        <div class="bundle-attribution">— <a href="https://github.com/Owl-Listener/designer-skills">Owl-Listener</a></div>
+      </div>
+
+      <div class="bundle-card">
+        <div class="bundle-card-header"><span class="skill-tag startup">startup-skill</span></div>
+        <ul>
+          <li><code>startup-design</code><span class="li-desc">Brand and identity at project-start</span></li>
+          <li><code>startup-competitors</code><span class="li-desc">Competitive analysis</span></li>
+          <li><code>startup-positioning</code><span class="li-desc">Market positioning</span></li>
+          <li><code>startup-pitch</code><span class="li-desc">Pitch deck drafting</span></li>
+        </ul>
+        <div class="bundle-attribution">— <a href="https://github.com/ferdinandobons/startup-skill">Ferdinando Bons (ferdinandobons)</a></div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>

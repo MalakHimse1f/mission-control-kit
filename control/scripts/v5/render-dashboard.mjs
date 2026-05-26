@@ -171,6 +171,220 @@ function renderItemRow(feature, now) {
         </a>`;
 }
 
+/**
+ * Slash-command reference, organised by phase. Edits land here when commands
+ * are added or removed from /Users/lane/Documents/mission-control-kit/commands/.
+ * Keep entries short — the dashboard "How to use" panel is a reference, not
+ * full docs.
+ */
+const SLASH_COMMAND_GROUPS = [
+  {
+    label: 'Project START',
+    items: [
+      { cmd: '/mc-start', desc: 'Start a new project (tech stack + first feature)' },
+      { cmd: '/mc-init', desc: 'Establish tech-stack context before any feature work' },
+    ],
+  },
+  {
+    label: 'v5 Feature flow',
+    items: [
+      { cmd: '/mc-v5', desc: 'v5 orchestrator hub — entry point for new features' },
+      { cmd: '/mc-v5-resume <slug>', desc: 'Resume an in-flight v5 feature from disk' },
+    ],
+  },
+  {
+    label: 'v4 Feature flow (still supported)',
+    items: [
+      { cmd: '/mc-feature', desc: 'Add a new feature (braindump → explore → spec → build)' },
+      { cmd: '/mc-refine', desc: 'Resume an interrupted braindump' },
+      { cmd: '/mc-layout', desc: 'Wireframe + layout step' },
+      { cmd: '/mc-plan', desc: 'Generate phased implementation plan' },
+      { cmd: '/mc-portfolio', desc: 'Holistic review of all approved specs' },
+      { cmd: '/mc-build', desc: 'Dispatch the build subagent from HANDOFF' },
+      { cmd: '/mc-validate', desc: 'Orchestrator-internal validation gate' },
+    ],
+  },
+  {
+    label: 'Session + maintenance',
+    items: [
+      { cmd: '/mc-handoff', desc: 'Structured end-of-chat session handoff' },
+      { cmd: '/mc-upgrade', desc: 'Safe kit upgrade to the latest release' },
+      { cmd: '/mc', desc: 'Mission Control router — picks the right workflow' },
+    ],
+  },
+];
+
+/**
+ * Bundled skill packages MCK auto-invokes. Keep these in lock-step with
+ * /Users/lane/Documents/mission-control-kit/control/vendor/manifest.json.
+ */
+const BUNDLED_SKILLS = [
+  {
+    id: 'mck-builtin',
+    tag: 'MCK',
+    tagClass: 'tag-mck',
+    name: 'Mission Control Kit (built-in)',
+    skills: [
+      { name: 'mc-v5', desc: 'Orchestrator hub' },
+      { name: 'mc-v5-brainstorm', desc: 'Brainstorm flow + research dispatch' },
+      { name: 'mc-v5-decide', desc: 'Decision encoding + visual fragment generation' },
+      { name: 'mc-v5-build', desc: 'Build subagent (MVVM-enforced)' },
+      { name: 'mc-v5-review', desc: 'Auto-launch dashboard at decision points' },
+    ],
+    attribution: 'Mission Control Kit — this repository',
+    href: 'https://github.com/MalakHimse1f/mission-control-kit',
+  },
+  {
+    id: 'superpowers',
+    tag: 'superpowers',
+    tagClass: 'tag-superpowers',
+    name: 'superpowers',
+    skills: [
+      { name: 'brainstorming', desc: 'Question-driven ideation' },
+      { name: 'parallel-web-search', desc: 'Research dispatch (used by mc-v5-brainstorm)' },
+      { name: 'writing-plans', desc: 'Plan authoring' },
+      { name: 'subagent-driven-development', desc: 'Task dispatch loop' },
+      { name: 'verification-before-completion', desc: 'Output verification' },
+    ],
+    attribution: 'Jesse Vincent (obra) · MIT',
+    href: 'https://github.com/obra/superpowers',
+  },
+  {
+    id: 'prd-generator',
+    tag: 'prd-generator',
+    tagClass: 'tag-prd',
+    name: 'prd-generator',
+    skills: [
+      { name: 'prd-generator', desc: 'Generates spec.md from approved decisions' },
+    ],
+    attribution: 'James Rochabrun (jamesrochabrun)',
+    href: 'https://github.com/jamesrochabrun/skills',
+  },
+  {
+    id: 'designer-skills',
+    tag: 'designer-skills',
+    tagClass: 'tag-designer',
+    name: 'designer-skills',
+    skills: [
+      { name: 'design-research', desc: 'Pattern research for UI decisions' },
+      { name: 'ux-strategy', desc: 'UX flow rationale' },
+      { name: 'interaction-design', desc: 'Affordance + interaction modeling' },
+      { name: 'visual-critique', desc: 'Layout and hierarchy review' },
+    ],
+    attribution: 'Owl-Listener',
+    href: 'https://github.com/Owl-Listener/designer-skills',
+  },
+  {
+    id: 'startup-skill',
+    tag: 'startup-skill',
+    tagClass: 'tag-startup',
+    name: 'startup-skill',
+    skills: [
+      { name: 'startup-design', desc: 'Brand and identity at project-start' },
+      { name: 'startup-competitors', desc: 'Competitive analysis' },
+      { name: 'startup-positioning', desc: 'Market positioning' },
+      { name: 'startup-pitch', desc: 'Pitch deck drafting' },
+    ],
+    attribution: 'Ferdinando Bons (ferdinandobons)',
+    href: 'https://github.com/ferdinandobons/startup-skill',
+  },
+];
+
+const TYPICAL_WORKFLOWS = [
+  {
+    label: 'Brand new project',
+    sequence: ['/mc-start', '/mc-init', '/mc-v5 (per feature)'],
+  },
+  {
+    label: 'Add a feature (v5)',
+    sequence: ['/mc-v5', 'brainstorm → decisions saved', '/mc-v5-resume <slug>', '/mc-build'],
+  },
+  {
+    label: 'Add a feature (v4, still works)',
+    sequence: ['/mc-feature', '/mc-layout', '/mc-plan', '/mc-build', '/mc-validate'],
+  },
+  {
+    label: 'End of session',
+    sequence: ['/mc-handoff', '/clear', '(new session) /mc-v5-resume <slug>'],
+  },
+];
+
+function renderHowToUse() {
+  const commandGroups = SLASH_COMMAND_GROUPS.map(
+    (g) => `
+            <div class="cmd-group">
+              <h4>${escapeHtml(g.label)}</h4>
+              <ul>${g.items
+                .map(
+                  (it) => `
+                <li><code>${escapeHtml(it.cmd)}</code><span class="cmd-desc">${escapeHtml(it.desc)}</span></li>`,
+                )
+                .join('')}
+              </ul>
+            </div>`,
+  ).join('');
+
+  const bundleCards = BUNDLED_SKILLS.map(
+    (b) => `
+            <div class="bundle-card">
+              <div class="bundle-card-header">
+                <span class="skill-tag ${escapeAttr(b.tagClass)}">${escapeHtml(b.tag)}</span>
+                <span class="bundle-card-title">${escapeHtml(b.name)}</span>
+              </div>
+              <ul>${b.skills
+                .map(
+                  (s) => `
+                <li><code>${escapeHtml(s.name)}</code><span class="li-desc">${escapeHtml(s.desc)}</span></li>`,
+                )
+                .join('')}
+              </ul>
+              <div class="bundle-attribution">— <a href="${escapeAttr(b.href)}" target="_blank" rel="noopener">${escapeHtml(b.attribution)}</a></div>
+            </div>`,
+  ).join('');
+
+  const workflowItems = TYPICAL_WORKFLOWS.map(
+    (w) => `
+            <li><strong>${escapeHtml(w.label)}</strong>: ${w.sequence
+              .map((step) => `<code>${escapeHtml(step)}</code>`)
+              .join(' <span class="wf-arrow">→</span> ')}</li>`,
+  ).join('');
+
+  return `
+    <details class="how-to-use">
+      <summary>
+        <span class="how-to-toggle">▸</span>
+        <span class="how-to-title">How to use Mission Control Kit</span>
+        <span class="how-to-hint">Click to expand — slash commands, bundled skills, common workflows</span>
+      </summary>
+      <div class="how-to-body">
+
+        <section class="how-section">
+          <h3>Slash commands</h3>
+          <div class="cmd-grid">${commandGroups}
+          </div>
+        </section>
+
+        <section class="how-section">
+          <h3>Bundled skills</h3>
+          <p class="how-section-desc">
+            MCK auto-invokes these skill bundles during brainstorming, decision encoding, and build phases.
+            They are referenced in routing docs at <code>control/v5/routing/</code> and pulled at install time —
+            none are bundled as code inside this repo.
+          </p>
+          <div class="bundle-grid">${bundleCards}
+          </div>
+        </section>
+
+        <section class="how-section">
+          <h3>Typical workflows</h3>
+          <ol class="workflow-list">${workflowItems}
+          </ol>
+        </section>
+
+      </div>
+    </details>`;
+}
+
 function renderAllItemsPanel(allItems, filterCounts, now) {
   const counts = filterCounts || {
     needsInput: 0,
@@ -248,6 +462,7 @@ export function renderDashboard(data, opts = {}) {
 ${renderLiveAgentsPanel(liveAgents)}
 ${renderUpNextPanel(upNext)}
 ${renderAllItemsPanel(allItems, filterCounts, now)}
+${renderHowToUse()}
   </div>
   <script src="/dashboard-client.js" defer></script>
 </body>
