@@ -29,6 +29,13 @@ import {
   clearServerStatus,
   statusFilePath,
 } from '../../../lib/v5/server-port.mjs';
+import { loadDashboardData } from '../../../lib/v5/dashboard-data.mjs';
+import { renderDashboard } from './render-dashboard.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DASHBOARD_CSS_PATH = path.join(__dirname, 'dashboard.css');
+const DASHBOARD_CLIENT_JS_PATH = path.join(__dirname, 'dashboard-client.js');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -204,9 +211,13 @@ export async function listFeatures(controlRoot) {
     }
 
     const phases = decisions && decisions.phases ? decisions.phases : null;
+    // Canonical field is `stage` (Task 5). Fall back to legacy `pipelineStage`
+    // so older feature files keep working until Task 4 cleans them up.
+    const stageField =
+      (status && (status.stage || status.pipelineStage)) || null;
     features.push({
       slug,
-      stage: (status && status.pipelineStage) || null,
+      stage: stageField,
       status,
       phases: phases
         ? {
@@ -312,7 +323,36 @@ export function createServer({ controlRoot, diagramsRoot } = {}) {
     try {
       // GET /
       if (method === 'GET' && pathname === '/') {
-        return sendText(res, 200, MIME_TYPES['.html'], renderDashboardPlaceholder());
+        try {
+          const data = await loadDashboardData({ controlRoot: controlRootAbs });
+          return sendText(res, 200, MIME_TYPES['.html'], renderDashboard(data));
+        } catch (err) {
+          // Fall back to the placeholder so the server never serves a 500 on
+          // the homepage during early-bootstrap edge cases.
+          const html = renderDashboardPlaceholder() +
+            `<!-- dashboard-data error: ${escapeHtml(err.message || String(err))} -->`;
+          return sendText(res, 200, MIME_TYPES['.html'], html);
+        }
+      }
+
+      // GET /dashboard.css
+      if (method === 'GET' && pathname === '/dashboard.css') {
+        try {
+          const css = await fsp.readFile(DASHBOARD_CSS_PATH, 'utf8');
+          return sendText(res, 200, MIME_TYPES['.css'], css);
+        } catch (err) {
+          return sendJson(res, 404, { error: `dashboard.css missing: ${err.message}` });
+        }
+      }
+
+      // GET /dashboard-client.js
+      if (method === 'GET' && pathname === '/dashboard-client.js') {
+        try {
+          const js = await fsp.readFile(DASHBOARD_CLIENT_JS_PATH, 'utf8');
+          return sendText(res, 200, MIME_TYPES['.js'], js);
+        } catch (err) {
+          return sendJson(res, 404, { error: `dashboard-client.js missing: ${err.message}` });
+        }
       }
 
       // GET /feature/:slug
