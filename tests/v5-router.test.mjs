@@ -115,6 +115,17 @@ test('backtracking prevention: architecture during ux stage is deferred', async 
   assert.deepEqual(route.docs, []);
 });
 
+test('backtracking prevention: architecture during ui stage is deferred', async () => {
+  // §9 mandates UX → UI → Architecture → Build. Architecture must be blocked
+  // during both UX and UI phases (not just UX).
+  const route = await resolveRoute({ taskType: 'architecture', stage: 'ui', slug: 'demo' });
+  assert.equal(route.deferred, true);
+  assert.ok(typeof route.deferredReason === 'string' && route.deferredReason.length > 0);
+  assert.ok(/architecture/i.test(route.deferredReason));
+  assert.ok(/ui/i.test(route.deferredReason), 'deferred reason should mention the ui phase');
+  assert.deepEqual(route.docs, []);
+});
+
 test('architecture during architecture stage is NOT deferred', async () => {
   const route = await resolveRoute({ taskType: 'architecture', stage: 'architecture', slug: 'demo' });
   assert.equal(route.deferred, false);
@@ -122,9 +133,15 @@ test('architecture during architecture stage is NOT deferred', async () => {
   assert.ok(route.docs.length > 0);
 });
 
-test('ui-implementation during ux stage is NOT deferred (only architecture is)', async () => {
+test('ui-implementation during ux stage is NOT deferred (only architecture is blocked)', async () => {
   const route = await resolveRoute({ taskType: 'ui-implementation', stage: 'ux', slug: 'demo' });
   assert.equal(route.deferred, false);
+});
+
+test('ui-implementation during ui stage is NOT deferred', async () => {
+  const route = await resolveRoute({ taskType: 'ui-implementation', stage: 'ui', slug: 'demo' });
+  assert.equal(route.deferred, false);
+  assert.ok(route.docs.length > 0);
 });
 
 test('unknown task type throws a descriptive error', async () => {
