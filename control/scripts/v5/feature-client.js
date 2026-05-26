@@ -30,19 +30,64 @@
   var slug = state.slug || '';
   var initialDecisions = state.decisions || null;
 
-  // ---- Tab switching ----
-  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab[data-tab]'));
-  var sections = Array.prototype.slice.call(
-    document.querySelectorAll('.section[data-tab-section]')
+  // ---- Top-tab switching (Decisions | Documentation) ----
+  var topTabs = Array.prototype.slice.call(
+    document.querySelectorAll('.top-tab[data-top-tab]')
   );
+  var topSections = Array.prototype.slice.call(
+    document.querySelectorAll('.top-section[data-top-tab]')
+  );
+  var bottomBar = document.querySelector('.bottom-bar');
 
-  function activateTab(key) {
-    tabs.forEach(function (t) {
+  function activateTopTab(key) {
+    topTabs.forEach(function (t) {
+      var isActive = t.getAttribute('data-top-tab') === key;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    topSections.forEach(function (sec) {
+      var isActive = sec.getAttribute('data-top-tab') === key;
+      sec.classList.toggle('visible', isActive);
+    });
+    if (bottomBar) {
+      bottomBar.hidden = key !== 'decisions';
+    }
+  }
+
+  topTabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      var key = t.getAttribute('data-top-tab');
+      if (key) activateTopTab(key);
+    });
+  });
+
+  // ---- Sub-tab switching ----
+  // Sub-tabs ([data-tab] / [data-tab-section]) live inside top sections. We
+  // scope toggling to the sub-tab's own top-section so the same key (if any)
+  // can't bleed across top sections.
+  function getOwnerTopSection(el) {
+    var node = el && el.parentNode;
+    while (node && node !== document) {
+      if (node.classList && node.classList.contains('top-section')) return node;
+      node = node.parentNode;
+    }
+    return document;
+  }
+
+  function activateTab(key, scope) {
+    var root = scope || document;
+    var subTabs = Array.prototype.slice.call(
+      root.querySelectorAll('.tab[data-tab]')
+    );
+    var subSections = Array.prototype.slice.call(
+      root.querySelectorAll('.section[data-tab-section]')
+    );
+    subTabs.forEach(function (t) {
       var isActive = t.getAttribute('data-tab') === key;
       t.classList.toggle('active', isActive);
       t.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
-    sections.forEach(function (sec) {
+    subSections.forEach(function (sec) {
       var isActive = sec.getAttribute('data-tab-section') === key;
       if (isActive) {
         sec.style.display = 'block';
@@ -57,10 +102,11 @@
     });
   }
 
-  tabs.forEach(function (t) {
+  var subTabs = Array.prototype.slice.call(document.querySelectorAll('.tab[data-tab]'));
+  subTabs.forEach(function (t) {
     t.addEventListener('click', function () {
       var key = t.getAttribute('data-tab');
-      if (key) activateTab(key);
+      if (key) activateTab(key, getOwnerTopSection(t));
     });
   });
 
@@ -195,6 +241,7 @@
   // Expose for tests / debugging.
   window.MCFeaturePage = {
     activateTab: activateTab,
+    activateTopTab: activateTopTab,
     handleSave: handleSave,
     buildMergedPayload: buildMergedPayload,
     getState: function () {

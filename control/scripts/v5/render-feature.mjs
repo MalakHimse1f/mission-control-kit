@@ -16,7 +16,25 @@
  * paint (no client round-trip).
  */
 
+import {
+  renderSpec,
+  renderTasks,
+  renderPhases,
+  renderJournal,
+  renderExplore,
+  renderWireframes,
+} from './render-docs.mjs';
+
 const TAB_ORDER = ['ux', 'ui', 'architecture'];
+
+const DOC_TABS = [
+  { key: 'doc-spec', label: 'Spec' },
+  { key: 'doc-tasks', label: 'Tasks' },
+  { key: 'doc-phases', label: 'Phases' },
+  { key: 'doc-journal', label: 'Journal' },
+  { key: 'doc-explore', label: 'Explore' },
+  { key: 'doc-wireframes', label: 'Wireframes' },
+];
 
 const PHASE_STATUS_LABEL = {
   complete: 'Complete',
@@ -248,6 +266,49 @@ function renderTabSection(tab, activeKey) {
     </div>`;
 }
 
+function renderTopTabs() {
+  return `
+    <nav class="top-tabs" role="tablist" aria-label="Feature view">
+      <button class="top-tab active" type="button" data-top-tab="decisions" aria-selected="true">Decisions</button>
+      <button class="top-tab" type="button" data-top-tab="documentation" aria-selected="false">Documentation</button>
+    </nav>`;
+}
+
+function renderDocSubTabs() {
+  const items = DOC_TABS.map((t, idx) => {
+    const isActive = idx === 0;
+    return `
+      <button class="tab${isActive ? ' active' : ''}" type="button" data-tab="${escapeAttr(t.key)}">
+        ${escapeHtml(t.label)}
+      </button>`;
+  }).join('');
+  return `<div class="tabs" role="tablist">${items}\n      </div>`;
+}
+
+function renderDocumentationSection(docs) {
+  const safeDocs = docs && typeof docs === 'object' ? docs : {};
+  const sections = [
+    { key: 'doc-spec', html: renderSpec(safeDocs.spec) },
+    { key: 'doc-tasks', html: renderTasks(safeDocs.tasks) },
+    { key: 'doc-phases', html: renderPhases(safeDocs.phases) },
+    { key: 'doc-journal', html: renderJournal(safeDocs.journal) },
+    { key: 'doc-explore', html: renderExplore(safeDocs.explore) },
+    { key: 'doc-wireframes', html: renderWireframes(safeDocs.wireframes) },
+  ]
+    .map((s, idx) => {
+      const isActive = idx === 0;
+      return `
+      <div class="section${isActive ? ' visible' : ''}" data-tab-section="${escapeAttr(s.key)}" role="tabpanel">${s.html}
+      </div>`;
+    })
+    .join('');
+  return `
+    <section class="top-section" data-top-tab="documentation">
+      ${renderDocSubTabs()}
+${sections}
+    </section>`;
+}
+
 function renderBottomBar() {
   return `
   <div class="bottom-bar">
@@ -338,8 +399,13 @@ export function renderFeature({ slug, data } = {}) {
 </head>
 <body>
   <div class="container">${renderBreadcrumb(displayName)}${renderHeader({ displayName, description, stageLabel })}
-    ${renderTabs(tabs, activeKey)}
+${renderTopTabs()}
+
+    <section class="top-section visible" data-top-tab="decisions">
+      ${renderTabs(tabs, activeKey)}
 ${sections}
+    </section>
+${renderDocumentationSection(data.docs)}
   </div>
 ${renderBottomBar()}
 ${renderToast()}

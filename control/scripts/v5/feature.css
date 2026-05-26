@@ -412,3 +412,245 @@ a {
     padding: 24px 16px 120px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Top-level navigation: Decisions | Documentation
+ * ------------------------------------------------------------------------- */
+.top-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  background: transparent;
+}
+.top-tab {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--transition), border-color var(--transition);
+}
+.top-tab:hover {
+  color: var(--text);
+}
+.top-tab.active {
+  color: #f5f5f5;
+  border-bottom: 2px solid var(--accent);
+}
+
+.top-section {
+  display: none;
+}
+.top-section.visible {
+  display: block;
+}
+
+/* Generic [hidden] support so toggling bottomBar.hidden works. */
+[hidden] {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * Documentation renderer styles (.doc-*)
+ * ------------------------------------------------------------------------- */
+.doc-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 48px 16px;
+  font-size: 14px;
+}
+
+.doc-md {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.5;
+  color: #cccccc;
+  font-size: 13px;
+  max-width: 80ch;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 0;
+}
+.doc-md pre {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: inherit;
+}
+article.doc-md {
+  padding: 16px 20px;
+}
+
+/* Tasks list */
+.doc-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.task-group {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+.task-group h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.task-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+  flex-wrap: wrap;
+}
+.task-title {
+  flex: 1;
+  min-width: 0;
+}
+.status-pill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.status-pill.done {
+  color: var(--success);
+  border-color: rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.1);
+}
+.status-pill.in-progress {
+  color: var(--accent);
+  border-color: rgba(106, 140, 175, 0.4);
+  background: rgba(106, 140, 175, 0.1);
+}
+.status-pill.pending {
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+.commit-link {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* Disclosures (phases / journal / explore md) */
+.doc-disclosure {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.doc-disclosure > summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+  transition: background var(--transition);
+}
+.doc-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.doc-disclosure > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+}
+.doc-disclosure[open] > summary::before {
+  transform: rotate(90deg);
+}
+.doc-disclosure > summary:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.doc-disclosure > .doc-md,
+.doc-disclosure > pre.doc-md {
+  border: none;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--panel-2);
+  max-width: none;
+}
+
+/* Explore + wireframes iframes */
+.doc-iframe,
+.iframe-card iframe {
+  width: 100%;
+  height: 360px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  display: block;
+}
+.doc-explore-item {
+  margin-bottom: 20px;
+}
+.doc-explore-item h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.doc-wireframes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.iframe-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.iframe-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}

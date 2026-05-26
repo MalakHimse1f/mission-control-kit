@@ -465,6 +465,104 @@ test('renderFeature falls back to text-only card when fragmentHtml is absent', (
   );
 });
 
+test('renderFeature contains top-level nav with Decisions and Documentation tabs', async () => {
+  const data = await loadFeatureData({
+    slug: 'personal-library-import',
+    controlRoot: SAMPLE_V5,
+  });
+  const html = renderFeature({ slug: 'personal-library-import', data });
+
+  // Top-tabs nav present.
+  assert.ok(/<nav class="top-tabs"/.test(html), 'expected <nav class="top-tabs">');
+  // Both top-tabs present.
+  assert.ok(/data-top-tab="decisions"/.test(html), 'expected decisions top-tab');
+  assert.ok(/data-top-tab="documentation"/.test(html), 'expected documentation top-tab');
+  // Labels.
+  assert.ok(/>Decisions</.test(html), 'expected Decisions label');
+  assert.ok(/>Documentation</.test(html), 'expected Documentation label');
+});
+
+test('renderFeature default top-tab state: Decisions visible, Documentation not', async () => {
+  const data = await loadFeatureData({
+    slug: 'personal-library-import',
+    controlRoot: SAMPLE_V5,
+  });
+  const html = renderFeature({ slug: 'personal-library-import', data });
+
+  // Decisions top-section is .visible by default.
+  assert.ok(
+    /<section class="top-section visible" data-top-tab="decisions"/.test(html),
+    'expected decisions top-section to be visible by default',
+  );
+  // Documentation top-section exists but is not visible.
+  assert.ok(
+    /<section class="top-section" data-top-tab="documentation"/.test(html),
+    'expected documentation top-section to be hidden by default',
+  );
+  // The Decisions top-tab carries .active.
+  assert.ok(
+    /class="top-tab active"[^>]*data-top-tab="decisions"/.test(html),
+    'expected Decisions top-tab to be .active on first paint',
+  );
+});
+
+test('renderFeature Documentation section contains all six sub-tabs', async () => {
+  const data = await loadFeatureData({
+    slug: 'personal-library-import',
+    controlRoot: SAMPLE_V5,
+  });
+  const html = renderFeature({ slug: 'personal-library-import', data });
+
+  // Extract the documentation top-section so we don't accidentally match
+  // sub-tabs from the decisions side.
+  const docMatch = html.match(
+    /<section class="top-section[^"]*" data-top-tab="documentation"[\s\S]*?<\/section>/,
+  );
+  assert.ok(docMatch, 'expected documentation top-section to be present');
+  const docHtml = docMatch[0];
+
+  for (const key of ['doc-spec', 'doc-tasks', 'doc-phases', 'doc-journal', 'doc-explore', 'doc-wireframes']) {
+    assert.ok(
+      docHtml.includes(`data-tab="${key}"`),
+      `expected documentation sub-tab data-tab="${key}"`,
+    );
+  }
+  for (const label of ['Spec', 'Tasks', 'Phases', 'Journal', 'Explore', 'Wireframes']) {
+    assert.ok(docHtml.includes(label), `expected sub-tab label ${label}`);
+  }
+});
+
+test('renderFeature Documentation defaults to Spec sub-tab visible', async () => {
+  const data = await loadFeatureData({
+    slug: 'personal-library-import',
+    controlRoot: SAMPLE_V5,
+  });
+  const html = renderFeature({ slug: 'personal-library-import', data });
+  const docMatch = html.match(
+    /<section class="top-section[^"]*" data-top-tab="documentation"[\s\S]*?<\/section>/,
+  );
+  assert.ok(docMatch);
+  const docHtml = docMatch[0];
+
+  // Spec sub-tab is .active.
+  assert.ok(
+    /class="tab active"[^>]*data-tab="doc-spec"/.test(docHtml),
+    'expected doc-spec sub-tab to be .active',
+  );
+  // Spec section is .visible.
+  assert.ok(
+    /<div class="section visible" data-tab-section="doc-spec"/.test(docHtml),
+    'expected doc-spec section to be .visible by default',
+  );
+  // Other doc sections are not .visible.
+  for (const key of ['doc-tasks', 'doc-phases', 'doc-journal', 'doc-explore', 'doc-wireframes']) {
+    assert.ok(
+      new RegExp(`<div class="section" data-tab-section="${key}"`).test(docHtml),
+      `expected ${key} section to be hidden (no .visible) by default`,
+    );
+  }
+});
+
 test('renderFeature handles tabs with no decisions (empty state)', () => {
   const data = {
     status: { slug: 'blank', feature: 'Blank' },
