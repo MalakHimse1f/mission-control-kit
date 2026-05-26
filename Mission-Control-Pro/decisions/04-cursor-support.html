@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 04 — Cursor support</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision workflow</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 04 · Path A</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Cursor support roughly doubles bridge integration cost.<br>Where on the timeline does Cursor fit?</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      Claude Code and Cursor have different hook surfaces, different plugin models, and different CLI postures. Supporting both means two integration shims, two sets of orchestrator skills, two test matrices, and two parallel failure modes for support. Cursor's extension surface is also less mature, so we'd be tracking a moving target.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Path A</span>
+    <p>Claude Code only for v1. Bridge core speaks to an <code>AgentAdapter</code> interface — Claude is the first implementation; Cursor lands as a drop-in adapter in v2 when a design-partner team formally blocks on it. Lock the interface before shipping Claude.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>When does Cursor become a first-class agent in the bridge?</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A -->
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Claude-only for v1 · adapter interface designed in</div>
+      <div class="path-desc">Ship Claude Code support as the only adapter in v1. Internally, the bridge speaks to an <code>AgentAdapter</code> interface — Claude is the first implementation. Cursor lands when a design partner asks and we have the bandwidth.</div>
+
+      <div class="diagram">
+        <span class="label">Adapter architecture</span>
+        <div class="flow-col">
+          <div class="flow-box info">Bridge core</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box good">ClaudeAdapter (v1)</div>
+          <div class="flow-box disabled">CursorAdapter (v2)</div>
+          <div class="flow-box disabled">FutureAdapter (vN)</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>v1 ships ~2× faster</li>
+            <li>Cursor becomes a *feature launch*, not a fix</li>
+            <li>We learn from Claude before duplicating effort</li>
+            <li>External story: "Claude-first," not "Claude-only forever"</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Loses Cursor-only teams as design partners</li>
+            <li>Marketing has to manage expectations</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <!-- PATH B -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Both at launch</div>
+      <div class="path-desc">Ship Claude and Cursor adapters together in v1. Double the integration work, but a wider initial market.</div>
+
+      <div class="diagram">
+        <span class="label">Two adapters at v1</span>
+        <div class="flow-col">
+          <div class="flow-box info">Bridge core</div>
+          <div class="flow-arrow">↓ ↓</div>
+          <div class="flow-row">
+            <div class="flow-box warn" style="flex:1;">ClaudeAdapter</div>
+            <div class="flow-box warn" style="flex:1;">CursorAdapter</div>
+          </div>
+          <div style="font-size: 0.62rem; color:#888; margin-top: 0.3rem;">2× hooks, 2× tests, 2× docs</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Bigger addressable market on day one</li>
+            <li>No "wait for Cursor" objection</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>v1 ships much later</li>
+            <li>Cursor's surface is less stable — chasing changes</li>
+            <li>Doubles support load before we have a support team</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path B</button>
+    </div>
+
+    <!-- PATH C -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Claude-only, no adapter abstraction</div>
+      <div class="path-desc">Hard-code Claude integration. Don't build an adapter layer. If Cursor support is needed, refactor later.</div>
+
+      <div class="diagram">
+        <span class="label">Direct integration</span>
+        <div class="flow-col">
+          <div class="flow-box info">Bridge core</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box good">Claude (hard-coded)</div>
+          <div style="font-size: 0.62rem; color:#e85d5d; margin-top: 0.3rem;">refactor pain if Cursor lands</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Fastest possible v1</li>
+            <li>Less code overall</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Cursor add becomes a rewrite, not a feature</li>
+            <li>Hard to swap models if Claude API shifts</li>
+            <li>Locks us in</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path C</button>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes if Path A is chosen</span>
+    The <code>AgentAdapter</code> interface should expose: <code>spawn(workspace, command)</code>, <code>installHooks()</code>, <code>onJournalWrite(callback)</code>, <code>signalDecision(decision)</code>. Lock the interface before shipping Claude so Cursor can drop in with no core changes.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 4 of 13 · first high-priority</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="03-security-boundary.html">← Previous</a>
+      <a class="btn-ghost" href="05-workflow-permission-precedence.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

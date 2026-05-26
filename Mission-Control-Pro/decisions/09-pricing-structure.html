@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 09 — Pricing structure</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision workflow</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 09 · Path A</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Pricing shape determines what the marketing site even shows.<br>What's the model?</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      Buyer is the eng manager or CTO. Value scales with team size and depth of org adoption. We need a model that's easy to predict on a budget, hard to game, and sticky once a team has built up workflows.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Path A</span>
+    <p>Per-seat with Free / Team / Enterprise tiers. <strong>Free is solo-user only</strong> — single user in the org, no teammates, no cloud-shared workflows. Team tier ~$30/seat/mo; any account in an org counts as a seat (PMs, designers, and engineers all count). Enterprise is custom. Stripe Customer Portal manages plans + seats.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>How does Mission Control Pro charge?</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A -->
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Per-seat with Free / Team / Enterprise</div>
+      <div class="path-desc">Free single-user. Team at ~$30/seat/month. Enterprise custom. Any account in an org = a seat (PMs/designers count). Annual discount.</div>
+
+      <div class="diagram">
+        <span class="label">Tier ladder</span>
+        <div class="flow-col">
+          <div class="flow-box info">Free — 1 user, local-only</div>
+          <div class="flow-box good">Team — $30/seat/mo</div>
+          <div class="flow-box good">Enterprise — custom, SSO, self-host</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Predictable budget for CTOs</li>
+            <li>Stripe-friendly</li>
+            <li>Free tier feeds Team via team growth</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Per-seat can feel high for non-engineering members</li>
+            <li>Need anti-share-account enforcement</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <!-- PATH B -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Usage-based — per agent session or per decision</div>
+      <div class="path-desc">Charge per metered unit: number of agent sessions per month, or per resolved decision. Free quota included.</div>
+
+      <div class="diagram">
+        <span class="label">Metered model</span>
+        <div class="flow-col">
+          <div class="flow-box warn">$0.10 / agent session</div>
+          <div class="flow-box warn">$0.05 / decision</div>
+          <div class="flow-box info">$50 free credit / month</div>
+          <div style="font-size: 0.62rem; color:#888; margin-top: 0.3rem;">Bill grows with usage</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Aligns cost with value extracted</li>
+            <li>Low entry friction for small teams</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Unpredictable bills = CTO discomfort</li>
+            <li>Encourages workflow shortcutting to save money</li>
+            <li>Hard to forecast revenue early</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path B</button>
+    </div>
+
+    <!-- PATH C -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Hybrid — per-seat base + usage overage</div>
+      <div class="path-desc">Per-seat covers a quota of sessions/decisions. Overage billed metered. Best for power users, but two bills to explain.</div>
+
+      <div class="diagram">
+        <span class="label">Hybrid</span>
+        <div class="flow-col">
+          <div class="flow-box info">$30/seat/mo (base)</div>
+          <div class="flow-box info">+ 200 sessions/seat included</div>
+          <div class="flow-box warn">Overage: $0.10/session</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Captures power users</li>
+            <li>Predictable base</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Two pricing dimensions = harder pitch</li>
+            <li>Need accurate metering from day one</li>
+            <li>Overage surprise = churn</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path C</button>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes if Path A is chosen</span>
+    Stripe Customer Portal handles plan + seat management. Webhook updates <code>subscriptions(org_id, plan, seat_count)</code>. Seat enforcement at invite time (block invite if it would exceed plan). Free tier = single-user org, no cloud sync — bridge runs in offline mode.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 9 of 13 · first medium</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="07-mobile-decision-ui.html">← Previous</a>
+      <a class="btn-ghost" href="10-ui-primitives-scope.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

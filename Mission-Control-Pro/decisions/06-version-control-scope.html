@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 06 — Version control scope</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision workflow</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 06 · Linear + drafts</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">"Version control everything" can mean five different things.<br>How rich is v1?</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      Workflows, standards, and primitives all need history. But "version control" spans from "every save is a new row" to "Git-like branches with PRs." The richer we go, the more we have to design (diff UI, merge UI, conflict resolution). Pick the level v1 ships.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Linear history + one draft per author</span>
+    <p>Every save creates a new immutable version pointing at the previous one. Each author can have one in-progress draft per workflow; drafts don't affect any agent. In-flight agent sessions pin to <code>version_id</code> at start. No branches, no merge UI in v1.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>What version control features ship in v1?</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Linear history only — every save is a new version</div>
+      <div class="path-desc">Each save creates an immutable version pointing at the previous one. No drafts, no branches. Rollback = publish a previous version as a new head. Diff view in markdown.</div>
+
+      <div class="diagram">
+        <span class="label">Linear history</span>
+        <div class="flow-col">
+          <div class="flow-box info">v1 → v2 → v3 → v4 (HEAD)</div>
+          <div class="flow-box disabled">No drafts</div>
+          <div class="flow-box disabled">No branches</div>
+          <div class="flow-box good">Rollback = new commit pointing back</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Smallest data model</li>
+            <li>Fastest to ship</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Authors can't iterate without going live</li>
+            <li>"I broke prod by saving" is a real risk</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path A</button>
+    </div>
+
+    <!-- PATH B -->
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Linear history + one draft per author</div>
+      <div class="path-desc">Path A, plus: each author can have one in-progress draft per workflow. Drafts don't affect any agent. Publishing a draft turns it into a new head version. Diff view shows draft vs. published.</div>
+
+      <div class="diagram">
+        <span class="label">Draft model</span>
+        <div class="flow-col">
+          <div class="flow-box info">v1 → v2 → v3 (HEAD)</div>
+          <div class="flow-arrow">↑ publish</div>
+          <div class="flow-box warn">draft (jamie's edits)</div>
+          <div class="flow-box warn">draft (maya's edits)</div>
+          <div style="font-size: 0.62rem; color:#888; margin-top: 0.2rem;">drafts isolated; published replaces head</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Authors can experiment safely</li>
+            <li>Multiple admins can work in parallel</li>
+            <li>Still simple — no merge UI</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Last-publish-wins between authors</li>
+            <li>Modest extra schema work</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <!-- PATH B (full git-like) -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Full Git-like — branches, PRs, merge</div>
+      <div class="path-desc">Named branches, pull requests, merge UI, conflict resolution. Approval flows. Webhooks. The whole thing.</div>
+
+      <div class="diagram">
+        <span class="label">Branching model</span>
+        <div class="flow-col">
+          <div class="flow-box info">main: v1 → v2 → v3</div>
+          <div class="flow-box warn">feature/x: v2.1 → v2.2</div>
+          <div class="flow-arrow">↓ PR + merge</div>
+          <div class="flow-box good">main: v4 (merged)</div>
+          <div style="font-size: 0.62rem; color:#e85d5d; margin-top: 0.2rem;">large UI surface · merge conflicts</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Familiar to engineers</li>
+            <li>Review workflow built in</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Massive UI scope</li>
+            <li>Merge conflicts on markdown = painful</li>
+            <li>Non-engineering admins find it intimidating</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path B</button>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes if Path C is chosen</span>
+    Schema: <code>workflows(id, slug, current_version_id)</code> + <code>workflow_versions(id, parent_id, body, author_id, published_at, is_head)</code> + <code>workflow_drafts(workflow_id, author_id, body, base_version_id)</code>. Unique constraint on <code>workflow_drafts(workflow_id, author_id)</code>. In-flight agent sessions pin to <code>version_id</code> at start.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 6 of 13</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="05-workflow-permission-precedence.html">← Previous</a>
+      <a class="btn-ghost" href="07-mobile-decision-ui.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

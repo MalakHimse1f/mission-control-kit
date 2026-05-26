@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 02 — Visibility model (resolved)</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision log</a>
+    <span class="crumb-tag decided">✓ Resolved · Issue 02 · Journal-driven model</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Visibility model — journal-driven, not transcript-driven.</h1>
+    <div class="problem-statement">
+      <span class="label">The original concern</span>
+      Claude Code does not expose the live transcript to external processes. If we wanted "the cloud sees what the agent is doing," we had three options: capture journal entries the orchestrator skill explicitly writes (small, structured), mirror the entire chat (impossible without changes to Claude Code), or try a hybrid. We needed to pick one.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Resolved 2026-05-26 · Journal-driven</span>
+    <p>The cloud sees only what the <strong>orchestrator skill and subagents explicitly journal</strong> — plus structured <code>decide</code> events that pause the agent. Free-form chat stays in the IDE. The web and mobile surfaces answer the <em>structured</em> moments; everything between is the user's private workspace.</p>
+    <p style="margin-top: 0.5rem;"><strong>Hooks must be unbypassable.</strong> They are the contract that important moments were journaled. If a subagent forgets to journal, the cloud doesn't know it happened — so journaling is enforced at hook boundaries, not by convention.</p>
+  </div>
+
+  <div class="paths">
+    <div class="path decided" style="grid-column: span 2;">
+      <div class="path-letter-row">
+        <span class="path-letter">✓</span>
+        <span class="decided-badge">Journal-driven</span>
+      </div>
+      <div class="path-title">What flows to the cloud</div>
+      <div class="diagram">
+        <span class="label">Two channels only</span>
+        <div class="flow-col">
+          <div class="flow-box good">Journal events — explicitly written by orchestrator + subagents</div>
+          <div class="flow-box good">Decision requests — emitted by <code>decide</code> step type</div>
+          <div class="flow-box disabled">Free-form chat transcript — never</div>
+          <div class="flow-box disabled">File contents — never (unless explicitly attached)</div>
+          <div class="flow-box disabled">Tool call arguments — never</div>
+        </div>
+      </div>
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Implications</div>
+          <ul>
+            <li>The bridge protocol carries structured events, not text streams</li>
+            <li>Dashboard visibility is bounded — what's journaled is what's seen</li>
+            <li>Privacy is enforced by what the skill writes, not by post-hoc filtering</li>
+            <li>"Answer from mobile" only works when the workflow uses <code>decide</code></li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Hooks are load-bearing</div>
+          <ul>
+            <li>Every important moment must journal — hook boundary enforces it</li>
+            <li>Workflow steps that forget to use <code>decide</code> won't surface to mobile</li>
+            <li>The orchestrator skill is the contract — bugs there hide events</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <span class="label">Cross-references</span>
+    Resolves Issue 8 (transcript privacy) as well — same model.<br>
+    Drives the bridge protocol: structured envelopes, not text streams.<br>
+    Drives the workflow DSL: <code>decide</code> step type is the only path to user interaction outside the IDE.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 2 of 13 · resolved</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="01-bridge-install-gate.html">← Previous</a>
+      <a class="btn-ghost" href="03-security-boundary.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
