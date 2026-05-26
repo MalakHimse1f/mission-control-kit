@@ -99,22 +99,12 @@ body.mc-diagram {
 /* ---------- Option grid + cards (radio behavior) ---------- */
 .mc-options-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
 }
 
 .mc-options-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
 .mc-options-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
-
-@media (max-width: 900px) {
-  .mc-options-grid,
-  .mc-options-grid[data-cols="2"],
-  .mc-options-grid[data-cols="4"] {
-    grid-template-columns: 1fr;
-    max-width: 380px;
-    margin: 0 auto;
-  }
-}
 
 .mc-option-card {
   background: var(--mc-panel);
@@ -126,6 +116,7 @@ body.mc-diagram {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
   transition: border-color var(--mc-transition),
               box-shadow var(--mc-transition),
               transform var(--mc-transition);
@@ -272,6 +263,7 @@ body.mc-diagram {
 /* ---------- UX flow timeline ---------- */
 .mc-flow-timeline {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 0;
   padding: 16px 0;
@@ -281,7 +273,7 @@ body.mc-diagram {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 130px;
+  min-width: 80px;
   position: relative;
   flex: 1;
 }
@@ -401,6 +393,7 @@ body.mc-diagram {
   background: #1a1a1a;
   position: relative;
   overflow: hidden;
+  margin-inline: auto;
 }
 .mc-mini-bg-line {
   height: 4px;
