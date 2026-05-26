@@ -2,7 +2,7 @@
  * Tests for lib/v5/build-pickup-prompt.mjs
  *
  * Validates that the orchestrator pickup prompt:
- *   - is ≤5 lines (per §1 of docs/REFACTOR-REQUIREMENTS.md)
+ *   - is ≤2 sentences (per §1 of docs/REFACTOR-REQUIREMENTS.md)
  *   - contains the slug and stage
  *   - points at the v5 status.json and decisions.json paths
  *   - references the v5 mc-router
@@ -14,12 +14,20 @@ import assert from 'node:assert/strict';
 
 import { buildPickupPrompt } from '../lib/v5/build-pickup-prompt.mjs';
 
-test('buildPickupPrompt returns at most 5 lines', () => {
+/** Count sentences ending with `.`, `?`, or `!` (excluding empty fragments). */
+function countSentences(text) {
+  return text
+    .split(/(?<=[.?!])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0).length;
+}
+
+test('buildPickupPrompt returns at most 2 sentences', () => {
   const prompt = buildPickupPrompt({ slug: 'user-onboarding', stage: 'ux' });
-  const lines = prompt.split('\n');
+  const count = countSentences(prompt);
   assert.ok(
-    lines.length <= 5,
-    `expected ≤5 lines, got ${lines.length}:\n${prompt}`,
+    count <= 2,
+    `expected ≤2 sentences, got ${count}:\n${prompt}`,
   );
 });
 
@@ -41,11 +49,15 @@ test('buildPickupPrompt references the v5 status.json path', () => {
   );
 });
 
-test('buildPickupPrompt references the v5 decisions.json path', () => {
+test('buildPickupPrompt references decisions.json near the slug', () => {
+  // After tightening to 2 sentences, the prompt collapses the two read paths
+  // into "status.json and decisions.json" sharing the slug directory. We just
+  // need to know both filenames appear and the slug directory is referenced.
   const prompt = buildPickupPrompt({ slug: 'user-onboarding', stage: 'ux' });
   assert.ok(
-    prompt.includes('control/v5/features/user-onboarding/decisions.json'),
-    `expected control/v5/features/user-onboarding/decisions.json in prompt:\n${prompt}`,
+    prompt.includes('control/v5/features/user-onboarding/') &&
+      prompt.includes('decisions.json'),
+    `expected decisions.json under control/v5/features/user-onboarding/ in prompt:\n${prompt}`,
   );
 });
 

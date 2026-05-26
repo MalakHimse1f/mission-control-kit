@@ -10,6 +10,8 @@
  * /dashboard-client.js).
  */
 
+import { buildPickupPrompt } from '../../../lib/v5/build-pickup-prompt.mjs';
+
 const STAGE_DOT = {
   'needs-input': 'dot-input',
   ready: 'dot-ready',
@@ -75,6 +77,86 @@ function relativeTime(iso, now = Date.now()) {
   return 'Updated just now';
 }
 
+/**
+ * Pick the feature the user is most likely picking up where they left off.
+ * Priority:
+ *   1. state.activeFeature if it resolves to a real feature
+ *   2. most recently updated in-progress feature
+ *   3. most recently updated needs-input feature
+ *   4. otherwise null (the panel is hidden)
+ */
+function pickActiveFeature(data) {
+  const all = Array.isArray(data.allItems) ? data.allItems : [];
+  const byActiveSlug = data.state && data.state.activeFeature
+    ? all.find((f) => f.slug === data.state.activeFeature)
+    : null;
+  if (byActiveSlug) return byActiveSlug;
+  const live = Array.isArray(data.liveAgents) ? data.liveAgents : [];
+  if (live.length > 0) return live[0];
+  const needsInput = all.filter((f) => f.stage === 'needs-input');
+  if (needsInput.length > 0) return needsInput[0];
+  return null;
+}
+
+/**
+ * Render the "Pickup where you left off" panel. Shows the canonical
+ * 2-sentence prompt + a copy button. The user pastes it into a fresh chat
+ * to resume work without relying on chat compaction.
+ */
+function renderPickupPanel(data) {
+  const feature = pickActiveFeature(data);
+  if (!feature) {
+    return `
+    <div class="section-label">Pickup where you left off</div>
+    <div class="panel">
+      <div class="muted-text empty-state">Nothing active yet — start a feature with <code>/mc-v5</code>.</div>
+    </div>`;
+  }
+  const slug = feature.slug;
+  const slugEsc = escapeHtml(slug);
+  const slugPath = encodePathSegment(slug);
+  // currentPhase is the precise stage v5 cares about (ux / ui / architecture /
+  // build / mock). Fall back to the bucket stage if no currentPhase recorded.
+  const stage = feature.currentPhase || feature.stage || 'unknown';
+  const prompt = buildPickupPrompt({ slug, stage });
+  const stageLabel = STAGE_LABEL[feature.stage] || feature.stage || '';
+  const phaseLabel = feature.currentPhase ? capitalize(feature.currentPhase) : '';
+
+  return `
+    <div class="section-label">Pickup where you left off</div>
+    <div class="panel panel-pickup">
+      <div class="pickup-header">
+        <a class="pickup-feature" href="/feature/${slugPath}">
+          <span class="pickup-name">${slugEsc}</span>${phaseLabel ? `<span class="phase-badge">${escapeHtml(phaseLabel)}</span>` : ''}${stageLabel ? `<span class="stage-badge">${escapeHtml(stageLabel)}</span>` : ''}
+        </a>
+      </div>
+      <div class="pickup-prompt-row">
+        <pre class="pickup-prompt" id="pickup-prompt-text">${escapeHtml(prompt)}</pre>
+        <button class="pickup-copy" type="button" data-copy-target="pickup-prompt-text">
+          <span class="copy-icon" aria-hidden="true">⧉</span>
+          <span class="copy-label">Copy pickup prompt</span>
+        </button>
+      </div>
+      <p class="pickup-hint">
+        Paste into a fresh chat to resume without leaning on compaction.
+        The orchestrator reads the rest of its context on demand via the v5 router.
+      </p>
+    </div>`;
+}
+
+/**
+ * A compact "Copy pickup" button for a single feature. Generates the
+ * canonical 2-sentence prompt and stashes it on the button via `data-copy`
+ * so the global copy handler picks it up. Returns '' if the feature is
+ * complete (nothing to resume).
+ */
+function renderRowPickupButton(feature) {
+  if (!feature || feature.stage === 'complete') return '';
+  const stage = feature.currentPhase || feature.stage || 'unknown';
+  const prompt = buildPickupPrompt({ slug: feature.slug, stage });
+  return `<button class="row-pickup" type="button" data-copy="${escapeAttr(prompt)}" title="Copy pickup prompt — paste in a fresh chat to resume" onclick="event.preventDefault(); event.stopPropagation();"><span class="copy-icon" aria-hidden="true">⧉</span><span class="row-pickup-label">Pickup</span></button>`;
+}
+
 function renderLiveAgent(feature) {
   const slug = feature.slug;
   const slugEsc = escapeHtml(slug);
@@ -98,6 +180,7 @@ function renderLiveAgent(feature) {
           <span class="pulse-dot"></span>
           <span class="live-item-name">${slugEsc}</span>
           <span class="phase-badge">${escapeHtml(phase)}</span>
+          ${renderRowPickupButton(feature)}
         </div>${progressRow}
       </a>`;
 }
@@ -143,6 +226,7 @@ function renderUpNextPanel(upNext) {
       <a class="next-item" href="/feature/${slugPath}" data-feature="${escapeAttr(slug)}">
         <div class="next-item-header">
           <span class="next-item-name">${slugEsc}</span>
+          ${renderRowPickupButton(upNext)}
         </div>
         ${description}
         <div class="next-item-footer">
@@ -168,6 +252,7 @@ function renderItemRow(feature, now) {
           <span class="item-name">${slugEsc}</span>
           <span class="item-stage">${escapeHtml(stageLabel)}</span>
           ${updatedEl}
+          ${renderRowPickupButton(feature)}
         </a>`;
 }
 
@@ -177,117 +262,67 @@ function renderItemRow(feature, now) {
  * Keep entries short — the dashboard "How to use" panel is a reference, not
  * full docs.
  */
-const SLASH_COMMAND_GROUPS = [
-  {
-    label: 'Project START',
-    items: [
-      { cmd: '/mc-start', desc: 'Start a new project (tech stack + first feature)' },
-      { cmd: '/mc-init', desc: 'Establish tech-stack context before any feature work' },
-    ],
-  },
-  {
-    label: 'v5 Feature flow',
-    items: [
-      { cmd: '/mc-v5', desc: 'v5 orchestrator hub — entry point for new features' },
-      { cmd: '/mc-v5-resume <slug>', desc: 'Resume an in-flight v5 feature from disk' },
-    ],
-  },
-  {
-    label: 'v4 Feature flow (still supported)',
-    items: [
-      { cmd: '/mc-feature', desc: 'Add a new feature (braindump → explore → spec → build)' },
-      { cmd: '/mc-refine', desc: 'Resume an interrupted braindump' },
-      { cmd: '/mc-layout', desc: 'Wireframe + layout step' },
-      { cmd: '/mc-plan', desc: 'Generate phased implementation plan' },
-      { cmd: '/mc-portfolio', desc: 'Holistic review of all approved specs' },
-      { cmd: '/mc-build', desc: 'Dispatch the build subagent from HANDOFF' },
-      { cmd: '/mc-validate', desc: 'Orchestrator-internal validation gate' },
-    ],
-  },
-  {
-    label: 'Session + maintenance',
-    items: [
-      { cmd: '/mc-handoff', desc: 'Structured end-of-chat session handoff' },
-      { cmd: '/mc-upgrade', desc: 'Safe kit upgrade to the latest release' },
-      { cmd: '/mc', desc: 'Mission Control router — picks the right workflow' },
-    ],
-  },
+/**
+ * Flat list of every slash command available in the kit, with one-line "how
+ * to use it" copy. Each row gets a copy-to-clipboard button in the UI.
+ */
+const SLASH_COMMANDS = [
+  { cmd: '/mc', desc: 'Mission Control router — picks the right workflow for your input.' },
+  { cmd: '/mc-start', desc: 'Start a new project. Establishes the tech stack and seeds the first feature.' },
+  { cmd: '/mc-init', desc: 'Establish tech-stack context. Run before any feature work in a new project.' },
+  { cmd: '/mc-v5', desc: 'v5 orchestrator hub. Entry point for new features in the v5 pipeline.' },
+  { cmd: '/mc-v5-resume <slug>', desc: 'Resume a v5 feature where you left off. Reads status.json + decisions.json from disk.' },
+  { cmd: '/mc-feature', desc: 'Add a new feature. Drives braindump → explore → spec → build for one feature.' },
+  { cmd: '/mc-refine', desc: 'Resume an interrupted braindump. Picks up after a /clear or session crash.' },
+  { cmd: '/mc-layout', desc: 'Wireframe + layout step. Produces HTML mocks for screens in the active feature.' },
+  { cmd: '/mc-plan', desc: 'Generate a phased implementation plan from the approved spec.' },
+  { cmd: '/mc-portfolio', desc: 'Holistic review across all approved specs. Surfaces overlap, contradictions, build order.' },
+  { cmd: '/mc-build', desc: 'Dispatch the build subagent from the active HANDOFF doc.' },
+  { cmd: '/mc-validate', desc: 'Orchestrator-internal validation gate. Used between phases of the pipeline.' },
+  { cmd: '/mc-handoff', desc: 'Structured end-of-chat session handoff. Run before /clear so the next session can pick up.' },
+  { cmd: '/mc-upgrade', desc: 'Safe kit upgrade to the latest release. Runs migrations, preserves your data.' },
 ];
 
 /**
  * Bundled skill packages MCK auto-invokes. Keep these in lock-step with
  * /Users/lane/Documents/mission-control-kit/control/vendor/manifest.json.
  */
+/**
+ * Flat list of every bundled skill the kit auto-invokes, with its source +
+ * one-line "how to use it" copy. Sources kept in lock-step with
+ * `control/vendor/manifest.json`. Each row gets a copy-to-clipboard button on
+ * the skill name in the UI.
+ */
 const BUNDLED_SKILLS = [
-  {
-    id: 'mck-builtin',
-    tag: 'MCK',
-    tagClass: 'tag-mck',
-    name: 'Mission Control Kit (built-in)',
-    skills: [
-      { name: 'mc-v5', desc: 'Orchestrator hub' },
-      { name: 'mc-v5-brainstorm', desc: 'Brainstorm flow + research dispatch' },
-      { name: 'mc-v5-decide', desc: 'Decision encoding + visual fragment generation' },
-      { name: 'mc-v5-build', desc: 'Build subagent (MVVM-enforced)' },
-      { name: 'mc-v5-review', desc: 'Auto-launch dashboard at decision points' },
-    ],
-    attribution: 'Mission Control Kit — this repository',
-    href: 'https://github.com/MalakHimse1f/mission-control-kit',
-  },
-  {
-    id: 'superpowers',
-    tag: 'superpowers',
-    tagClass: 'tag-superpowers',
-    name: 'superpowers',
-    skills: [
-      { name: 'brainstorming', desc: 'Question-driven ideation' },
-      { name: 'parallel-web-search', desc: 'Research dispatch (used by mc-v5-brainstorm)' },
-      { name: 'writing-plans', desc: 'Plan authoring' },
-      { name: 'subagent-driven-development', desc: 'Task dispatch loop' },
-      { name: 'verification-before-completion', desc: 'Output verification' },
-    ],
-    attribution: 'Jesse Vincent (obra) · MIT',
-    href: 'https://github.com/obra/superpowers',
-  },
-  {
-    id: 'prd-generator',
-    tag: 'prd-generator',
-    tagClass: 'tag-prd',
-    name: 'prd-generator',
-    skills: [
-      { name: 'prd-generator', desc: 'Generates spec.md from approved decisions' },
-    ],
-    attribution: 'James Rochabrun (jamesrochabrun)',
-    href: 'https://github.com/jamesrochabrun/skills',
-  },
-  {
-    id: 'designer-skills',
-    tag: 'designer-skills',
-    tagClass: 'tag-designer',
-    name: 'designer-skills',
-    skills: [
-      { name: 'design-research', desc: 'Pattern research for UI decisions' },
-      { name: 'ux-strategy', desc: 'UX flow rationale' },
-      { name: 'interaction-design', desc: 'Affordance + interaction modeling' },
-      { name: 'visual-critique', desc: 'Layout and hierarchy review' },
-    ],
-    attribution: 'Owl-Listener',
-    href: 'https://github.com/Owl-Listener/designer-skills',
-  },
-  {
-    id: 'startup-skill',
-    tag: 'startup-skill',
-    tagClass: 'tag-startup',
-    name: 'startup-skill',
-    skills: [
-      { name: 'startup-design', desc: 'Brand and identity at project-start' },
-      { name: 'startup-competitors', desc: 'Competitive analysis' },
-      { name: 'startup-positioning', desc: 'Market positioning' },
-      { name: 'startup-pitch', desc: 'Pitch deck drafting' },
-    ],
-    attribution: 'Ferdinando Bons (ferdinandobons)',
-    href: 'https://github.com/ferdinandobons/startup-skill',
-  },
+  // Mission Control Kit — built into this repo
+  { name: 'mc-v5', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Orchestrator hub. Routes a fresh user message into the right v5 workflow.' },
+  { name: 'mc-v5-brainstorm', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Brainstorm flow. Always offers research, transforms patterns into a UX flow diagram, opens the dashboard.' },
+  { name: 'mc-v5-decide', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Encodes a single decision. Writes decisions.json + generates the visual fragment via build-decision.mjs.' },
+  { name: 'mc-v5-build', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Build subagent. Enforces MVVM layering and checks every decision has a visual fragment.' },
+  { name: 'mc-v5-review', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Auto-launches the dashboard at decision points so you can review without leaving the loop.' },
+
+  // superpowers — Jesse Vincent (obra)
+  { name: 'brainstorming', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Question-driven ideation. Drives the conversational arc inside mc-v5-brainstorm.' },
+  { name: 'parallel-web-search', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Dispatched by mc-v5-brainstorm whenever the user says "yes" to research.' },
+  { name: 'parallel-deep-research', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Deeper alternative to parallel-web-search. Used when the user asks for "deep" research.' },
+  { name: 'writing-plans', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Plan authoring. Turns a spec into a phased implementation plan.' },
+  { name: 'subagent-driven-development', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Task dispatch loop. The orchestrator uses this to drive parallel build subagents.' },
+  { name: 'verification-before-completion', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Output verification. Each subagent self-checks before reporting DONE.' },
+
+  // prd-generator — James Rochabrun
+  { name: 'prd-generator', source: 'prd-generator', sourceClass: 'tag-prd', sourceHref: 'https://github.com/jamesrochabrun/skills', desc: 'Generates spec.md from approved decisions. Auto-invoked at the end of brainstorming.' },
+
+  // designer-skills — Owl-Listener
+  { name: 'design-research', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'Pattern research for UI decisions. Feeds into UI-tab diagrams.' },
+  { name: 'ux-strategy', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'UX flow rationale. Used by mc-v5-brainstorm to ground UX decisions.' },
+  { name: 'interaction-design', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'Affordance + interaction modeling. Used when building diagrams in the UX phase.' },
+  { name: 'visual-critique', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'Layout and hierarchy review. Auto-invoked during UI decisions.' },
+
+  // startup-skill — Ferdinando Bons
+  { name: 'startup-design', source: 'startup-skill', sourceClass: 'tag-startup', sourceHref: 'https://github.com/ferdinandobons/startup-skill', desc: 'Brand and identity at project-start. Auto-invoked by /mc-start.' },
+  { name: 'startup-competitors', source: 'startup-skill', sourceClass: 'tag-startup', sourceHref: 'https://github.com/ferdinandobons/startup-skill', desc: 'Competitive analysis. Part of the project-start workflow.' },
+  { name: 'startup-positioning', source: 'startup-skill', sourceClass: 'tag-startup', sourceHref: 'https://github.com/ferdinandobons/startup-skill', desc: 'Market positioning. Drafts your "why this, why now" narrative.' },
+  { name: 'startup-pitch', source: 'startup-skill', sourceClass: 'tag-startup', sourceHref: 'https://github.com/ferdinandobons/startup-skill', desc: 'Pitch deck drafting. Final step of the project-start workflow.' },
 ];
 
 const TYPICAL_WORKFLOWS = [
@@ -296,11 +331,11 @@ const TYPICAL_WORKFLOWS = [
     sequence: ['/mc-start', '/mc-init', '/mc-v5 (per feature)'],
   },
   {
-    label: 'Add a feature (v5)',
+    label: 'Add a feature',
     sequence: ['/mc-v5', 'brainstorm → decisions saved', '/mc-v5-resume <slug>', '/mc-build'],
   },
   {
-    label: 'Add a feature (v4, still works)',
+    label: 'Quick feature (no brainstorm)',
     sequence: ['/mc-feature', '/mc-layout', '/mc-plan', '/mc-build', '/mc-validate'],
   },
   {
@@ -309,37 +344,44 @@ const TYPICAL_WORKFLOWS = [
   },
 ];
 
+/**
+ * One row in the slash-commands or bundled-skills table. Column 1 is the
+ * copy chip (clicking copies the literal name); column 2 is "how to use it".
+ * The `extra` column (only for the skills table) shows the source attribution.
+ */
+function renderCopyRow({ name, desc, source, sourceClass, sourceHref }) {
+  const sourceCell =
+    source != null
+      ? `
+              <td class="col-source">
+                <a class="skill-tag ${escapeAttr(sourceClass || '')}" href="${escapeAttr(sourceHref || '#')}" target="_blank" rel="noopener">${escapeHtml(source)}</a>
+              </td>`
+      : '';
+  return `
+            <tr>
+              <td class="col-name">
+                <button class="copy-btn" type="button" data-copy="${escapeAttr(name)}" title="Copy to clipboard">
+                  <code>${escapeHtml(name)}</code>
+                  <span class="copy-icon" aria-hidden="true">⧉</span>
+                </button>
+              </td>${sourceCell}
+              <td class="col-desc">${escapeHtml(desc)}</td>
+            </tr>`;
+}
+
 function renderHowToUse() {
-  const commandGroups = SLASH_COMMAND_GROUPS.map(
-    (g) => `
-            <div class="cmd-group">
-              <h4>${escapeHtml(g.label)}</h4>
-              <ul>${g.items
-                .map(
-                  (it) => `
-                <li><code>${escapeHtml(it.cmd)}</code><span class="cmd-desc">${escapeHtml(it.desc)}</span></li>`,
-                )
-                .join('')}
-              </ul>
-            </div>`,
+  const commandRows = SLASH_COMMANDS.map((it) =>
+    renderCopyRow({ name: it.cmd, desc: it.desc }),
   ).join('');
 
-  const bundleCards = BUNDLED_SKILLS.map(
-    (b) => `
-            <div class="bundle-card">
-              <div class="bundle-card-header">
-                <span class="skill-tag ${escapeAttr(b.tagClass)}">${escapeHtml(b.tag)}</span>
-                <span class="bundle-card-title">${escapeHtml(b.name)}</span>
-              </div>
-              <ul>${b.skills
-                .map(
-                  (s) => `
-                <li><code>${escapeHtml(s.name)}</code><span class="li-desc">${escapeHtml(s.desc)}</span></li>`,
-                )
-                .join('')}
-              </ul>
-              <div class="bundle-attribution">— <a href="${escapeAttr(b.href)}" target="_blank" rel="noopener">${escapeHtml(b.attribution)}</a></div>
-            </div>`,
+  const skillRows = BUNDLED_SKILLS.map((s) =>
+    renderCopyRow({
+      name: s.name,
+      desc: s.desc,
+      source: s.source,
+      sourceClass: s.sourceClass,
+      sourceHref: s.sourceHref,
+    }),
   ).join('');
 
   const workflowItems = TYPICAL_WORKFLOWS.map(
@@ -360,19 +402,29 @@ function renderHowToUse() {
 
         <section class="how-section">
           <h3>Slash commands</h3>
-          <div class="cmd-grid">${commandGroups}
-          </div>
+          <table class="howto-table">
+            <thead>
+              <tr><th class="col-name">Command</th><th class="col-desc">How to use it</th></tr>
+            </thead>
+            <tbody>${commandRows}
+            </tbody>
+          </table>
         </section>
 
         <section class="how-section">
           <h3>Bundled skills</h3>
           <p class="how-section-desc">
-            MCK auto-invokes these skill bundles during brainstorming, decision encoding, and build phases.
+            MCK auto-invokes these skills during brainstorming, decision encoding, and build phases.
             They are referenced in routing docs at <code>control/v5/routing/</code> and pulled at install time —
             none are bundled as code inside this repo.
           </p>
-          <div class="bundle-grid">${bundleCards}
-          </div>
+          <table class="howto-table howto-table-skills">
+            <thead>
+              <tr><th class="col-name">Skill</th><th class="col-source">Source</th><th class="col-desc">How to use it</th></tr>
+            </thead>
+            <tbody>${skillRows}
+            </tbody>
+          </table>
         </section>
 
         <section class="how-section">
@@ -459,6 +511,7 @@ export function renderDashboard(data, opts = {}) {
   <div class="container">
     <h1>Mission Control Kit</h1>
     <p class="subtitle">v5 Dashboard — Feature pipeline at a glance</p>
+${renderPickupPanel(safeData)}
 ${renderLiveAgentsPanel(liveAgents)}
 ${renderUpNextPanel(upNext)}
 ${renderAllItemsPanel(allItems, filterCounts, now)}

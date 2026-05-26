@@ -161,26 +161,59 @@ test('renderDashboard includes "How to use" disclosure, collapsed by default', a
   );
 });
 
+test('renderDashboard renders How to use as a table with copy buttons', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  assert.ok(html.includes('<table class="howto-table">'), 'expected commands table');
+  assert.ok(html.includes('howto-table-skills'), 'expected skills table');
+  // Copy buttons present for slash commands
+  assert.ok(
+    html.includes('data-copy="/mc-v5"'),
+    'expected copy button for /mc-v5',
+  );
+  // Copy buttons present for bundled skills
+  assert.ok(
+    html.includes('data-copy="parallel-web-search"'),
+    'expected copy button for parallel-web-search skill',
+  );
+});
+
 test('renderDashboard lists key slash commands in How to use', async () => {
   const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
   for (const cmd of ['/mc-v5', '/mc-v5-resume', '/mc-start', '/mc-feature', '/mc-init', '/mc-build', '/mc-handoff']) {
     assert.ok(
-      html.includes(`<code>${cmd}`),
+      html.includes(`data-copy="${cmd}`),
       `expected slash command ${cmd} in How to use`,
     );
   }
 });
 
-test('renderDashboard lists all five bundled skill sources with attribution', async () => {
+test('renderDashboard "How to use" has no v4 label', async () => {
   const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
-  // Bundle tag labels (one per source)
+  // v4 should not be called out as a separate section header
+  assert.ok(!html.includes('v4 Feature flow'), 'expected no v4 header in How to use');
+});
+
+test('renderDashboard lists all four community bundles with skill-tag chips', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  // Source attribution chips appear once per skill row referencing each bundle
   for (const tag of ['superpowers', 'prd-generator', 'designer-skills', 'startup-skill']) {
-    assert.ok(html.includes(tag), `expected bundle "${tag}" referenced in How to use`);
+    assert.ok(html.includes(tag), `expected bundle "${tag}" referenced in skills table`);
   }
-  // Attribution names
-  for (const author of ['Jesse Vincent', 'James Rochabrun', 'Owl-Listener', 'Ferdinando Bons']) {
-    assert.ok(html.includes(author), `expected attribution "${author}" in How to use`);
-  }
+});
+
+test('renderDashboard includes the Pickup where you left off panel', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  assert.ok(
+    html.includes('Pickup where you left off'),
+    'expected section label',
+  );
+  // Sample-project has an active feature so the panel should contain the prompt
+  assert.ok(
+    html.includes('class="pickup-prompt"') || html.includes("class='pickup-prompt'"),
+    'expected pickup-prompt block',
+  );
+  assert.ok(html.includes('Resume feature'), 'expected pickup prompt text');
+  assert.ok(html.includes('data-copy-target="pickup-prompt-text"'), 'expected copy button targeting pickup prompt');
 });
 
 test('renderDashboard contains each filter pill name and count', async () => {

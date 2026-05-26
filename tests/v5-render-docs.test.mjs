@@ -29,13 +29,34 @@ test('renderSpec returns empty-state for missing spec', () => {
   assert.match(html, /No spec yet/);
 });
 
-test('renderSpec wraps content in doc-md article with <pre>', () => {
+test('renderSpec wraps content in doc-md article with flowing markdown', () => {
   const html = renderSpec({ exists: true, content: '# Hello\n\nLine 2' });
   assert.match(html, /class="doc-md"/);
-  assert.match(html, /<pre>/);
-  assert.match(html, /# Hello/);
-  // Newline preserved literally inside the <pre> (no <br>, no markdown conversion).
-  assert.ok(html.includes('# Hello\n\nLine 2'));
+  // Heading rendered as <h1>, paragraph as <p> — flowing layout, not <pre>.
+  assert.match(html, /<h1>Hello<\/h1>/);
+  assert.match(html, /<p>Line 2<\/p>/);
+});
+
+test('renderSpec collapses single newlines inside a paragraph into spaces', () => {
+  // 80-column wrapped prose should flow as one paragraph, not break per line.
+  const html = renderSpec({
+    exists: true,
+    content: 'Line one of the same paragraph.\nLine two of the same paragraph.',
+  });
+  assert.match(
+    html,
+    /<p>Line one of the same paragraph\. Line two of the same paragraph\.<\/p>/,
+  );
+});
+
+test('renderSpec renders bullet lists', () => {
+  const html = renderSpec({ exists: true, content: '- alpha\n- beta\n- gamma' });
+  assert.match(html, /<ul><li>alpha<\/li><li>beta<\/li><li>gamma<\/li><\/ul>/);
+});
+
+test('renderSpec renders inline code with `backticks`', () => {
+  const html = renderSpec({ exists: true, content: 'Use `npm test` to run.' });
+  assert.match(html, /<code>npm test<\/code>/);
 });
 
 test('renderSpec escapes HTML in spec content', () => {
