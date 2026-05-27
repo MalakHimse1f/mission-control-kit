@@ -258,8 +258,8 @@ test('routing manifest documents both universal rules — decisions vs clarifyin
   );
   assert.match(
     body,
-    /mc-v5-decide/,
-    'ROUTING-MANIFEST.md must name the mc-v5-decide skill as the decision path',
+    /mc-decide/,
+    'ROUTING-MANIFEST.md must name the mc-decide skill as the decision path',
   );
   assert.match(
     body,
@@ -419,7 +419,7 @@ test('parallel-execution skill references the analyzeTasks API by name', async (
   const skillPath = path.join(
     REPO_ROOT,
     'skills',
-    'mc-v5',
+    'mc',
     'parallel-execution.md',
   );
   const body = await fs.readFile(skillPath, 'utf8');

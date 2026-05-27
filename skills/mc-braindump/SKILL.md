@@ -22,7 +22,12 @@ before any PRD or mock work.
    Then continue with the steps below.
 2. **Scope.** Ask one scoping question (target user, primary trigger, key
    constraints — pick the one most likely to unlock everything else).
-3. **User responds.**
+3. **User responds. Persist the idea + scope to disk.** Write the user's
+   original idea and scoping answer to
+   `control/v5/features/{slug}/braindump.md` (create it if missing). This is
+   the brainstorm stage's required artifact — downstream stages (`mc-prd`, the
+   `research`/`brainstorm` routes) read `braindump.md` for the original intent,
+   so it must exist before any UX-flow work.
 4. **Always offer research.** MUST ask: *"Want me to research
    {feature-type} patterns?"* — this offer is not optional and not
    conditional on heuristics. Phrasing:
@@ -132,6 +137,8 @@ Capture the printed URL and use it in the message to the user.
 ## Outputs
 
 - `control/v5/features/{slug}/` — scaffolded folder (if it did not exist).
+- `control/v5/features/{slug}/braindump.md` — the user's idea + scope
+  (written in step 3; the brainstorm stage's required artifact).
 - `control/v5/features/{slug}/ux-flow.html` — the rendered UX flow
   diagram with one selectable option per pattern.
 - A dashboard URL opened in the user's default browser.

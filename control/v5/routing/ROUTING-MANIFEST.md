@@ -27,7 +27,7 @@ A **decision** is any UX, UI, or architecture choice that gets recorded into the
 
 > **DECISIONS (any UX, UI, or architecture choice recorded into the feature spec) MUST be captured on the dashboard, NOT via `AskUserQuestion` or plain chat prose.** Asking "which of these UX/UI/architecture options should we use?" through `AskUserQuestion` is a routing failure — the dashboard visualizes the choice, the chat does not.
 
-Canonical sequence (dispatch `mc-v5-decide`, or follow these steps directly):
+Canonical sequence (dispatch `mc-decide`, or follow these steps directly):
 
 1. Write the decision (`id`, `question`, 3–4 `options[]`, `selected`, `category`) into `control/v5/features/{slug}/decisions.json` via `lib/v5/decisions.mjs`.
 2. Run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to generate the visual fragment.
@@ -54,7 +54,7 @@ If the question belongs to a later phase (e.g., an architecture concern surfaces
 ```
 Need user input?
 ├── Will the answer be recorded as a UX / UI / architecture decision in decisions.json?
-│   └── YES → dashboard path (mc-v5-decide skill)
+│   └── YES → dashboard path (mc-decide skill)
 │             - decisions.json + build-decision.mjs + openDashboard
 │             - NEVER AskUserQuestion
 └── Is it scope / disambiguation / plain Q&A?
@@ -116,7 +116,7 @@ Per-route detail lives in:
    appears in their initial context regardless of which routed docs they
    load.
 
-The new `mc-v5-decide` skill (`skills/mc-v5-decide/SKILL.md`) is the
+The new `mc-decide` skill (`skills/mc-decide/SKILL.md`) is the
 canonical decision-encoding flow that *uses* the CLI; orchestrators
 should prefer dispatching that skill over hand-rolled save scripts.
 

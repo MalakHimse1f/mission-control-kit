@@ -105,7 +105,7 @@ and produces it deterministically from the decision data.
 
 ## Where this fits in the brainstorm flow
 
-`mc-v5-brainstorm` runs `patternsToUxFlow(...)` to produce the overview
+`mc-braindump` runs `patternsToUxFlow(...)` to produce the overview
 `features/{slug}/ux-flow.html` and *then* loops over each saved UX
 decision and runs the CLI for each. The overview diagram lives at the
 feature root; per-decision fragments live in `features/{slug}/decisions/`.
