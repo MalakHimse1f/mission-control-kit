@@ -22,10 +22,36 @@ select_project_folder() {
   osascript -e 'POSIX path of (choose folder with prompt "Select your project folder")' 2>/dev/null | tr -d '\n'
 }
 
+# Resolve install layout — mirrors lib/layout.mjs:resolveLayout priority.
+get_install_layout() {
+  local proj="$1" kit_name="$2"
+  [[ -f "$proj/$kit_name/.mc/install.json" ]]                          && { echo 'kit-nested'; return; }
+  [[ -f "$proj/.mc/install.json" ]]                                    && { echo 'root';       return; }
+  [[ -f "$proj/docs/superpowers/control/.mc/install.json" ]]           && { echo 'legacy-v4';  return; }
+  [[ -d "$proj/$kit_name/control" ]]                                   && { echo 'kit-nested'; return; }
+  [[ -d "$proj/control" ]]                                             && { echo 'root';       return; }
+  echo 'kit-nested'
+}
+
 publish_user_guide() {
-  local proj="$1" kit="$2" kit_name
+  local proj="$1" kit="$2" kit_name layout
   kit_name="$(basename "$kit")"
   [[ -f "$kit/User-Guide.html" ]] || return 0
+  layout="$(get_install_layout "$proj" "$kit_name")"
+
+  # v5.3+ kit-nested: User-Guide.html lives INSIDE the kit folder. The
+  # `href="control/..."` links resolve relative to the kit root, and the
+  # Run-* launchers are siblings, so no kit-name prefixing is needed.
+  if [[ "$layout" == 'kit-nested' ]]; then
+    mkdir -p "$proj/$kit_name"
+    sed \
+      -e "s|data-kit-folder=\"mission-control-kit\"|data-kit-folder=\"$kit_name\"|g" \
+      "$kit/User-Guide.html" > "$proj/$kit_name/User-Guide.html"
+    echo "Created User-Guide.html inside $kit_name/"
+    return
+  fi
+
+  # Legacy v5.2 root layout: User-Guide.html sits at the project root.
   sed \
     -e "s|href=\"Run-Installer\\.hta\"|href=\"$kit_name/Run-Installer.hta\"|g" \
     -e "s|href=\"Run-Updater\\.hta\"|href=\"$kit_name/Run-Updater.hta\"|g" \
@@ -73,9 +99,17 @@ node "$KIT_ROOT/scripts/mc-upgrade.mjs" "$PROJECT_ROOT" --install --target="$TAR
 
 publish_user_guide "$PROJECT_ROOT" "$KIT_ROOT"
 
+kit_basename="$(basename "$KIT_ROOT")"
+installed_layout="$(get_install_layout "$PROJECT_ROOT" "$kit_basename")"
+
 echo ""
-echo "Done! Launch the v5 dashboard with:"
-echo "  cd $PROJECT_ROOT && node mission-control-kit/control/scripts/v5/dashboard-server.mjs ."
+if [[ "$installed_layout" == 'kit-nested' ]]; then
+  echo "Done! Open $kit_basename/User-Guide.html, or launch the v5 dashboard:"
+  echo "  cd $PROJECT_ROOT && node $kit_basename/control/scripts/v5/dashboard-server.mjs ."
+else
+  echo "Done! Open User-Guide.html, or launch the v5 dashboard:"
+  echo "  cd $PROJECT_ROOT && node $kit_basename/control/scripts/v5/dashboard-server.mjs ."
+fi
 echo ""
 echo "To upgrade later: double-click Run-Updater.command, /mc-upgrade, or:"
 echo "  node $KIT_ROOT/scripts/mc-upgrade.mjs ."

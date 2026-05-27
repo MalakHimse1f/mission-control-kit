@@ -2,7 +2,7 @@
 /**
  * Mission Control v4 — safe upgrade CLI.
  */
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -84,15 +84,28 @@ if (result.backupDir) console.log(`  backup: ${result.backupDir}`);
 
 if (!dryRun) {
   if (target === 'claude' || target === 'both') {
-    const bundle = path.join(defaultKitRoot, 'scripts/bundle-vendor-skills.sh');
     const activeKit = kitRootArg ? path.resolve(kitRootArg) : defaultKitRoot;
-    const bundleScript = path.join(activeKit, 'scripts/bundle-vendor-skills.sh');
-    const script = fs.existsSync(bundleScript) ? bundleScript : bundle;
-    if (fs.existsSync(script)) {
-      try {
-        execSync(`bash "${script}" "${projectRoot}" project`, { stdio: 'inherit' });
-      } catch {
-        console.warn('WARN: vendor bundle step failed — run mc-setup-skills later.');
+    const candidates = [
+      path.join(activeKit, 'scripts/bundle-vendor-skills.mjs'),
+      path.join(defaultKitRoot, 'scripts/bundle-vendor-skills.mjs'),
+    ];
+    const script = candidates.find((p) => fs.existsSync(p));
+    if (script) {
+      const result = spawnSync(
+        process.execPath,
+        [script, projectRoot, 'project'],
+        { stdio: 'inherit' },
+      );
+      if (result.error || result.status !== 0) {
+        const exit = result.status ?? 'spawn-failed';
+        console.warn(`WARN: vendor bundle step failed (exit ${exit}).`);
+        if (result.error) console.warn(`  ${result.error.message}`);
+        console.warn(
+          `  Retry: node "${script}" "${projectRoot}" project`,
+        );
+        console.warn(
+          '  Or dispatch the mc-setup-skills subagent in chat.',
+        );
       }
     }
   }

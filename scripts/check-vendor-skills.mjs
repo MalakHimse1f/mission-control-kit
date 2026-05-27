@@ -1,8 +1,19 @@
 #!/usr/bin/env node
 /**
  * Verify required vendor skill bundles are present for Mission Control v4.
+ *
+ * Accepts either:
+ *   1. A vendored copy at `<projectRoot>/<bundle.projectSkillsPath>`, or
+ *   2. A plugin install at one of the well-known marketplace cache paths
+ *      (Claude Code: `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/skills/`;
+ *       Cursor:      `~/.cursor/plugins/cache/<marketplace>/<plugin>/<version>/skills/`).
+ *
+ * The plugin fallback lets users who already run, e.g., the official
+ * `superpowers` plugin skip the project-local vendor copy without
+ * tripping the BUILD-GATES.
  */
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,36 +44,107 @@ function existsDir(p) {
   }
 }
 
-function skillPresent(projectPath, skillId, bundleId) {
-  if (fs.existsSync(path.join(projectPath, skillId, 'SKILL.md'))) return true;
-  if (skillId === bundleId && fs.existsSync(path.join(projectPath, 'SKILL.md'))) return true;
-  if (existsDir(path.join(projectPath, skillId))) return true;
+function skillPresent(skillsPath, skillId, bundleId) {
+  if (fs.existsSync(path.join(skillsPath, skillId, 'SKILL.md'))) return true;
+  if (skillId === bundleId && fs.existsSync(path.join(skillsPath, 'SKILL.md'))) return true;
+  if (existsDir(path.join(skillsPath, skillId))) return true;
   return false;
+}
+
+function safeReaddir(p) {
+  try {
+    return fs.readdirSync(p);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Look for an installed Claude Code / Cursor plugin whose skills directory
+ * satisfies the bundle's `requiredSkills`. Returns the skills directory
+ * path on match, or null.
+ *
+ * Expected layout (observed on both Claude Code and Cursor):
+ *   <home>/.{claude,cursor}/plugins/cache/<marketplace>/<plugin>/<version>/skills/<skill>/SKILL.md
+ *
+ * We probe `<plugin> == bundle.id` first (most precise), then fall back to
+ * scanning every plugin under each marketplace (covers cases where the
+ * marketplace renames the plugin — e.g. `superpowers@claude-plugins-official`).
+ */
+function findPluginInstall(bundle) {
+  if (!bundle.requiredSkills?.length) return null;
+  const home = os.homedir();
+  if (!home) return null;
+
+  const cacheRoots = [
+    path.join(home, '.claude', 'plugins', 'cache'),
+    path.join(home, '.cursor', 'plugins', 'cache'),
+  ];
+
+  const allRequired = (skillsDir) =>
+    bundle.requiredSkills.every((s) => skillPresent(skillsDir, s, bundle.id));
+
+  for (const cacheRoot of cacheRoots) {
+    if (!existsDir(cacheRoot)) continue;
+    for (const marketplace of safeReaddir(cacheRoot)) {
+      const marketplaceDir = path.join(cacheRoot, marketplace);
+      if (!existsDir(marketplaceDir)) continue;
+
+      const pluginCandidates = [bundle.id, ...safeReaddir(marketplaceDir)];
+      const seenPlugin = new Set();
+      for (const plugin of pluginCandidates) {
+        if (seenPlugin.has(plugin)) continue;
+        seenPlugin.add(plugin);
+        const pluginDir = path.join(marketplaceDir, plugin);
+        if (!existsDir(pluginDir)) continue;
+        for (const version of safeReaddir(pluginDir)) {
+          const skillsDir = path.join(pluginDir, version, 'skills');
+          if (!existsDir(skillsDir)) continue;
+          if (allRequired(skillsDir)) return skillsDir;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 function bundleOk(bundle) {
   const projectPath = path.join(projectRoot, bundle.projectSkillsPath);
-  if (!existsDir(projectPath)) {
-    return { ok: false, reason: `missing directory ${bundle.projectSkillsPath}` };
-  }
+  const haveDir = existsDir(projectPath);
 
-  if (bundle.requiredSkills?.length) {
-    for (const skillId of bundle.requiredSkills) {
-      if (!skillPresent(projectPath, skillId, bundle.id)) {
-        return { ok: false, reason: `missing skill ${skillId} in ${bundle.projectSkillsPath}` };
-      }
+  if (haveDir) {
+    if (bundle.requiredSkills?.length) {
+      const allPresent = bundle.requiredSkills.every((s) =>
+        skillPresent(projectPath, s, bundle.id),
+      );
+      if (allPresent) return { ok: true, source: 'vendor', path: projectPath };
+    } else {
+      const entries = fs.readdirSync(projectPath).filter((e) => !e.startsWith('.'));
+      if (entries.length > 0) return { ok: true, source: 'vendor', path: projectPath };
     }
-    return { ok: true };
   }
 
-  const entries = fs.readdirSync(projectPath).filter((e) => !e.startsWith('.'));
-  if (entries.length === 0) {
-    return { ok: false, reason: 'empty vendor directory' };
+  const pluginSkills = findPluginInstall(bundle);
+  if (pluginSkills) {
+    return { ok: true, source: 'plugin', path: pluginSkills };
   }
-  if (bundle.sourceSubpath && fs.existsSync(path.join(projectPath, 'SKILL.md')) === false) {
-    return { ok: true };
+
+  if (!haveDir) {
+    return {
+      ok: false,
+      reason: `missing directory ${bundle.projectSkillsPath} (and no plugin install detected)`,
+    };
   }
-  return { ok: true };
+  if (bundle.requiredSkills?.length) {
+    const missingSkill = bundle.requiredSkills.find(
+      (s) => !skillPresent(projectPath, s, bundle.id),
+    );
+    return {
+      ok: false,
+      reason: `missing skill ${missingSkill} in ${bundle.projectSkillsPath} (and no plugin install detected)`,
+    };
+  }
+  return { ok: false, reason: 'empty vendor directory (and no plugin install detected)' };
 }
 
 const bundles = manifest.bundles.filter((b) => {
@@ -71,9 +153,11 @@ const bundles = manifest.bundles.filter((b) => {
 });
 
 const missing = [];
+const satisfied = [];
 for (const bundle of bundles) {
   const result = bundleOk(bundle);
   if (!result.ok) missing.push({ id: bundle.id, reason: result.reason });
+  else satisfied.push({ id: bundle.id, source: result.source, path: result.path });
 }
 
 if (missing.length) {
@@ -83,4 +167,6 @@ if (missing.length) {
 }
 
 console.log('VENDOR_SKILLS_OK');
-for (const bundle of bundles) console.log(`- ${bundle.id}`);
+for (const b of satisfied) {
+  console.log(`- ${b.id} (${b.source}${b.source === 'plugin' ? ` @ ${b.path}` : ''})`);
+}

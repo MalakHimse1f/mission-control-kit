@@ -16,20 +16,14 @@ export const version = '5.1.1-install-stamp-backfill';
  *   reports every release as a new upgrade.
  *
  * Behavior:
- *   - `controlRoot` here is the canonical v4 path (the migration runner
- *     passes `{projectRoot}/docs/superpowers/control`). The project root
- *     is two directories up from that.
- *   - For project-root layouts (where `{projectRoot}/control/v5/` exists),
- *     the stamp lives at `{projectRoot}/.mc/install.json`. We backfill
- *     it from `state.json`.
- *   - For v4 standard layouts (control plane at the path passed in),
- *     `.mc/install.json` is already managed by the v4 upgrade engine —
- *     this migration leaves it alone.
- *   - Idempotent: if the stamp already exists, no change.
- *
- * The kit-version this migration writes is whatever the install was
- * stamped at on disk — we infer from `state.json.version` (set by
- * 5.0.0-v5-refactor) and from `migrationsApplied` (best-effort).
+ *   - Walks all known layouts (v5.3 kit-nested → v5.2 root → v4 legacy)
+ *     and infers which one has a v5 control plane. Writes the stamp at
+ *     the matching layout's canonical .mc/install.json path.
+ *   - Idempotent: if a stamp already exists at any layout, no change.
+ *   - `projectRoot` is passed by the v5.2+ migration runner; older
+ *     runners only pass `controlRoot`, in which case we derive
+ *     `projectRoot` defensively (two dirs up from the v4-canonical
+ *     control root).
  */
 
 const KIT_VERSION_AT_THIS_MIGRATION = '5.1.1';
@@ -53,36 +47,68 @@ async function readJsonOrNull(p) {
   }
 }
 
-export async function up({ controlRoot, log } = {}) {
+/**
+ * Probe all known install layouts and return the one whose v5 control
+ * plane is present on disk. Returns null if no v5 install is found.
+ */
+function detectLayout(projectRoot, controlRoot) {
+  const kitFolder = 'mission-control-kit';
+  const candidates = [
+    {
+      kind: 'kit-nested',
+      controlRoot: path.join(projectRoot, kitFolder, 'control'),
+      stampPath: path.join(projectRoot, kitFolder, '.mc', 'install.json'),
+    },
+    {
+      kind: 'root',
+      controlRoot: path.join(projectRoot, 'control'),
+      stampPath: path.join(projectRoot, '.mc', 'install.json'),
+    },
+    {
+      kind: 'legacy-v4',
+      controlRoot,
+      stampPath: path.join(controlRoot, '.mc', 'install.json'),
+    },
+  ];
+  return candidates;
+}
+
+export async function up({ controlRoot, projectRoot, log } = {}) {
   const logFn = typeof log === 'function' ? log : noop;
   if (!controlRoot) {
     throw new Error('5.1.1-install-stamp-backfill: controlRoot is required');
   }
 
-  // The migration runner ALWAYS passes the v4 controlRoot
-  // (`{projectRoot}/docs/superpowers/control`). The actual project root —
-  // where the v5 stamp lives — is two directories up.
-  const projectRoot = path.resolve(controlRoot, '..', '..');
+  // v5.2+: migrations receive projectRoot directly. For older runners
+  // that only pass controlRoot, derive projectRoot the old way (two
+  // dirs up from the v4-canonical control root).
+  const resolvedProjectRoot = projectRoot || path.resolve(controlRoot, '..', '..');
 
-  // Skip if there isn't actually a v5 install here. Some legacy v4-only
-  // projects exist; we don't want to write a v5 stamp into them.
-  const v5Root = path.join(projectRoot, 'control', 'v5');
-  const altV5Root = path.join(controlRoot, 'v5');
-  let v5ControlPlaneRoot = null;
-  if (await pathExists(v5Root)) v5ControlPlaneRoot = path.join(projectRoot, 'control');
-  else if (await pathExists(altV5Root)) v5ControlPlaneRoot = controlRoot;
-  if (!v5ControlPlaneRoot) {
+  const candidates = detectLayout(resolvedProjectRoot, controlRoot);
+
+  // 1. Skip entirely if ANY layout already has a stamp.
+  for (const c of candidates) {
+    if (await pathExists(c.stampPath)) {
+      logFn(`5.1.1: ${c.stampPath} already exists; not touching`);
+      return;
+    }
+  }
+
+  // 2. Pick the first layout whose v5 control plane is present.
+  let chosen = null;
+  for (const c of candidates) {
+    if (await pathExists(path.join(c.controlRoot, 'v5'))) {
+      chosen = c;
+      break;
+    }
+  }
+  if (!chosen) {
     logFn('5.1.1: no v5 control plane found; skipping stamp backfill');
     return;
   }
 
-  const stampPath = path.join(projectRoot, '.mc', 'install.json');
-  if (await pathExists(stampPath)) {
-    logFn(`5.1.1: ${stampPath} already exists; not touching`);
-    return;
-  }
-
-  const statePath = path.join(v5ControlPlaneRoot, 'v5', 'state.json');
+  // 3. Infer kit version from state.json (set by 5.0.0-v5-refactor).
+  const statePath = path.join(chosen.controlRoot, 'v5', 'state.json');
   const state = await readJsonOrNull(statePath);
   const inferredVersion =
     (state && typeof state.version === 'string' && state.version) || '5.0.0';
@@ -90,6 +116,7 @@ export async function up({ controlRoot, log } = {}) {
   const stamp = {
     kitVersion: inferredVersion,
     schemaVersion: 1,
+    layout: chosen.kind,
     backfilledAt: new Date().toISOString(),
     backfilledBy: KIT_VERSION_AT_THIS_MIGRATION,
     kitRepo: 'MalakHimse1f/mission-control-kit',
@@ -98,7 +125,11 @@ export async function up({ controlRoot, log } = {}) {
       'Backfilled by 5.1.1-install-stamp-backfill so the dashboard "Upgrade kit" ' +
       'button can detect updates against this install.',
   };
-  await fs.promises.mkdir(path.dirname(stampPath), { recursive: true });
-  await fs.promises.writeFile(stampPath, JSON.stringify(stamp, null, 2) + '\n', 'utf8');
-  logFn(`5.1.1: wrote ${stampPath} with kitVersion ${inferredVersion}`);
+  await fs.promises.mkdir(path.dirname(chosen.stampPath), { recursive: true });
+  await fs.promises.writeFile(
+    chosen.stampPath,
+    JSON.stringify(stamp, null, 2) + '\n',
+    'utf8',
+  );
+  logFn(`5.1.1: wrote ${chosen.stampPath} with kitVersion ${inferredVersion}`);
 }

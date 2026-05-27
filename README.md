@@ -31,12 +31,20 @@ Each stage has a **defined prompt, scope, and deliverable**. Subagents receive t
 
 ### A visual dashboard
 
-Open `docs/superpowers/control/dashboard.html` in any browser (read-only), or run the **control panel server** to save orchestrator toggles:
+Run the **v5 dashboard server** from your project root — it reads disk state live and persists orchestrator toggles:
 
 ```bash
-node docs/superpowers/control/scripts/dashboard-server.mjs
+# v5.3+ fresh installs (kit-nested layout, default):
+node mission-control-kit/control/scripts/v5/dashboard-server.mjs .
+
+# v5.2.0 installs (root layout, still supported):
+node mission-control-kit/control/scripts/v5/dashboard-server.mjs .
 # http://127.0.0.1:9470/
 ```
+
+Both layouts use the same command — the server auto-detects whether your
+control plane lives at `{project}/control/v5/` (v5.2) or
+`{project}/mission-control-kit/control/v5/` (v5.3 default).
 
 - **Every feature at a glance** — pipeline stage, spec status, build phase, open tasks
 - **Orchestrator controls** — auto-advance build queue, ralph loop resume (saved to `.mc/orchestrator-controls.json` for agents)
@@ -134,7 +142,7 @@ Cloned from [obra/superpowers](https://github.com/obra/superpowers) on install. 
 
 **Also bundled (optional):** `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `executing-plans`, and others — available under the vendor folder for ad-hoc use.
 
-Plugin install remains optional for marketplace updates. See `control/SUPERPOWERS-SETUP.md`. Preflight: `node docs/superpowers/control/scripts/check-setup.mjs`.
+Plugin install remains optional for marketplace updates. See `control/SUPERPOWERS-SETUP.md`. Preflight: `node mission-control-kit/control/scripts/check-setup.mjs`.
 
 ---
 
@@ -255,13 +263,23 @@ chmod +x mission-control-kit/install.sh
 
 ### Clone into your project
 
+**macOS / Linux:**
+
 ```bash
 cd /path/to/your-project
 git clone https://github.com/MalakHimse1f/mission-control-kit.git mission-control-kit
 cd mission-control-kit && chmod +x install.sh && ./install.sh .. both
 ```
 
-Install copies the control plane to `docs/superpowers/control/`, skills to `.cursor/` and `.claude/`, and bundles **Superpowers**, startup-skill, designer-skills, and prd-generator into `vendor/`.
+**Windows (PowerShell):**
+
+```powershell
+cd C:\path\to\your-project
+git clone https://github.com/MalakHimse1f/mission-control-kit.git mission-control-kit
+& ".\mission-control-kit\install.ps1" -ProjectRoot .
+```
+
+Install seeds the v5 control plane at `control/`, skills to `.cursor/` and `.claude/`, the install stamp at `.mc/install.json`, and bundles **Superpowers**, startup-skill, designer-skills, and prd-generator into `.claude/skills/vendor/` (mirrored to `.cursor/skills/vendor/`).
 
 ---
 
@@ -296,13 +314,46 @@ Or `/mc-upgrade` in chat · `Run-Updater.command` (Mac) · `Run-Updater.hta` (Wi
 
 ```
 mission-control-kit/
-├── control/           → docs/superpowers/control/  (orchestrator rules, dashboard, features/)
+├── control/           → seeds project's control/ (v5 routing, features/, dashboard server)
 ├── commands/          → .cursor/commands/
 ├── skills/            → .cursor/skills/
 ├── claude-skills/     → .claude/skills/
+├── vendor/            → bundled into .claude/skills/vendor/ (mirrored to .cursor)
 ├── lib/               → router + safe upgrade engine
-└── install.sh
+├── install.sh         → macOS / Linux installer
+└── install.ps1        → Windows installer
 ```
+
+Project layout after install (v5.3+ — fresh installs):
+
+```
+your-project/
+├── mission-control-kit/
+│   ├── control/v5/            → routing manifest, features, diagram assets
+│   ├── .mc/install.json       → install stamp (kit version, migrations applied)
+│   ├── User-Guide.html        → in-browser quick start
+│   └── …kit source (scripts/, lib/, skills/, control/, etc.)
+├── .claude/skills/vendor/     → cloned vendor skill bundles (Claude Code looks here)
+└── .cursor/skills/vendor/     → mirror for Cursor (Cursor looks here)
+```
+
+Existing v5.2.0 installs keep the legacy root layout — upgrades never relocate
+your data:
+
+```
+your-project/
+├── .mc/install.json           → root install stamp (v5.2.0 layout)
+├── control/v5/                → root control plane (v5.2.0 layout)
+├── User-Guide.html            → at project root (v5.2.0 layout)
+├── mission-control-kit/       → kit source (delivered separately)
+├── .claude/skills/vendor/
+└── .cursor/skills/vendor/
+```
+
+The runtime auto-detects which layout you're on. To consolidate an existing
+v5.2.0 install into the kit folder, run `mc-upgrade` after manually moving
+`control/`, `.mc/`, and `User-Guide.html` into `mission-control-kit/` — but
+this is optional; both layouts are fully supported.
 
 Key docs: `ROUTER.md`, `ORCHESTRATOR.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`
 
