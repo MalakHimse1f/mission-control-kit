@@ -4,9 +4,12 @@ description: Use when the user says "session handoff", "wrap up session", "hand 
 user-invocable: false
 ---
 
-# Session Handoff
+# Session Handoff (v5)
 
-Chat-only summary before `/clear`. Persistent state lives in `{CONTROL_ROOT}/HANDOFF.md` (default: `docs/superpowers/control/HANDOFF.md`).
+Chat-only synthesis before `/clear`. Persistent state lives in
+`control/v5/features/{slug}/status.json` and `control/v5/features/{slug}/decisions.json`.
+The pickup prompt (built by `buildPickupPrompt` from `lib/v5/build-pickup-prompt.mjs`) is
+the canonical resume mechanism — no separate handoff file is written.
 
 ## When to invoke
 
@@ -14,13 +17,13 @@ Chat-only summary before `/clear`. Persistent state lives in `{CONTROL_ROOT}/HAN
 
 ## Pull state from (in order)
 
-1. `{CONTROL_ROOT}/HANDOFF.md` and plan files under `{CONTROL_ROOT}/features/*/phases/`
-2. TodoWrite state
-3. Background shell IDs from this session
+1. `control/v5/features/{slug}/status.json` — current `stage`, `currentPhase`, `featureType`
+2. `control/v5/features/{slug}/decisions.json` — locked decisions, pending items, deferred questions
+3. `control/v5/features/{slug}/journal/` — most recent journal entry for what shipped this session
 4. Files created or modified this session
-5. Unresolved questions
+5. Unresolved questions from this session
 
-Do NOT audit the filesystem. No `git log`, no broad sweeps.
+Do NOT audit the filesystem. No broad sweeps beyond the active feature's directory.
 
 ## Output — chat only
 
@@ -50,7 +53,7 @@ Use this structure every time:
 - ...
 
 ## Pick up here
-<1-2 sentences>
+<pickup prompt from buildPickupPrompt({ slug, stage })>
 ```
 
 ## Hard rules
@@ -59,3 +62,4 @@ Use this structure every time:
 2. Never invent state — write "none" for empty sections
 3. Absolute paths always
 4. Include background shell IDs + kill commands if any
+5. The "Pick up here" section must contain the `buildPickupPrompt` output, not free-form instructions

@@ -1,72 +1,112 @@
 ---
 name: mc-start
-description: "Mission Control v4 — start a new product (Project START workflow). Requires startup-skill. Usage: /mc-start <product idea>"
-disable-model-invocation: true
+description: "Mission Control — kick off a new project (v5). Ensures tech-stack context, scaffolds first features, opens the dashboard. Usage: /mc-start <product idea>"
 argument-hint: [product idea — market, users, platforms]
 ---
 
-# Mission Control v4 — Project START
+# Mission Control — Project Start (v5)
 
-**You are the Orchestrator.** Run the **Project START** pipeline in one session.
-
-**MUST invoke:** `mission-control` skill.
-
-**MUST read:** `ROUTER.md`, `PROJECT-START-PIPELINE.md`, `SKILL-DEPENDENCIES.md`
+**You are the Orchestrator.** Your job is to bootstrap a new project in one session:
+establish the tech-stack context, optionally install vendor skills, scaffold the first
+user-facing features, and hand the user off to `/mc-feature` or `/mc`.
 
 ## Raw input
 
 $ARGUMENTS
 
-## Part 0 — Vendor skills
+---
 
-1. Run `node mission-control-kit/scripts/check-vendor-skills.mjs . project-start` (or kit path)
-2. If missing → dispatch `mc-setup-skills` for `startup-skill` → re-check
-3. **BLOCKED** if still missing after setup attempt
+## Step 0 — Ensure `control/v5/` exists
 
-## Part 1 — Braindump
+Resolve `controlRoot` (the directory containing `control/v5/`). If `control/v5/` does
+not exist, run the `mc-init` flow first:
 
-1. Scaffold `control/project/` from `_template/` if needed
-2. Write `project/PROJECT.md`, set `projectStartStage: validate`, journal
-3. Set `state.json` → `workflowType: project-start`
+> Run `/mc-init` to establish the tech-stack feature, then return here.
 
-## Part 2 — Validate (required)
+If `mc-init` has already run (a `tech-stack` entry appears in
+`control/v5/state.json`), skip to Step 1.
 
-Invoke **`startup-design`** (startup-skill). Use fast-track only if user asked for quick go/no-go.
+---
 
-Write `project/market-brief.md`, journal → **continue**
+## Step 1 — Vendor skills (optional)
 
-## Part 3 — Competitors
+Check whether vendor skill bundles are installed:
 
-When competitive landscape matters, invoke **`startup-competitors`**.
+```bash
+node "{kit}/scripts/check-vendor-skills.mjs" "{projectRoot}" project-start
+```
 
-Write `project/competitors.md`, journal → **continue**
+(`kit` defaults to `{projectRoot}/mission-control-kit`.)
 
-## Part 4 — Position (required)
+- If the check passes, skip to Step 2.
+- If bundles are missing, dispatch `mc-setup-skills` (subagent) to install them, then
+  re-run the check. If still missing after one install attempt, warn the user and
+  continue — do not block project scaffolding on optional skills.
 
-Invoke **`startup-positioning`**.
+The `startup-skill` bundle (sourced via `control/vendor/manifest.json`) provides
+`startup-design`, `startup-competitors`, `startup-positioning`, and `startup-pitch`.
+These are optional enhancements for idea validation; they are not required to continue.
 
-Write `project/positioning.md`, journal → **continue**
+---
 
-## Part 5 — Platforms
+## Step 2 — Scaffold first features
 
-AskQuestion if needed. Write `project/platform-matrix.md` → **continue**
+For each user-facing capability implied by the raw input, scaffold a feature:
 
-## Part 6 — Stack
+```bash
+node lib/v5/cli/new-feature.mjs <slug> --description "<one-line description>"
+```
 
-Run `/mc-init` flow or stack subagent. Exit when `techStackStatus: established` → **continue**
+Use short, URL-safe slugs (lowercase, hyphens only). Do NOT write feature folders by
+hand. Aim for 1–3 features maximum at this stage — additional features can be added
+later with `/mc-feature`.
 
-## Part 7 — Portfolio
+---
 
-Scaffold initial `features/{slug}/braindump.md` stubs from PROJECT.md feature list.
+## Step 3 — Open the dashboard
 
-If 2+ slugs → `/mc-portfolio` → **continue**
+Call `openDashboard({ controlRoot })` from `lib/v5/auto-launch.mjs`:
 
-## Part 8 — Launch prep
+```js
+import { openDashboard } from './lib/v5/auto-launch.mjs';
+const { url } = await openDashboard({ controlRoot });
+```
 
-Write `project/launch-checklist.md` (analytics, feedback, waitlist, store listing) → **continue**
+Tell the user the URL verbatim:
 
-## Part 9 — Done
+> Dashboard is live at: {url}
 
-Set `projectStartStage: done`. Tell user to run `/mc-feature` for first capability.
+The dashboard reflects live disk state — there is nothing to regenerate.
 
-**Context rule:** Each subagent gets packet from `CONTEXT-PACKETS.md` — no feature specs during validate/compete/position stages.
+---
+
+## Step 4 — Hand off
+
+Tell the user:
+
+```
+Project scaffolded.
+
+Next steps:
+  /mc-feature <description>   — drive the full UX → UI → Architecture → Build pipeline
+  /mc                          — continue any in-progress feature
+```
+
+Each scaffolded feature starts at the `brainstorm` stage and flows through
+UX → UI → Architecture → Build. The tech-stack feature starts at `architecture`.
+
+---
+
+## Do NOT
+
+- Write `control/v5/state.json`, `status.json`, or `decisions.json` by hand — always
+  use the CLI (`lib/v5/cli/new-feature.mjs`) or the `lib/v5/state.mjs` helpers.
+- Set v4 state fields (`projectStartStage`, `workflowType`, `phase`, legacy build
+  ordering fields) — those do not exist in v5.
+- Create `control/project/` scaffold, market-brief, positioning, or launch-checklist
+  files — those are v4 artifacts.
+- Route through the old `mission-control` orchestrator skill — use `/mc` or `/mc-feature`
+  directly.
+- Block on vendor skill failures — they are optional enhancements.
+- Advance any feature phase yourself — the pipeline (`/mc`) handles phase transitions
+  via `lib/v5/decision-gate.mjs`.
