@@ -33,6 +33,7 @@ import {
   stageToDefaultTaskType,
   listTaskTypes,
   USER_QUESTION_RULE,
+  DECISION_CAPTURE_RULE,
   UNIVERSAL_INSTRUCTIONS,
 } from '../lib/v5/mc-router.mjs';
 import { buildPacket } from '../lib/v5/context-packet.mjs';
@@ -130,27 +131,61 @@ test('buildPacket for every canonical phase produces a non-empty instructions[]'
   }
 });
 
-test('every dispatch packet carries the ask-user-question universal rule, on every taskType, even when deferred', async () => {
-  // The ask-user-question rule lives in UNIVERSAL_INSTRUCTIONS in
-  // lib/v5/mc-router.mjs and is prepended to packet.instructions[] by
+test('every dispatch packet carries both universal rules in the canonical order, on every taskType, even when deferred', async () => {
+  // The two universal rules live in UNIVERSAL_INSTRUCTIONS in
+  // lib/v5/mc-router.mjs and are prepended to packet.instructions[] by
   // context-packet.mjs. This test pins:
-  //   1. The rule appears verbatim in the canonical UNIVERSAL_INSTRUCTIONS export.
-  //   2. The rule shows up on every route the router exposes.
-  //   3. The rule shows up FIRST (subagents that only skim the head still see it).
-  //   4. The rule survives the deferred-route short-circuit.
+  //   1. Both rules are exported and contained in UNIVERSAL_INSTRUCTIONS.
+  //   2. DECISION_CAPTURE_RULE comes first — agents reading top-down see
+  //      the dashboard path before the AskUserQuestion path. The most
+  //      common failure mode is reaching for AskUserQuestion when the
+  //      user input is actually a decision.
+  //   3. Both rules appear on every route the router exposes.
+  //   4. Both rules survive the deferred-route short-circuit.
+  assert.ok(
+    UNIVERSAL_INSTRUCTIONS.includes(DECISION_CAPTURE_RULE),
+    'UNIVERSAL_INSTRUCTIONS must include DECISION_CAPTURE_RULE',
+  );
   assert.ok(
     UNIVERSAL_INSTRUCTIONS.includes(USER_QUESTION_RULE),
-    'UNIVERSAL_INSTRUCTIONS must include the canonical USER_QUESTION_RULE',
+    'UNIVERSAL_INSTRUCTIONS must include USER_QUESTION_RULE',
+  );
+  assert.equal(
+    UNIVERSAL_INSTRUCTIONS[0],
+    DECISION_CAPTURE_RULE,
+    'DECISION_CAPTURE_RULE must be listed FIRST in UNIVERSAL_INSTRUCTIONS — agents see it before the AskUserQuestion path',
+  );
+
+  // Rule content guards — these are the load-bearing strings.
+  assert.match(
+    DECISION_CAPTURE_RULE,
+    /build-decision\.mjs/,
+    'DECISION_CAPTURE_RULE must name the build-decision.mjs CLI',
+  );
+  assert.match(
+    DECISION_CAPTURE_RULE,
+    /openDashboard|dashboard/i,
+    'DECISION_CAPTURE_RULE must direct agents to the dashboard',
+  );
+  assert.match(
+    DECISION_CAPTURE_RULE,
+    /NOT.{0,40}AskUserQuestion|never.{0,40}AskUserQuestion/i,
+    'DECISION_CAPTURE_RULE must forbid AskUserQuestion for decisions',
   );
   assert.match(
     USER_QUESTION_RULE,
     /AskUserQuestion/,
-    'USER_QUESTION_RULE must name the Claude Code AskUserQuestion tool by name',
+    'USER_QUESTION_RULE must name the Claude Code AskUserQuestion tool',
   );
   assert.match(
     USER_QUESTION_RULE,
     /Cursor|other harnesses/i,
     'USER_QUESTION_RULE must address the non-Claude-Code harness too',
+  );
+  assert.match(
+    USER_QUESTION_RULE,
+    /clarif/i,
+    'USER_QUESTION_RULE must scope itself to clarifying questions',
   );
 
   for (const taskType of listTaskTypes()) {
@@ -164,13 +199,17 @@ test('every dispatch packet carries the ask-user-question universal rule, on eve
     });
     assert.equal(
       packet.instructions[0],
+      DECISION_CAPTURE_RULE,
+      `packet.instructions[0] for ${taskType} must be the decision-capture rule`,
+    );
+    assert.equal(
+      packet.instructions[1],
       USER_QUESTION_RULE,
-      `packet.instructions[0] for ${taskType} must be the ask-user-question rule`,
+      `packet.instructions[1] for ${taskType} must be the clarifying-question rule`,
     );
   }
 
-  // Deferred routes still surface the rule. Use architecture-during-UX,
-  // the one deferred pair the router currently enforces.
+  // Deferred routes still surface both rules.
   const deferredRoute = await resolveRoute({
     taskType: 'architecture',
     stage: 'ux',
@@ -186,12 +225,17 @@ test('every dispatch packet carries the ask-user-question universal rule, on eve
   });
   assert.equal(
     deferredPacket.instructions[0],
+    DECISION_CAPTURE_RULE,
+    'deferred packets must still carry DECISION_CAPTURE_RULE at instructions[0]',
+  );
+  assert.equal(
+    deferredPacket.instructions[1],
     USER_QUESTION_RULE,
-    'deferred packets must still carry the ask-user-question rule',
+    'deferred packets must still carry USER_QUESTION_RULE at instructions[1]',
   );
 });
 
-test('routing manifest documents the ask-user-question universal protocol', async () => {
+test('routing manifest documents both universal rules — decisions vs clarifying questions', async () => {
   // Static drift guard: if someone removes the section from the manifest
   // doc, this fails so the doc and the code stay in sync.
   const manifestPath = path.join(
@@ -204,13 +248,23 @@ test('routing manifest documents the ask-user-question universal protocol', asyn
   const body = await fs.readFile(manifestPath, 'utf8');
   assert.match(
     body,
-    /Ask-the-user protocol/i,
-    'ROUTING-MANIFEST.md must include the Ask-the-user protocol section',
+    /Decisions vs clarifying questions/i,
+    'ROUTING-MANIFEST.md must include the Decisions vs clarifying questions section',
   );
   assert.match(
     body,
     /AskUserQuestion/,
     'ROUTING-MANIFEST.md must name the AskUserQuestion tool',
+  );
+  assert.match(
+    body,
+    /mc-v5-decide/,
+    'ROUTING-MANIFEST.md must name the mc-v5-decide skill as the decision path',
+  );
+  assert.match(
+    body,
+    /NOT.{0,40}AskUserQuestion|NEVER.{0,40}AskUserQuestion/i,
+    'ROUTING-MANIFEST.md must forbid AskUserQuestion for decisions',
   );
 });
 

@@ -13,16 +13,34 @@ description: "Mission Control v5 — Orchestrator hub. Reads status/decisions fr
 READ status/decisions → RESOLVE route → DISPATCH narrow context → READ journal → GATE advance → NEXT
 ```
 
-## Asking the user (mandatory)
+## Asking the user (mandatory — pick the right path)
 
-When you need information, a decision, or a clarification from the user, you MUST surface the question through a structured ask and pause until the user responds. Do not guess, do not assume, do not proceed with placeholders.
+Every time you would pause to ask the user something, decide first: **is this a decision, or a clarifying question?** The two paths are not interchangeable. Asking a UX/UI/architecture choice via `AskUserQuestion` is a routing failure.
 
-- **Claude Code:** call the `AskUserQuestion` tool with 1–4 mutually exclusive options. Use it for every "should we…" / "which of these…" / "is X true?" before writing code or markdown that depends on the answer.
-- **Cursor / other harnesses:** stop execution and ask the user directly in the conversation before continuing — do not call any other tool until the user responds.
-- **If the question is itself a decision** (a `ux` / `ui` / `engineering` choice), record the answer via `lib/v5/decisions.mjs` after the user responds, then run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to produce the visual fragment.
-- **If the question belongs to a later phase** (e.g., an architecture concern surfaces during UX), call `deferQuestion(slug, question, raisedDuring)` from `lib/v5/decisions.mjs` instead of dropping it.
+### Path 1 — Decisions → dashboard (NOT `AskUserQuestion`)
 
-This rule is auto-injected into every dispatch packet's `instructions[]` (see `UNIVERSAL_INSTRUCTIONS` in `lib/v5/mc-router.mjs`). Dispatched subagents are expected to honor it too — if a subagent needs more context, it should refuse the dispatch with a `Question:` line rather than guess.
+A **decision** is any UX, UI, or architecture choice that gets recorded into the feature spec (`decisions.json`). Examples: "which onboarding pattern?", "where does the settings surface live?", "transport: HTTP vs gRPC?".
+
+- Dispatch the `mc-v5-decide` skill, OR follow its steps directly:
+  1. Write the decision (`id`, `question`, 3–4 `options[]`, `selected`, `category`) into `control/v5/features/{slug}/decisions.json` via `lib/v5/decisions.mjs`.
+  2. Run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to generate the visual fragment.
+  3. Call `openDashboard({ slug, anchor: 'decisions' })` from `lib/v5/auto-launch.mjs` to surface the visual.
+- Tell the user verbatim: `I've opened the dashboard for you to review the decision at: {url}` — the user picks on the dashboard. Do not pre-select for them in chat.
+- **Never** use `AskUserQuestion` to ask "which of these UX/UI/architecture options?" The dashboard visualizes the choice; chat does not.
+
+### Path 2 — Clarifying questions → structured ask
+
+A **clarifying question** is scope, disambiguation, or plain Q&A that does NOT capture a UX/UI/architecture choice. Examples: "what's the target user?", "should I treat X as a separate feature?", "do you want me to research patterns first?".
+
+- **Claude Code:** call `AskUserQuestion` with 1–4 mutually exclusive options.
+- **Cursor / other harnesses:** stop execution and ask the user directly in chat — do not call any other tool until the user responds.
+- Never bury the question in prose. Never proceed on an assumption.
+
+### Backtracked questions
+
+If a question belongs to a later phase (e.g., an architecture concern surfaces during UX), call `deferQuestion(slug, question, raisedDuring)` from `lib/v5/decisions.mjs` instead of dropping it.
+
+Both rules are auto-injected into every dispatch packet's `instructions[]` (see `DECISION_CAPTURE_RULE` and `USER_QUESTION_RULE` in `lib/v5/mc-router.mjs`). Dispatched subagents are expected to honor them too — if a subagent needs more context, it should refuse the dispatch with a `Question:` line rather than guess, or dispatch `mc-v5-decide` if the question is a decision.
 
 ## Visual rules
 

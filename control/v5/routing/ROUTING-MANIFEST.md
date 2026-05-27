@@ -15,20 +15,52 @@ A subagent that only reads the head of the packet still sees the universal rules
 
 ## Universal protocols
 
-These rules apply to every dispatch — UX, UI, Architecture, Build, Research, Brainstorm. They are declared in `lib/v5/mc-router.mjs` (canonical source) and surfaced on every packet via `UNIVERSAL_INSTRUCTIONS`.
+These rules apply to every dispatch — UX, UI, Architecture, Build, Research, Brainstorm. They are declared in `lib/v5/mc-router.mjs` (canonical source) and surfaced on every packet via `UNIVERSAL_INSTRUCTIONS`. Order matters — decisions are listed first because the most common failure mode is reaching for `AskUserQuestion` when the user input is actually a decision.
 
-### Ask-the-user protocol
+### Decisions vs clarifying questions — pick the right path
 
-> **When you need information, a decision, or a clarification from the user, you MUST surface the question through a structured ask and pause until the user responds.** Do not guess, do not assume, do not proceed with placeholders. In Claude Code, use the `AskUserQuestion` tool. In Cursor or other harnesses without a dedicated question tool, stop execution and ask the user directly in the conversation before continuing. Hiding questions in long prose, or shipping an assumption you should have verified, is a routing failure.
+Every time you would pause to ask the user something, decide first: **is this a decision, or a clarifying question?** The two paths are not interchangeable.
 
-**Why this exists.** Subagents that proceed on assumptions produce work the user has to throw away. Subagents that bury questions in long prose lose them entirely. The structured ask forces a pause point and a clear answer to record back into `decisions.json` / `status.json`.
+#### 1. Decisions → dashboard (NOT `AskUserQuestion`)
 
-**How to apply it.**
+A **decision** is any UX, UI, or architecture choice that gets recorded into the feature spec. Examples: "which onboarding pattern?", "where does the settings surface live?", "transport: HTTP vs gRPC vs message queue?".
 
-- *Claude Code:* call `AskUserQuestion` with 1–4 mutually exclusive options. Use it for every "should we…" / "which of these…" / "is X true?" before writing code or markdown that depends on the answer.
-- *Cursor / other harnesses:* emit a top-level question line in chat (`Question: …`), do not call any other tool until the user responds.
-- *Inside the v5 decision flow:* if the question is itself a decision (a `ux` / `ui` / `engineering` choice), record it through `lib/v5/decisions.mjs` after the user answers — that path produces a visual fragment via the CLI, see the visual-fragment contract below.
-- *Backtracked questions:* if the question belongs to a later phase (e.g., an architecture concern surfaces during UX), call `deferQuestion(slug, question, raisedDuring)` from `lib/v5/decisions.mjs` instead of dropping it.
+> **DECISIONS (any UX, UI, or architecture choice recorded into the feature spec) MUST be captured on the dashboard, NOT via `AskUserQuestion` or plain chat prose.** Asking "which of these UX/UI/architecture options should we use?" through `AskUserQuestion` is a routing failure — the dashboard visualizes the choice, the chat does not.
+
+Canonical sequence (dispatch `mc-v5-decide`, or follow these steps directly):
+
+1. Write the decision (`id`, `question`, 3–4 `options[]`, `selected`, `category`) into `control/v5/features/{slug}/decisions.json` via `lib/v5/decisions.mjs`.
+2. Run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to generate the visual fragment.
+3. Call `openDashboard({ slug, anchor: 'decisions' })` from `lib/v5/auto-launch.mjs` to surface the visual.
+
+The dashboard renders the per-category primitive (`mc-flow-timeline` for UX, `mc-mini-frame` for UI, `mc-arch-node` for architecture). The user picks on the dashboard; the agent does not pre-select for them in chat.
+
+#### 2. Clarifying questions → structured ask
+
+A **clarifying question** is scope, disambiguation, or plain Q&A that does NOT capture a UX/UI/architecture choice. Examples: "what's the target user?", "should we treat shared libraries as a separate feature?", "do you want me to research patterns?".
+
+> **CLARIFYING QUESTIONS MUST be surfaced through a structured ask, and execution MUST pause until the user responds.**
+
+- *Claude Code:* `AskUserQuestion` with 1–4 mutually exclusive options.
+- *Cursor / other harnesses:* emit a top-level `Question:` line and stop calling other tools until the user responds.
+- Never bury the question in prose. Never proceed on an assumption.
+
+#### 3. Backtracked questions
+
+If the question belongs to a later phase (e.g., an architecture concern surfaces during UX), call `deferQuestion(slug, question, raisedDuring)` from `lib/v5/decisions.mjs` instead of dropping it. The question resurfaces when its phase opens.
+
+### Quick decision tree
+
+```
+Need user input?
+├── Will the answer be recorded as a UX / UI / architecture decision in decisions.json?
+│   └── YES → dashboard path (mc-v5-decide skill)
+│             - decisions.json + build-decision.mjs + openDashboard
+│             - NEVER AskUserQuestion
+└── Is it scope / disambiguation / plain Q&A?
+    └── YES → structured ask (AskUserQuestion in Claude Code, pause-and-ask elsewhere)
+              - ONLY when no decision artifact is produced
+```
 
 ---
 
