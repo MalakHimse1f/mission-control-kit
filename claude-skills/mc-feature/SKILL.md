@@ -1,74 +1,79 @@
 ---
 name: mc-feature
-description: "Mission Control v4 — add a feature to an existing product. Requires designer-skills + prd-generator. Usage: /mc-feature <feature + codebase paths>"
-disable-model-invocation: true
-argument-hint: [feature description + target codebase folder paths]
+description: "Mission Control — add a new feature: scaffold control/v5/features/{slug}/ and drive it through the v5 pipeline. Usage: /mc-feature"
 ---
 
-# Mission Control v4 — Add Feature
+# Mission Control — Add Feature (v5)
 
-**You are the Orchestrator.** Run the **Add Feature** pipeline continuously in one session.
-
-**MUST invoke:** `mission-control` skill.
-
-**MUST read:** `ROUTER.md`, `ADD-FEATURE-PIPELINE.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`, `RESEARCH-LAYOUT.md`
+**You are the Orchestrator.** Scaffold the feature, then hand control to the `mc` hub and run the v5 pipeline continuously in one session.
 
 ## Raw input
 
 $ARGUMENTS
 
-## Part 0 — Gates
+## Step 0 — Vendor check (optional)
 
-1. `techStackStatus` established — else STOP → `/mc-init` or complete Project START
-2. Vendor check: `node mission-control-kit/scripts/check-vendor-skills.mjs . add-feature`
-3. Missing → dispatch `mc-setup-skills` → re-check
+If `control/vendor/manifest.json` is missing or vendor bundles are not yet installed, dispatch the `mc-setup-skills` subagent to install them before proceeding.
 
-## Part A — Braindump
+## Step 1 — Derive slug
 
-Derive `{slug}`, scaffold `features/{slug}/`, write braindump, set `pipelineStage: explore`, `workflowType: add-feature`
+Convert the user's feature description to a kebab-case `{slug}` (e.g., "User notifications" → `user-notifications`).
 
-## Part B — Explore
+## Step 2 — Scaffold the feature
 
-Dispatch `mc-explore` per target codebase with **context packet** (braindump + paths only)
+```bash
+node lib/v5/cli/new-feature.mjs <slug> --description "<feature description>"
+```
 
-## Part C — Research (required)
+This creates:
+- `control/v5/features/{slug}/status.json` — initial stage/phase/featureType
+- `control/v5/features/{slug}/decisions.json` — empty decision list
+- Registers the feature entry in `control/v5/state.json`
 
-Invoke **design-research** skills/commands. Compose **`features/{slug}/research.html`** using layout primitives (`RESEARCH-LAYOUT.md`), journal → clarify
+Then mark the feature active via `setActiveFeature(slug, { controlRoot })` from `lib/v5/state.mjs`, or confirm the `mc` hub will do so on its first session-start read.
 
-## Part D — Clarify
+## Step 3 — Hand off to the v5 pipeline
 
-AskUserQuestion loop → journal → prd
+Invoke the `mc` hub (dispatch as a subagent or continue as the orchestrator). The `mc` hub drives the full pipeline:
 
-## Part E — Strategy
+### Pipeline order (per `control/v5/routing/PIPELINE.md`)
 
-If IA/problem frame needed → **ux-strategy** → **`ux-strategy.html`** (HTML layout, not markdown)
+| Stage | Skill dispatched | Produces |
+|-------|-----------------|----------|
+| brainstorm | `mc-braindump` | `braindump.md` |
+| explore | `mc-explore` | codebase map |
+| ux | `mc-prd` + UX decisions via `mc-decide` | `spec.md`, `decisions.json` (ux phase) |
+| ui | `mc-layout` / `mc-mock` + UI decisions via `mc-decide` | wireframes in `layout/wireframes/*.html` |
+| architecture | architecture decisions via `mc-decide` | `decisions.json` (architecture phase) |
+| build | `mc-build` | code, phase plans |
+| validate | `mc-validate` | test + e2e gate |
 
-## Part F — PRD
+**Tech-stack features** (`status.json.featureType === "tech-stack"`) skip `ux`/`ui` and start at `architecture`.
 
-Dispatch `mc-prd` with packet: braindump, explore HTML, research HTML, clarify — **not** other features.
+### Before every dispatch
 
-**Route card must include:** `skills: [prd-generator]`. The subagent **must invoke** `prd-generator` before writing `spec.md`.
+Resolve a context route via `resolveRoute` from `lib/v5/mc-router.mjs`. The subagent receives **only** the documents in `route.docs` — no whole-feature dumps.
 
-## Part G — Interaction
+### Phase gating
 
-For UX features → **interaction-design** → **`interaction.html`** (HTML layout using primitives)
+Before advancing between phases call `canAdvance({ slug, fromPhase, toPhase, controlRoot })` from `lib/v5/decision-gate.mjs`. Do **not** advance if `gate.allowed` is false; surface `gate.pending` to the user and resolve all pending decisions first.
 
-## Part H — Mock
+### Decisions
 
-Dispatch `mc-mock`. Before approve → **visual-critique** on key screens
+Capture every UX/UI/architecture choice via the `mc-decide` skill:
+1. Write the decision into `control/v5/features/{slug}/decisions.json` via `lib/v5/decisions.mjs`.
+2. Run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to generate the visual fragment.
+3. Call `openDashboard({ slug, anchor: 'decisions' })` from `lib/v5/auto-launch.mjs` to surface the visual.
 
-## Part I — Plan
+Vendor skills (`designer-skills`, `prd-generator`) are referenced through `control/vendor/manifest.json`. The `mc-prd` subagent must invoke `prd-generator` before writing `spec.md`.
 
-Dispatch `mc-platform-plan`
+### Asking the user
 
-## Part J — Build
+- **UX/UI/architecture choices** → `mc-decide` + dashboard. Never use `AskUserQuestion` for these.
+- **Clarifying questions** → `AskUserQuestion` with 1–4 mutually exclusive options.
 
-AskUserQuestion e2e screenshots once. `subagent-driven-development`. **BUILD-GATES** every task.
+## Step 4 — Continuous run
 
-## Part K — Validate
+The orchestrator does not stop between stages (per `control/v5/routing/PIPELINE.md`). Each stage: read disk → resolve route → dispatch narrow subagent → read journal → gate advance → next stage.
 
-Phase e2e + validate gate → done or next phase
-
-## Continuous run
-
-Never stop between parts unless BLOCKED or user pause.
+Surface all artifacts with `openDashboard(...)` from `lib/v5/auto-launch.mjs`.
