@@ -11,7 +11,7 @@ argument-hint: [feature description + target codebase folder paths]
 
 **MUST invoke:** `mission-control` skill.
 
-**MUST read:** `ROUTER.md`, `ADD-FEATURE-PIPELINE.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`, `RESEARCH-LAYOUT.md`
+**MUST read:** `ROUTER.md`, `ADD-FEATURE-PIPELINE.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`, `layout/selection/SELECTION-UI.md`
 
 ## Raw input
 
@@ -33,7 +33,7 @@ Dispatch `mc-explore` per target codebase with **context packet** (braindump + p
 
 ## Part C — Research (required)
 
-Invoke **design-research** skills/commands. Compose **`features/{slug}/research.html`** using layout primitives (`RESEARCH-LAYOUT.md`), journal → clarify
+Invoke **design-research** skills/commands. Compose **`features/{slug}/research.html`** as a self-contained selection-deck page (see `layout/selection/SELECTION-UI.md`), journal → clarify
 
 ## Part D — Clarify
 
@@ -51,7 +51,7 @@ Dispatch `mc-prd` with packet: braindump, explore HTML, research HTML, clarify �
 
 ## Part G — Interaction
 
-For UX features → **interaction-design** → **`interaction.html`** (HTML layout using primitives)
+For UX features → **interaction-design** → **`interaction.html`** (self-contained selection-deck page per `SELECTION-UI.md`)
 
 ## Part H — Mock
 

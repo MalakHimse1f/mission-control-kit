@@ -13,7 +13,7 @@ description: Subagent — create UI mock HTML wireframes for a Mission Control v
 - Approved `spec.md`
 - `tech-stack/stack.json` → `layoutTargets`
 - `tech-stack/LAYOUT-TARGETS.md`
-- Shared primitives in `control/layout/primitives/` and skeletons in `control/layout/skeletons/`
+- Selection-deck template + examples in `control/layout/selection/` (see `SELECTION-UI.md`)
 
 ## Outputs (required before DONE)
 
@@ -28,7 +28,7 @@ Orchestrator sets `layoutStatus: "approved"` and advances to `plan`.
 
 - Black, white, gray wireframes — behavior over polish
 - Real product navigation paths, not scenario tabs
-- Reuse skeletons from `control/layout/skeletons/` when applicable
+- Build wireframes by copying `control/layout/selection/template.html` and following `SELECTION-UI.md` (B/W/gray, self-contained, draw the real UI per option)
 - Mock should demonstrate the user path from spec
 
 ## Do NOT

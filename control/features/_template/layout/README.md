@@ -6,4 +6,4 @@ After layout approval:
 - `platforms.json` — scope + platform IDs
 - `wireframes/*.html` — one wireframe per platform
 
-See `docs/superpowers/control/layout/CATALOG.md` for skeletons and primitives.
+See `docs/superpowers/control/layout/selection/SELECTION-UI.md` for the template and examples.

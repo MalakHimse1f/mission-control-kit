@@ -37,7 +37,7 @@ Applies to `/mc`, pasted pickup prompts, and ralph resume — pasted text is con
 2. Run vendor skill check; dispatch `mc-setup-skills` if needed
 3. Honor `sessionIntent.pipelineScope` — planning-only stops before build; build-only skips planning when plan exists
 4. Honor `sessionIntent.decisionReview` — review-first pauses after skill stages; auto-proceed documents defaults in journal
-5. **After explore / research / strategy / interaction** — regenerate dashboard, then **present HTML files in chat** with viewing instructions (`RESEARCH-LAYOUT.md`, `formatResearchPresentationMessage()`)
+5. **After explore / research / strategy / interaction** — regenerate dashboard, then **present HTML files in chat** with viewing instructions (`layout/selection/SELECTION-UI.md`, `formatResearchPresentationMessage()`)
 6. Build context packet for next subagent
 7. Dispatch → journal → dashboard → next stage (same session, unless scope says stop)
 
