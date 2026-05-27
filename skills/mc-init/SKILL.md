@@ -1,78 +1,152 @@
 ---
 name: mc-init
-description: "Mission Control — establish tech stack context (required before braindump). Usage: /mc-init"
+description: "Mission Control — establish tech-stack context for a v5 project (run once before feature work). Usage: /mc-init"
 ---
 
-# Mission Control — Init (tech stack context)
+# Mission Control — Init (v5 tech-stack setup)
 
-**Run first** when Mission Control is new or `tech-stack/stack.json` → `techStackStatus` is null.
-
-**MUST invoke:** `mission-control` skill.
-
-**MUST read:** `docs/superpowers/control/WORKSTREAMS.md` and `docs/superpowers/control/AGENT-DATA-RULES.md`.
+**Run once** before starting feature work on a project. Dispatched from `/mc init`.
 
 ## Goal
 
-Separate **tech stack** (app setup) from **features** (user-facing UX). After init, the dashboard **Tech stack** section shows context; each setup item and UX feature gets its own spec and task list.
+Create the `tech-stack` feature in `control/v5/features/tech-stack/` so the pipeline has a typed
+context object for the project's platforms and frameworks. After init the dashboard is live and the
+user continues with
+`/mc-feature` or `/mc`.
 
-## Part A — Detect project mode
+---
 
-1. Read `state.json` and `tech-stack/stack.json`. If `techStackStatus` is `"established"`, tell user init is done and point to `/mc-braindump`.
-2. Run: `node docs/superpowers/control/scripts/detect-stack.mjs` and read JSON output.
-3. **Ask via the tool:** "Is this an existing codebase or a brand-new project?"
-   - Options framed for PM/UX: **Existing app** (code already here) vs **Starting from scratch** (greenfield)
-   - Use detection output to pre-select when obvious (`likelyExisting: true` → suggest Existing)
+## Step 1 — Check if already done
 
-## Part B — Existing project
+Resolve `controlRoot`: the directory that contains `control/v5/`. Read
+`control/v5/state.json` (use `readState` from `lib/v5/state.mjs`, or read the file directly).
 
-1. Summarize detected platforms/frameworks and **`suggestedLayoutTargets`** from `detect-stack.mjs` in plain language.
-2. **Ask via the tool:** confirm stack summary and **surfaces** (layout targets — labels from `tech-stack/LAYOUT-TARGETS.md`, `allow_multiple: true`). **Only time platform is asked.**
-3. Write `tech-stack/stack.json`: `projectMode: "existing"`, `techStackStatus: "established"`, `establishedAt`, `summary`, `platforms`, `frameworks`, **`layoutTargets`**, `detectedFromRepo`.
-4. Write `tech-stack/CONTEXT.md` — short human-readable stack doc for future agents.
-5. Merge `state.json`: `projectMode: "existing"`, `techStackStatus: "established"`, `phase: "idle"`.
-6. **Do not** create tech-stack item folders unless user mentions missing setup work in this session.
-7. Update `HANDOFF.md`, regenerate dashboard.
+If `state.json` already contains a feature entry with `featureType: "tech-stack"`, init has already
+run. Tell the user:
 
-## Part C — Greenfield project
+> Tech-stack context is already established (`tech-stack` feature found in state.json).
+> To work on a feature, run `/mc-feature` or `/mc`.
 
-Order: **UX features first (names only), then tech stack, then setup specs.**
+Stop here.
 
-1. **Ask via the tool:** "What are the main things users will be able to do in this app?" (allow_multiple or follow-up questions) — capture feature **names**, not implementation.
-2. For each UX outcome, scaffold `features/{slug}/` from `_template/` with a **one-line sketch** in `spec.md`, `specStatus: "draft"`.
-3. **Ask via the tool:** which **surfaces** the app will ship on — use labels from `tech-stack/LAYOUT-TARGETS.md` (e.g. Web app, iPhone bottom tabs). `allow_multiple: true`. Store IDs in **`layoutTargets`**. **Only `/mc-init` may ask this — never again in layout or braindump.**
-4. **Ask via the tool:** frameworks/tooling if not already clear (Next.js, Swift, etc.) — optional second question if needed.
-5. Write `tech-stack/stack.json` and `tech-stack/CONTEXT.md` (include `layoutTargets` in both).
-6. **Ask via the tool:** which **setup items** are needed before UX work (e.g. scaffold Next.js, scaffold iOS app).
-7. For each setup item, scaffold `tech-stack/{slug}/` from `_template/` with sketch `spec.md`, `specStatus: "draft"`.
-8. Merge `state.json`:
-   - `projectMode: "greenfield"`, `techStackStatus: "established"`
-   - `techStackOrder`: ordered tech slugs
-   - `buildOrder`: append UX feature slugs (draft ok)
-9. Update `HANDOFF.md`, regenerate dashboard.
+---
 
-## Session boundary
+## Step 2 — Detect the stack
+
+Import and call `detectStack({ projectRoot })` from `lib/v5/detect-stack.mjs`.
+
+The function returns:
+
+```js
+{ likelyExisting: boolean, frameworks: string[], platforms: string[], signals: string[] }
+```
+
+Summarise the result in plain language to the user, for example:
+
+> Detected: **Next.js + React** (web platform). Signals found: package.json.
+
+If `frameworks` and `platforms` are both empty, say:
+
+> No framework signals detected — looks like a blank slate.
+
+---
+
+## Step 3 — Ask one clarifying question
+
+Ask via `AskUserQuestion` (this is a clarifying question, NOT a UX/UI/architecture decision — do
+NOT route it through the dashboard):
+
+**Question:** "Is this an existing codebase or starting from scratch?"
+
+**Options:**
+
+- `existing` — Existing codebase (code already here)
+- `greenfield` — Starting from scratch
+
+Pre-select `existing` when `detectStack().likelyExisting` is `true`.
+
+Wait for the user's answer before continuing.
+
+---
+
+## Step 4 — Scaffold the tech-stack feature
+
+Build a one-line description from the detected stack, for example:
+`"Next.js + React web app (existing)"` or `"Greenfield mobile app (Expo + React Native)"`.
+
+Run from the project root:
+
+```bash
+node lib/v5/cli/new-feature.mjs tech-stack --type tech-stack --description "<one-line stack summary>"
+```
+
+This creates `control/v5/features/tech-stack/` (with `status.json` and `decisions.json`) and
+registers the entry in `control/v5/state.json`. Do NOT hand-write those files — always use this CLI.
+
+`featureType: "tech-stack"` causes the pipeline to skip the `ux` and `ui` phases and start
+directly at `architecture`.
+
+---
+
+## Step 5 — Greenfield only: scaffold initial features
+
+Skip this step for existing codebases.
+
+Ask the user (via `AskUserQuestion`, `allow_multiple: true`):
+
+> What are the main things users will be able to do in this app? (Feature names only — we will flesh
+> them out separately.)
+
+For each feature the user names, scaffold it as a regular feature:
+
+```bash
+node lib/v5/cli/new-feature.mjs <slug> --description "<one-line description from user>"
+```
+
+Use short, URL-safe slugs (lowercase, hyphens). Do NOT write feature folders by hand.
+
+---
+
+## Step 6 — Open the dashboard
+
+Call `openDashboard({ controlRoot })` from `lib/v5/auto-launch.mjs`:
+
+```js
+import { openDashboard } from './lib/v5/auto-launch.mjs';
+const { url } = await openDashboard({ controlRoot });
+```
+
+Tell the user the URL verbatim:
+
+> Dashboard is live at: {url}
+
+The dashboard reflects live disk state — there is nothing to regenerate.
+
+---
+
+## Step 7 — Hand off
+
+Tell the user:
 
 ```
-Tech stack context established.
+Tech-stack context established.
 
-Open docs/superpowers/control/dashboard.html — see Tech stack and Features sections.
-
-Greenfield: refine setup items first, then UX features.
-  /mc-braindump (or /mc-refine {slug}) for each tech-stack item
-  then /mc-plan {slug} → /mc-build for tech items (no layout)
-
-UX features after relevant tech setup:
-  /mc-braindump or /mc-refine → /mc-layout → /mc-plan → /mc-build
-
-Existing project: /mc-braindump for the next tech or UX item.
-
-Continue in this session — run /mc-braindump or /mc to start the next feature. Optional: /mc-handoff
+Next steps:
+  /mc-feature <description>   — scaffold and run the pipeline for a feature
+  /mc                         — drive the pipeline for an existing feature
 ```
+
+For greenfield projects, remind the user that each scaffolded feature starts at the `brainstorm`
+stage and will flow through UX → UI → Architecture → Build. The tech-stack feature starts at
+`architecture`.
+
+---
 
 ## Do NOT
 
-- Skip init and go straight to feature braindump when `techStackStatus` is null
-- Put scaffold/setup specs under `features/`
-- Put user-facing flows under `tech-stack/`
-- Delete existing `features/` or `tech-stack/` siblings
-- Ask platform/surface questions outside this command (layout and braindump must read `layoutTargets` instead)
+- Write `control/v5/state.json`, `status.json`, or `decisions.json` by hand — always use the CLI.
+- Ask more than one clarifying question in Step 3 — if more context is needed, defer to `/mc-feature`.
+- Use `AskUserQuestion` for UX/UI/architecture choices — those go through the dashboard decision flow.
+- Advance any feature phase yourself — the pipeline (`/mc`) handles phase transitions via
+  `lib/v5/decision-gate.mjs`.
+- Create more than one tech-stack feature — there is exactly one per project.
