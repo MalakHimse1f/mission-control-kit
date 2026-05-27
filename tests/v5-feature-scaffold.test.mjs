@@ -6,7 +6,7 @@ import path from 'node:path';
 import { makeTmpProject } from './helpers/tmp-project.mjs';
 import { scaffoldFeature } from '../lib/v5/feature-scaffold.mjs';
 import { readDecisions } from '../lib/v5/decisions.mjs';
-import { readState } from '../lib/v5/state.mjs';
+import { readState, upsertFeature } from '../lib/v5/state.mjs';
 
 async function readJson(p) {
   return JSON.parse(await fs.readFile(p, 'utf8'));
@@ -68,6 +68,21 @@ test('scaffoldFeature is idempotent — does not clobber an existing feature', a
     const after = await readJson(statusPath);
     assert.equal(after.stage, 'in-progress', 'must not overwrite existing status');
     assert.equal(after.description, 'first', 'must not overwrite existing description');
+  } finally {
+    await cleanup();
+  }
+});
+
+test('re-scaffold does not reset an advanced state.json stage', async () => {
+  const { root, cleanup } = await makeTmpProject();
+  try {
+    await scaffoldFeature({ slug: 'a', controlRoot: root });
+    await upsertFeature({ slug: 'a', stage: 'in-progress', currentPhase: 'build' }, { controlRoot: root });
+    await scaffoldFeature({ slug: 'a', controlRoot: root });
+    const state = await readState({ controlRoot: root });
+    const entry = state.features.find((f) => f.slug === 'a');
+    assert.equal(entry.stage, 'in-progress', 're-scaffold must not reset stage');
+    assert.equal(entry.currentPhase, 'build');
   } finally {
     await cleanup();
   }
