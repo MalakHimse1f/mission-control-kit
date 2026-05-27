@@ -1,5 +1,12 @@
+---
+name: mc-plan
+description: "Mission Control v5 — write a phased implementation plan for a feature. Reads spec + decisions + BUILD-GATES; writes phase-N.md files and populates status.json tasks[]. Usage: /mc-plan <feature-slug>"
+---
+
 # /mc-plan
 
-> **Deprecated (v3).** Use Add Feature pipeline — `mc-platform-plan` subagent after PRD/mock.
+Write a phased implementation plan for a single-workstream feature. Reads spec, decisions, BUILD-GATES, and ARCHITECTURE-MVVM; writes `phase-N.md` files and populates `status.json tasks[]`.
 
-See `commands/legacy/README.md`.
+Invoke skill: `mc-plan`
+
+Required argument: `<feature-slug>`.

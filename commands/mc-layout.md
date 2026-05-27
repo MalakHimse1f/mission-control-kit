@@ -1,5 +1,12 @@
+---
+name: mc-layout
+description: "Mission Control v5 — UI phase: read decisions + UI-REQUIREMENTS, produce wireframes, record UI decisions, surface via dashboard. Usage: /mc-layout <feature-slug>"
+---
+
 # /mc-layout
 
-> **Deprecated (v3).** Use Add Feature pipeline — `interaction-design` + `mc-mock` subagent.
+UI phase: reads decisions and UI-REQUIREMENTS, produces wireframes, records UI decisions via mc-decide, and surfaces them via the dashboard.
 
-See `commands/legacy/README.md`.
+Invoke skill: `mc-layout`
+
+Required argument: `<feature-slug>`.

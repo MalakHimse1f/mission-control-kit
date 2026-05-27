@@ -1,7 +1,12 @@
+---
+name: mc-braindump
+description: "Mission Control brainstorming — converts user intent into a UX flow diagram and saves it to features/{slug}/ux-flow.html. Usage: /mc-braindump"
+---
+
 # /mc-braindump
 
-**Legacy alias** for `/mc-feature` (Mission Control v4 Add Feature).
+Mission Control brainstorming stage. Offers research, converts returned patterns into a UX flow diagram, saves to `features/{slug}/ux-flow.html`, and auto-launches the dashboard.
 
-Invoke skill: `mc-feature`
+Invoke skill: `mc-braindump`
 
-Do not use the v3 braindump+refine flow. Run `/mc-feature <describe feature + codebase paths>` instead.
+Optional argument: a feature slug or description to kick off the brainstorm.
