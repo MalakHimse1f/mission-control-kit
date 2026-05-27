@@ -489,7 +489,6 @@ export const DASHBOARD_CLIENT_JS = `
       detailTasks.innerHTML = renderTasksTable(i.tasks);
     }
     detailScreenshots.innerHTML = renderScreenshots(i);
-    renderWorkGrid();
     setView("feature");
     if (location.hash !== "#feature/" + encodeURIComponent(id)) {
       history.pushState({ featureId: id }, "", "#feature/" + encodeURIComponent(id));
@@ -499,7 +498,7 @@ export const DASHBOARD_CLIENT_JS = `
   function goDashboard(){
     selectedId = null;
     setView("dashboard");
-    if (location.hash) history.pushState({}, "", location.pathname + location.search);
+    if (location.hash) history.replaceState({}, "", location.pathname + location.search);
     renderWorkGrid();
   }
 

@@ -184,7 +184,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
   <div id="view-dashboard" class="view active">
   <h1>Mission Control v4</h1>
   <p class="subtitle">Orchestrator-driven pipeline — Project START and Add Feature. Drill into a card for spec, plans, mocks, journal, and tasks.</p>
-  <p class="top-meta">Generated 2026-05-27T22:46:25.511Z · All content embedded — open this file directly, no external links required.</p>
+  <p class="top-meta">Generated 2026-05-27T22:52:24.549Z · All content embedded — open this file directly, no external links required.</p>
 
   
 
@@ -755,7 +755,6 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
       detailTasks.innerHTML = renderTasksTable(i.tasks);
     }
     detailScreenshots.innerHTML = renderScreenshots(i);
-    renderWorkGrid();
     setView("feature");
     if (location.hash !== "#feature/" + encodeURIComponent(id)) {
       history.pushState({ featureId: id }, "", "#feature/" + encodeURIComponent(id));
@@ -765,7 +764,7 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
   function goDashboard(){
     selectedId = null;
     setView("dashboard");
-    if (location.hash) history.pushState({}, "", location.pathname + location.search);
+    if (location.hash) history.replaceState({}, "", location.pathname + location.search);
     renderWorkGrid();
   }
 
