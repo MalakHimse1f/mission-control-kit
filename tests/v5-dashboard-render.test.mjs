@@ -1,0 +1,395 @@
+/**
+ * Tests for v5 dashboard rendering:
+ *   - lib/v5/dashboard-data.mjs            (loadDashboardData)
+ *   - control/scripts/v5/render-dashboard.mjs (renderDashboard)
+ *
+ * Plus a small smoke test that the Task-3 dashboard server now serves the
+ * real dashboard HTML (containing the section labels) at GET /.
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import { fileURLToPath } from 'node:url';
+
+import { loadDashboardData } from '../lib/v5/dashboard-data.mjs';
+import { renderDashboard } from '../control/scripts/v5/render-dashboard.mjs';
+import { startServer } from '../control/scripts/v5/dashboard-server.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, '..');
+// SAMPLE_V5 is the project root that CONTAINS `control/v5/` — passed to APIs
+// as `controlRoot`. (Was previously the `control/v5/` directory itself.)
+const SAMPLE_V5 = path.join(REPO_ROOT, 'sample-project');
+
+// ---------------------------------------------------------------------------
+// loadDashboardData
+// ---------------------------------------------------------------------------
+
+test('loadDashboardData buckets sample-project features correctly', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+
+  // liveAgents: in-progress
+  assert.equal(data.liveAgents.length, 1);
+  assert.equal(data.liveAgents[0].slug, 'progress-tracker');
+  assert.equal(data.liveAgents[0].stage, 'in-progress');
+
+  // upNext: first ready
+  assert.ok(data.upNext, 'expected upNext to be present');
+  assert.equal(data.upNext.slug, 'backlog-prioritization');
+  assert.equal(data.upNext.stage, 'ready');
+
+  // allItems: 4 items
+  assert.equal(data.allItems.length, 4);
+  const slugs = data.allItems.map((f) => f.slug).sort();
+  assert.deepEqual(slugs, [
+    'backlog-prioritization',
+    'cross-media-search',
+    'personal-library-import',
+    'progress-tracker',
+  ]);
+
+  // filterCounts add up
+  const counts = data.filterCounts;
+  assert.equal(counts.needsInput, 1);
+  assert.equal(counts.ready, 1);
+  assert.equal(counts.inProgress, 1);
+  assert.equal(counts.complete, 1);
+  const total = counts.needsInput + counts.ready + counts.inProgress + counts.complete;
+  assert.equal(total, data.allItems.length);
+});
+
+test('loadDashboardData handles missing features directory gracefully', async () => {
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-dash-data-'));
+  try {
+    const data = await loadDashboardData({ controlRoot: tmp });
+    assert.deepEqual(data.liveAgents, []);
+    assert.equal(data.upNext, null);
+    assert.deepEqual(data.allItems, []);
+    assert.deepEqual(data.filterCounts, {
+      needsInput: 0,
+      ready: 0,
+      inProgress: 0,
+      complete: 0,
+    });
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadDashboardData reads status.stage (not pipelineStage)', async () => {
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-stage-'));
+  try {
+    const featureDir = path.join(tmp, 'control', 'v5', 'features', 'alpha');
+    await fs.mkdir(featureDir, { recursive: true });
+    await fs.writeFile(
+      path.join(featureDir, 'status.json'),
+      JSON.stringify({
+        slug: 'alpha',
+        stage: 'in-progress',
+        // pipelineStage intentionally absent
+        lastUpdatedAt: '2026-05-26T10:00:00.000Z',
+      }),
+      'utf8',
+    );
+    const data = await loadDashboardData({ controlRoot: tmp });
+    assert.equal(data.liveAgents.length, 1);
+    assert.equal(data.liveAgents[0].stage, 'in-progress');
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadDashboardData picks first ready feature for upNext when several are ready', async () => {
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-upnext-'));
+  try {
+    for (const slug of ['zeta', 'alpha', 'beta']) {
+      const dir = path.join(tmp, 'control', 'v5', 'features', slug);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(
+        path.join(dir, 'status.json'),
+        JSON.stringify({
+          slug,
+          stage: 'ready',
+          lastUpdatedAt: '2026-05-26T10:00:00.000Z',
+        }),
+        'utf8',
+      );
+    }
+    const data = await loadDashboardData({ controlRoot: tmp });
+    // Sorted alphabetically -> alpha is first
+    assert.ok(data.upNext);
+    assert.equal(data.upNext.slug, 'alpha');
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// renderDashboard
+// ---------------------------------------------------------------------------
+
+test('renderDashboard returns full HTML with all three section labels', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  assert.ok(html.startsWith('<!doctype html') || html.startsWith('<!DOCTYPE html'));
+  assert.ok(html.includes('Live Agents'), 'expected "Live Agents" section label');
+  assert.ok(html.includes('Up Next'), 'expected "Up Next" section label');
+  assert.ok(html.includes('All Items'), 'expected "All Items" section label');
+});
+
+test('renderDashboard includes "How to use" disclosure, collapsed by default', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  // Disclosure container present
+  assert.ok(
+    html.includes('<details class="how-to-use">'),
+    'expected <details class="how-to-use"> wrapper',
+  );
+  // Must NOT have the open attribute — collapsed by default
+  assert.ok(
+    !html.includes('<details class="how-to-use" open'),
+    'expected the disclosure to be collapsed (no `open` attr)',
+  );
+  // Title visible in summary
+  assert.ok(
+    html.includes('How to use Mission Control Kit'),
+    'expected summary title to mention the kit',
+  );
+});
+
+test('renderDashboard renders How to use as a table with copy buttons', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  assert.ok(html.includes('<table class="howto-table">'), 'expected commands table');
+  assert.ok(html.includes('howto-table-skills'), 'expected skills table');
+  // Copy buttons present for slash commands
+  assert.ok(
+    html.includes('data-copy="/mc-v5"'),
+    'expected copy button for /mc-v5',
+  );
+  // Copy buttons present for bundled skills
+  assert.ok(
+    html.includes('data-copy="parallel-web-search"'),
+    'expected copy button for parallel-web-search skill',
+  );
+});
+
+test('renderDashboard lists key slash commands in How to use', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  for (const cmd of ['/mc-v5', '/mc-v5-resume', '/mc-start', '/mc-feature', '/mc-init', '/mc-build', '/mc-handoff']) {
+    assert.ok(
+      html.includes(`data-copy="${cmd}`),
+      `expected slash command ${cmd} in How to use`,
+    );
+  }
+});
+
+test('renderDashboard "How to use" has no v4 label', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  // v4 should not be called out as a separate section header
+  assert.ok(!html.includes('v4 Feature flow'), 'expected no v4 header in How to use');
+});
+
+test('renderDashboard lists all four community bundles with skill-tag chips', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  // Source attribution chips appear once per skill row referencing each bundle
+  for (const tag of ['superpowers', 'prd-generator', 'designer-skills', 'startup-skill']) {
+    assert.ok(html.includes(tag), `expected bundle "${tag}" referenced in skills table`);
+  }
+});
+
+test('renderDashboard includes the Pickup where you left off panel', async () => {
+  const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
+  assert.ok(
+    html.includes('Pickup where you left off'),
+    'expected section label',
+  );
+  // Sample-project has an active feature so the panel should contain the prompt
+  assert.ok(
+    html.includes('class="pickup-prompt"') || html.includes("class='pickup-prompt'"),
+    'expected pickup-prompt block',
+  );
+  assert.ok(html.includes('Resume feature'), 'expected pickup prompt text');
+  assert.ok(html.includes('data-copy-target="pickup-prompt-text"'), 'expected copy button targeting pickup prompt');
+});
+
+test('renderDashboard contains each filter pill name and count', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  assert.ok(html.includes('Needs Your Input'), 'expected "Needs Your Input" pill');
+  assert.ok(html.includes('Ready'), 'expected "Ready" pill');
+  assert.ok(html.includes('In Progress'), 'expected "In Progress" pill');
+  assert.ok(html.includes('Complete'), 'expected "Complete" pill');
+
+  // Counts should reflect filterCounts
+  assert.ok(html.includes(`(${data.filterCounts.needsInput})`));
+  assert.ok(html.includes(`(${data.filterCounts.ready})`));
+  assert.ok(html.includes(`(${data.filterCounts.inProgress})`));
+  assert.ok(html.includes(`(${data.filterCounts.complete})`));
+});
+
+test('renderDashboard item rows link to /feature/:slug', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  for (const item of data.allItems) {
+    assert.ok(
+      html.includes(`/feature/${item.slug}`),
+      `expected link to /feature/${item.slug}`,
+    );
+  }
+});
+
+test('renderDashboard makes Live Agents rows fully clickable (outer <a class="live-item">)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  // Outer element is an <a class="live-item" ...>
+  assert.ok(
+    /<a\s+class="live-item"[^>]*href="\/feature\/[^"]+"/.test(html),
+    'expected <a class="live-item" href="/feature/..."> as the outer Live Agents row',
+  );
+
+  // No nested <a> inside .live-item-name
+  assert.ok(
+    !/<span class="live-item-name"><a\b/.test(html),
+    'expected no nested <a> inside .live-item-name',
+  );
+});
+
+test('renderDashboard makes Up Next entry fully clickable (outer <a class="next-item">)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  // Outer element is an <a class="next-item" ...>
+  assert.ok(
+    /<a\s+class="next-item"[^>]*href="\/feature\/[^"]+"/.test(html),
+    'expected <a class="next-item" href="/feature/..."> as the outer Up Next row',
+  );
+
+  // No nested <a> inside .next-item-name
+  assert.ok(
+    !/<span class="next-item-name"><a\b/.test(html),
+    'expected no nested <a> inside .next-item-name',
+  );
+
+  // No standalone Open link anchor inside .next-item — replaced by decorative arrow
+  assert.ok(
+    !/<a class="open-link"/.test(html),
+    'expected no <a class="open-link"> (replaced by decorative arrow span)',
+  );
+});
+
+test('renderDashboard All Items rows continue to use <a class="item-row"> (regression guard)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+
+  assert.ok(
+    /<a\s+class="item-row"[^>]*href="\/feature\/[^"]+"/.test(html),
+    'expected <a class="item-row" href="/feature/..."> for All Items rows',
+  );
+});
+
+test('renderDashboard links to /dashboard.css and /dashboard-client.js', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  const html = renderDashboard(data);
+  assert.ok(html.includes('/dashboard.css'), 'expected /dashboard.css link');
+  assert.ok(html.includes('/dashboard-client.js'), 'expected /dashboard-client.js script');
+});
+
+test('renderDashboard handles empty data (no live agents, no up next, no items)', () => {
+  const empty = {
+    liveAgents: [],
+    upNext: null,
+    allItems: [],
+    filterCounts: { needsInput: 0, ready: 0, inProgress: 0, complete: 0 },
+  };
+  const html = renderDashboard(empty);
+  assert.ok(html.length > 200, 'expected non-trivial HTML');
+  assert.ok(
+    html.includes('No agents currently working'),
+    'expected empty-state copy for live agents',
+  );
+  assert.ok(html.includes('Queue is clear'), 'expected empty-state copy for up next');
+});
+
+test('renderDashboard escapes HTML in slugs and stages', () => {
+  const data = {
+    liveAgents: [
+      {
+        slug: '<script>alert(1)</script>',
+        stage: 'in-progress',
+        currentPhase: 'build',
+        lastUpdatedAt: '2026-05-26T10:00:00.000Z',
+      },
+    ],
+    upNext: null,
+    allItems: [
+      {
+        slug: '<script>alert(1)</script>',
+        stage: 'in-progress',
+        currentPhase: 'build',
+        lastUpdatedAt: '2026-05-26T10:00:00.000Z',
+      },
+    ],
+    filterCounts: { needsInput: 0, ready: 0, inProgress: 1, complete: 0 },
+  };
+  const html = renderDashboard(data);
+  assert.ok(!html.includes('<script>alert(1)</script>'), 'raw script tag should not appear');
+  assert.ok(html.includes('&lt;script&gt;'), 'expected escaped angle brackets');
+});
+
+// ---------------------------------------------------------------------------
+// Server integration
+// ---------------------------------------------------------------------------
+
+test('GET / on dashboard server returns rendered dashboard with three sections', async () => {
+  const handle = await startServer({ controlRoot: SAMPLE_V5, port: 0 });
+  try {
+    const res = await fetch(`${handle.url}/`);
+    assert.equal(res.status, 200);
+    const ct = res.headers.get('content-type') || '';
+    assert.ok(ct.includes('text/html'));
+    const html = await res.text();
+    assert.ok(html.includes('Live Agents'));
+    assert.ok(html.includes('Up Next'));
+    assert.ok(html.includes('All Items'));
+    assert.ok(html.includes('Needs Your Input'));
+  } finally {
+    await handle.close();
+  }
+});
+
+test('GET /dashboard.css returns CSS with text/css content type', async () => {
+  const handle = await startServer({ controlRoot: SAMPLE_V5, port: 0 });
+  try {
+    const res = await fetch(`${handle.url}/dashboard.css`);
+    assert.equal(res.status, 200);
+    const ct = res.headers.get('content-type') || '';
+    assert.ok(ct.includes('text/css'), `expected text/css, got: ${ct}`);
+    const body = await res.text();
+    assert.ok(body.includes('.filter-pill') || body.includes('filter-pill'));
+  } finally {
+    await handle.close();
+  }
+});
+
+test('GET /dashboard-client.js returns JS with javascript content type', async () => {
+  const handle = await startServer({ controlRoot: SAMPLE_V5, port: 0 });
+  try {
+    const res = await fetch(`${handle.url}/dashboard-client.js`);
+    assert.equal(res.status, 200);
+    const ct = res.headers.get('content-type') || '';
+    assert.ok(ct.includes('javascript'), `expected javascript, got: ${ct}`);
+    const body = await res.text();
+    assert.ok(body.length > 50, 'expected non-trivial JS body');
+  } finally {
+    await handle.close();
+  }
+});

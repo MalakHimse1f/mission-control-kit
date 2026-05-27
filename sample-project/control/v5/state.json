@@ -1,0 +1,11 @@
+{
+  "version": "5.0.0",
+  "activeFeature": "personal-library-import",
+  "features": [
+    { "slug": "personal-library-import", "stage": "needs-input", "currentPhase": "architecture" },
+    { "slug": "backlog-prioritization", "stage": "ready", "currentPhase": "build" },
+    { "slug": "progress-tracker", "stage": "in-progress", "currentPhase": "build" },
+    { "slug": "cross-media-search", "stage": "complete", "currentPhase": "complete" }
+  ],
+  "updatedAt": "2026-05-26T14:00:00.000Z"
+}

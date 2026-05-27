@@ -1,0 +1,9 @@
+{
+  "feature": "Cross-Media Search",
+  "slug": "cross-media-search",
+  "stage": "complete",
+  "pipelineStage": "complete",
+  "currentPhase": "complete",
+  "lastUpdatedAt": "2026-05-22T17:30:00.000Z",
+  "description": "Universal search across the user's library and external catalogs (TMDB, IGDB, Open Library, Comic Vine), grouped by media type with quick-add-to-backlog."
+}

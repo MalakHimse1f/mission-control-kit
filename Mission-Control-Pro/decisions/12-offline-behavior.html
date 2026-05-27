@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 12 — Offline behavior</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision workflow</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 12 · Path B</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Devs work offline (flights, café WiFi gaps).<br>What does the bridge keep doing?</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      The agent runs on the dev's machine and doesn't need the cloud. But the cloud expects events. If the bridge can't reach the relay, what happens? Block work? Queue silently? Let the dev keep going and reconcile later?
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Path B</span>
+    <p>Bridge blocks the agent when offline. Cloud visibility is a hard product requirement — "agents working invisibly" is not a state we tolerate. Tray shows "Offline — agent disabled" with a Pause Bridge action to stop retries during flights / VPN gaps. Marketing must not promise offline support; docs explain explicitly.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>What's the offline contract for the bridge?</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Local-first — queue events, reconcile on reconnect</div>
+      <div class="path-desc">Agent keeps running. Bridge queues all events to local SQLite. On reconnect, it drains the queue in order. If a workflow version changed in the cloud during downtime, in-flight sessions stay on the version they started with.</div>
+
+      <div class="diagram">
+        <span class="label">Offline flow</span>
+        <div class="flow-col">
+          <div class="flow-box good">Agent running locally — unaffected</div>
+          <div class="flow-arrow">↓ event fires</div>
+          <div class="flow-box info">Bridge queues to queue.db</div>
+          <div class="flow-arrow">↓ later</div>
+          <div class="flow-box good">Reconnect → drain queue in order</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Work continues without interruption</li>
+            <li>No data loss</li>
+            <li>Honors "your machine, your work"</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Cloud dashboard shows stale state during gap</li>
+            <li>Decisions raised offline can't be answered until reconnect</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path A</button>
+    </div>
+
+    <!-- PATH B -->
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Block agent when offline</div>
+      <div class="path-desc">If the bridge can't reach the cloud, it refuses to spawn or attach. Forces all sessions to be cloud-visible at all times.</div>
+
+      <div class="diagram">
+        <span class="label">Hard requirement</span>
+        <div class="flow-col">
+          <div class="flow-box info">Cloud reachable?</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box good">Yes → allow</div>
+          <div class="flow-box warn">No → refuse</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Dashboard always accurate</li>
+            <li>No reconciliation logic</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Devs hate being blocked by network</li>
+            <li>Flight productivity gone</li>
+            <li>Cloud outage = total stop</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <!-- PATH C -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Read-only offline — agent runs, no journal queue</div>
+      <div class="path-desc">Agent works locally during outage but events are *dropped* (only the final state syncs on reconnect). No journal queue.</div>
+
+      <div class="diagram">
+        <span class="label">Drop-events mode</span>
+        <div class="flow-col">
+          <div class="flow-box good">Agent runs</div>
+          <div class="flow-arrow">↓ events</div>
+          <div class="flow-box warn">/dev/null (dropped)</div>
+          <div class="flow-arrow">↓ reconnect</div>
+          <div class="flow-box info">Just final state syncs</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Simpler than queue</li>
+            <li>Agent unblocked</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Dashboard misses everything that happened offline</li>
+            <li>Decisions raised offline are lost</li>
+            <li>Breaks audit log promise</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path C</button>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes for Path B</span>
+    Bridge maintains a connection-state machine: <code>Online → AttemptingReconnect → Offline → Paused</code>. In Offline state, all <code>spawn</code> and <code>attach</code> requests respond with <code>cloud-unreachable</code>. In-flight agent sessions receive a signal to pause at the next <code>decide</code> step. Tray badge changes color in Offline state. Pause Bridge action stops retries to save battery on flights. Marketing copy must avoid promising offline support; status page becomes load-bearing for customer trust.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 12 of 13</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="11-workflow-author-experience.html">← Previous</a>
+      <a class="btn-ghost" href="13-telemetry-privacy.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

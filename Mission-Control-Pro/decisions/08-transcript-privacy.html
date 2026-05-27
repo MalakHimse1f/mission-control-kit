@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 08 — Transcript privacy (resolved by #02)</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision log</a>
+    <span class="crumb-tag decided">✓ Resolved · Issue 08 · Subsumed by #02</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Transcript privacy — what leaves the user's machine?</h1>
+    <div class="problem-statement">
+      <span class="label">Original concern</span>
+      If we mirrored the agent transcript to the cloud, sensitive code snippets from a customer's private repo would end up in Supabase. We needed a clear answer on what the bridge is permitted to send, where that rule lives, and how a customer can verify it.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Resolved 2026-05-26 · Same as #02</span>
+    <p>This question is fully answered by <a href="02-visibility-model.html" style="color:#5de8a0; text-decoration: underline;">Issue 02 — journal-driven visibility</a>. The bridge only sends events the orchestrator skill and subagents explicitly journal, plus <code>decide</code> requests. Free-form chat never leaves. File contents never leave unless explicitly attached to a journal entry by the skill author.</p>
+  </div>
+
+  <div class="paths">
+    <div class="path decided" style="grid-column: span 2;">
+      <div class="path-letter-row">
+        <span class="path-letter">✓</span>
+        <span class="decided-badge">Privacy contract</span>
+      </div>
+      <div class="path-title">The bridge's outbound channel — fully enumerable</div>
+      <div class="diagram">
+        <span class="label">What can leave the machine</span>
+        <div class="flow-col">
+          <div class="flow-box good">Journal entries — text the skill explicitly emits</div>
+          <div class="flow-box good">Stage / state diffs — minimal, structured</div>
+          <div class="flow-box good">Decision requests — workflow-defined shape</div>
+          <div class="flow-box good">Bridge heartbeat — device id, timestamp, no content</div>
+          <div class="flow-box good">Audit events — spawn results, sync events</div>
+          <div class="flow-box disabled">Free-form chat — never</div>
+          <div class="flow-box disabled">Tool call payloads — never</div>
+          <div class="flow-box disabled">File contents — never (unless attached to a journal entry by the skill)</div>
+        </div>
+      </div>
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Why this works as a contract</div>
+          <ul>
+            <li>The bridge channel is enumerable — auditable in code, not by trust</li>
+            <li>The skill author controls what gets attached, per step</li>
+            <li>"What does the cloud see?" has a definitive list</li>
+            <li>Enterprise security review has a clean answer</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Sharp edges</div>
+          <ul>
+            <li>A poorly-written skill could journal a code snippet by mistake — we need orchestrator-skill review guidance</li>
+            <li>Workflow authors who use <code>decide</code> for long code reviews are sending code intentionally — make that obvious in the UI</li>
+            <li>Enterprise tier: option to disable all cloud journal bodies (metadata-only) as a future opt-in</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <span class="label">Where this lives in the code</span>
+    Bridge has a hard-coded event-type allowlist for outbound messages. Anything that isn't one of the enumerated types is dropped at the boundary, not at the transport layer. The orchestrator skill ships with a documented set of journal helpers — using anything other than those helpers is a lint warning. Enterprise self-host can additionally redact journal bodies before they leave the bridge.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 8 of 13 · resolved (same model as #02)</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="07-mobile-decision-ui.html">← Previous</a>
+      <a class="btn-ghost" href="09-pricing-structure.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

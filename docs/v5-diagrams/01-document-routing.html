@@ -276,11 +276,222 @@
   .arrow-line { stroke: #444; stroke-width: 1.5; }
   .arrow-head { fill: #444; }
 
+  /* Pickup prompt sentence styling */
+  .pickup-prompt {
+    background: #0f1419;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.78rem;
+    color: #c8d4e0;
+    line-height: 1.55;
+    text-align: left;
+    margin-top: 0.6rem;
+  }
+  .pickup-prompt .sentence-tag {
+    display: inline-block;
+    font-family: system-ui, sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5b8dd9;
+    background: #15212e;
+    border: 1px solid #1f3148;
+    border-radius: 3px;
+    padding: 0.05rem 0.35rem;
+    margin-right: 0.45rem;
+    vertical-align: 1px;
+  }
+  .pickup-prompt .task-type {
+    color: #f1c40f;
+    background: rgba(241, 196, 15, 0.08);
+    border: 1px solid rgba(241, 196, 15, 0.25);
+    border-radius: 3px;
+    padding: 0 0.25rem;
+  }
+  .pickup-prompt .doc-path {
+    color: #5de8a0;
+  }
+  .pickup-prompt .fn-call {
+    color: #af8c6a;
+  }
+
+  /* Phase order section */
+  .phase-section {
+    max-width: 1000px;
+    margin: 3.5rem auto 0;
+  }
+  .phase-section h3 {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #af8c6a;
+  }
+  .phase-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .phase-pill {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #ccc;
+    font-family: ui-monospace, monospace;
+  }
+  .phase-pill.ux { border-color: #6a3a7a; color: #c78ddb; }
+  .phase-pill.ui { border-color: #3a5a8a; color: #8fb3dd; }
+  .phase-pill.arch { border-color: #8a5a2a; color: #d9a872; }
+  .phase-pill.build { border-color: #8a3a3a; color: #e58787; }
+  .phase-arrow {
+    color: #444;
+    font-family: ui-monospace, monospace;
+    font-size: 1rem;
+  }
+  .defer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: #2a2a2a;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+  }
+  .defer-grid .header {
+    background: #1a1a1a;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    font-weight: 600;
+  }
+  .defer-grid .cell {
+    background: #141414;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
+    color: #bbb;
+    font-family: ui-monospace, monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .defer-grid .cell.blocked { color: #e58787; }
+  .defer-grid .cell.allowed { color: #8fc4a0; }
+  .defer-grid .cell.advisory { color: #d9c872; }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.blocked { background: #e74c3c; }
+  .status-dot.allowed { background: #2ecc71; }
+  .status-dot.advisory { background: #f1c40f; }
+
+  .non-canonical-note {
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    color: #888;
+    line-height: 1.55;
+    background: #0f0f0f;
+    border-left: 2px solid #af8c6a;
+    padding: 0.7rem 1rem;
+    border-radius: 0 6px 6px 0;
+  }
+  .non-canonical-note code {
+    font-family: ui-monospace, monospace;
+    color: #c8d4e0;
+    background: #1a1a1a;
+    padding: 0.05rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.95em;
+  }
+
+  /* Architecture split callout */
+  .arch-split-note {
+    max-width: 1000px;
+    margin: 1.25rem auto 0;
+    font-size: 0.82rem;
+    color: #c8d4e0;
+    line-height: 1.6;
+    background: #15212e;
+    border-left: 2px solid #5b8dd9;
+    padding: 0.85rem 1.1rem;
+    border-radius: 0 6px 6px 0;
+  }
+  .arch-split-note strong { color: #f5f5f5; }
+  .arch-split-note code {
+    font-family: ui-monospace, monospace;
+    color: #c8d4e0;
+    background: #0f1419;
+    padding: 0.05rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.95em;
+  }
+
+  /* Context packet code-block */
+  .context-packet pre {
+    background: #0f1419;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.76rem;
+    color: #c8d4e0;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 0;
+  }
+  .context-packet pre .k { color: #6a8caf; }
+  .context-packet pre .s { color: #8fc4a0; }
+  .context-packet pre .n { color: #d9a872; }
+  .context-packet pre .b { color: #c78ddb; }
+  .context-packet pre .c { color: #555; font-style: italic; }
+
+  /* controlRoot callout */
+  .controlroot-callout {
+    max-width: 1000px;
+    margin: 3rem auto 0;
+    font-size: 0.82rem;
+    color: #c8d4e0;
+    line-height: 1.6;
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-left: 3px solid #5de8a0;
+    padding: 1rem 1.2rem;
+    border-radius: 0 8px 8px 0;
+  }
+  .controlroot-callout h4 {
+    font-size: 0.78rem;
+    color: #5de8a0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .controlroot-callout code {
+    font-family: ui-monospace, monospace;
+    color: #c8d4e0;
+    background: #0f1419;
+    padding: 0.05rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.95em;
+  }
+
   /* Responsive */
   @media (max-width: 700px) {
     .comparison { grid-template-columns: 1fr; }
     .route-table { grid-template-columns: 1fr; }
     .route-row-docs { border-left: 3px solid #333; }
+    .defer-grid { grid-template-columns: 1fr; }
     body { padding: 2rem 1rem; }
   }
 </style>
@@ -336,10 +547,14 @@
 
   <div class="flow-diagram">
     <!-- Step 1: User Prompt -->
-    <div class="flow-node">
+    <div class="flow-node" style="max-width: 640px;">
       <div class="label">Step 1 — Input</div>
-      <div class="title">User Pickup Prompt</div>
-      <div class="desc">"Build the settings panel layout" + stub reference</div>
+      <div class="title">Pickup Prompt (buildPickupPrompt)</div>
+      <div class="desc">Exactly 2 sentences with an embedded <span class="task-type" style="font-family: ui-monospace, monospace; font-size: 0.78rem;">taskType</span> — a fresh agent has everything it needs to call the router.</div>
+      <div class="pickup-prompt">
+        <span class="sentence-tag">Sentence 1</span>Resume feature <span class="doc-path">"user-onboarding"</span> at stage <span class="doc-path">ux</span> (<span class="task-type">taskType: ux-decisions</span>).<br/>
+        <span class="sentence-tag">Sentence 2</span>Read <span class="doc-path">control/v5/features/user-onboarding/status.json</span> and <span class="doc-path">decisions.json</span>, then call <span class="fn-call">resolveRoute({ taskType: "ux-decisions", stage: "ux", slug: "user-onboarding" })</span> from <span class="doc-path">lib/v5/mc-router.mjs</span> to load the minimum context for this phase.
+      </div>
     </div>
 
     <div class="flow-arrow">
@@ -349,8 +564,8 @@
     <!-- Step 2: Status -->
     <div class="flow-node accent">
       <div class="label">Step 2 — State Lookup</div>
-      <div class="title">Orchestrator reads status.json</div>
-      <div class="desc">Determines current stage: phase, feature, completion %</div>
+      <div class="title">Orchestrator reads status.json + decisions.json</div>
+      <div class="desc">The pickup prompt names both files. <code style="font-family: ui-monospace, monospace; color: #c8d4e0;">status.json</code> gives current phase &amp; feature; <code style="font-family: ui-monospace, monospace; color: #c8d4e0;">decisions.json</code> gives the decision log + any deferred questions.</div>
     </div>
 
     <div class="flow-arrow">
@@ -358,10 +573,19 @@
     </div>
 
     <!-- Step 3: Router -->
-    <div class="flow-node router">
+    <div class="flow-node router" style="max-width: 540px;">
       <div class="label">Step 3 — Route Resolution</div>
       <div class="title">mc-router.mjs</div>
-      <div class="desc">Maps task type → required documents</div>
+      <div class="desc">
+        6 task types: <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">ui-implementation</code>,
+        <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">ux-decisions</code>,
+        <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">architecture</code>,
+        <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">research</code>,
+        <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">build</code>,
+        <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">brainstorm</code>.<br/>
+        <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">stageToDefaultTaskType(stage)</code> is the helper the pickup prompt uses to pick a sensible default per stage.<br/>
+        Each route carries a <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">usageNote</code> that the dispatch packet surfaces as <code style="font-family: ui-monospace, monospace; color: #c8d4e0; font-size: 0.78rem;">instructions[]</code>.
+      </div>
     </div>
 
     <div class="flow-arrow">
@@ -411,53 +635,128 @@
       <span class="doc-tag ux">flow diagrams</span>
     </div>
 
-    <div class="route-row-type"><span class="route-dot color-arch"></span> Architecture</div>
+    <div class="route-row-type"><span class="route-dot color-arch"></span> Architecture <span style="font-size: 0.7rem; color: #888; font-weight: 400;">(decision-only)</span></div>
     <div class="route-row-docs">
       <span class="doc-tag arch">ARCHITECTURE.md</span>
       <span class="doc-tag arch">stack.json</span>
-      <span class="doc-tag arch">tech decisions</span>
+      <span class="doc-tag arch">architecture-primitives</span>
     </div>
 
     <div class="route-row-type"><span class="route-dot color-research"></span> Research</div>
     <div class="route-row-docs">
-      <span class="doc-tag research">relevant skill</span>
-      <span class="doc-tag research">user specs</span>
-      <span class="doc-tag research">research template</span>
+      <span class="doc-tag research">UX-PATTERNS.md</span>
+      <span class="doc-tag research">braindump.md</span>
     </div>
 
     <div class="route-row-type"><span class="route-dot color-build"></span> Build</div>
     <div class="route-row-docs">
-      <span class="doc-tag build">phase plan</span>
+      <span class="doc-tag build">phases/</span>
       <span class="doc-tag build">BUILD-GATES.md</span>
-      <span class="doc-tag build">single task spec</span>
+      <span class="doc-tag build">ARCHITECTURE-MVVM.md</span>
+      <span class="doc-tag build">spec.md</span>
     </div>
 
     <div class="route-row-type"><span class="route-dot color-brainstorm"></span> Brainstorm</div>
     <div class="route-row-docs">
-      <span class="doc-tag brainstorm">product context</span>
-      <span class="doc-tag brainstorm">market research</span>
-      <span class="doc-tag brainstorm">user goals</span>
+      <span class="doc-tag brainstorm">UX-PATTERNS.md</span>
+      <span class="doc-tag brainstorm">braindump.md</span>
     </div>
+  </div>
+
+  <div class="arch-split-note">
+    <strong>ARCHITECTURE was split into two docs.</strong>
+    <code>control/v5/routing/ARCHITECTURE.md</code> is for <em>decision visualization</em> — it loads on the <code>architecture</code> route alongside <code>stack.json</code> and the architecture-primitives template.
+    <code>control/v5/routing/ARCHITECTURE-MVVM.md</code> is for <em>build code structure rules</em> (MVVM layering) — it loads only on the <code>build</code> route as <code>scope: mvvm-rules</code>.
+    The two docs live on different routes by design so a UX-or-UI subagent never receives MVVM rules and a build subagent never re-reads decision visuals.
+  </div>
+</section>
+
+<!-- PHASE_ORDER + backtracking prevention -->
+<section class="phase-section">
+  <h3>Backtracking Prevention — PHASE_ORDER</h3>
+
+  <div class="phase-row">
+    <span class="phase-pill ux">ux</span>
+    <span class="phase-arrow">&rarr;</span>
+    <span class="phase-pill ui">ui</span>
+    <span class="phase-arrow">&rarr;</span>
+    <span class="phase-pill arch">architecture</span>
+    <span class="phase-arrow">&rarr;</span>
+    <span class="phase-pill build">build</span>
+  </div>
+
+  <div class="defer-grid">
+    <div class="header">Task Type</div>
+    <div class="header">Allowed during</div>
+    <div class="header">Deferred during</div>
+
+    <div class="cell"><span class="status-dot allowed"></span> ux-decisions</div>
+    <div class="cell allowed">ux, ui, architecture, build</div>
+    <div class="cell">—</div>
+
+    <div class="cell"><span class="status-dot blocked"></span> ui-implementation</div>
+    <div class="cell allowed">ui, architecture, build</div>
+    <div class="cell blocked">ux</div>
+
+    <div class="cell"><span class="status-dot blocked"></span> architecture</div>
+    <div class="cell allowed">architecture, build</div>
+    <div class="cell blocked">ux, ui</div>
+
+    <div class="cell"><span class="status-dot blocked"></span> build</div>
+    <div class="cell allowed">build</div>
+    <div class="cell blocked">ux, ui, architecture</div>
+
+    <div class="cell"><span class="status-dot advisory"></span> research</div>
+    <div class="cell advisory">any stage (advisory, never deferred)</div>
+    <div class="cell">—</div>
+
+    <div class="cell"><span class="status-dot advisory"></span> brainstorm</div>
+    <div class="cell advisory">any stage (advisory, never deferred)</div>
+    <div class="cell">—</div>
+  </div>
+
+  <div class="non-canonical-note">
+    <strong style="color:#f5f5f5;">Non-canonical stages pass through.</strong>
+    Dashboard buckets (<code>needs-input</code>, <code>ready</code>, <code>in-progress</code>, <code>complete</code>) and legacy values (<code>mock</code>, <code>brainstorm</code>) are not in <code>PHASE_ORDER</code>, so <code>shouldDefer()</code> trusts the caller and does not block.
+    The orchestrator is expected to resolve a canonical phase first via <code>currentPhase()</code> from <code>lib/v5/decision-gate.mjs</code> before calling <code>resolveRoute</code> with a non-canonical stage.
   </div>
 </section>
 
 <!-- Example context packet -->
-<section class="dispatch-section">
-  <div class="context-packet">
-    <h4>Example Context Packet — UI Implementation</h4>
-    <div class="packet-fields">
-      <span class="packet-key">task</span>
-      <span class="packet-val">"Build the settings panel layout"</span>
-      <span class="packet-key">stage</span>
-      <span class="packet-val">phase-2 / feature-settings / 40% complete</span>
-      <span class="packet-key">route</span>
-      <span class="packet-val">ui-implementation</span>
-      <span class="packet-key">docs</span>
-      <span class="packet-val">UI-REQUIREMENTS.md §settings, primitives/grid.md, wireframes/settings.png</span>
-      <span class="packet-key">tokens</span>
-      <span class="packet-val">~7,800 (vs ~45,000 unrouted)</span>
-    </div>
+<section class="dispatch-section" style="margin-top: 3.5rem;">
+  <div class="context-packet" style="max-width: 720px;">
+    <h4>Example Context Packet — buildPacket() output</h4>
+<pre><span class="b">{</span>
+  <span class="k">task</span>: <span class="s">"Build the settings panel layout"</span>,
+  <span class="k">stage</span>: <span class="s">"ui"</span>,
+  <span class="k">slug</span>: <span class="s">"settings-panel"</span>,
+  <span class="k">route</span>: <span class="b">{</span>
+    <span class="k">taskType</span>: <span class="s">"ui-implementation"</span>,
+    <span class="k">docs</span>: <span class="b">[</span>
+      <span class="b">{</span> <span class="k">path</span>: <span class="s">"control/v5/routing/UI-REQUIREMENTS.md"</span>, <span class="k">scope</span>: <span class="s">"ui-requirements"</span>, <span class="k">optional</span>: <span class="n">false</span>, <span class="k">exists</span>: <span class="n">true</span>  <span class="b">}</span>,
+      <span class="b">{</span> <span class="k">path</span>: <span class="s">"control/layout/diagrams/ui-options/template.html"</span>, <span class="k">scope</span>: <span class="s">"ui-primitives"</span>, <span class="k">optional</span>: <span class="n">false</span>, <span class="k">exists</span>: <span class="n">true</span>  <span class="b">}</span>,
+      <span class="b">{</span> <span class="k">path</span>: <span class="s">"control/v5/features/settings-panel/layout/wireframes/"</span>, <span class="k">scope</span>: <span class="s">"wireframes"</span>, <span class="k">optional</span>: <span class="n">true</span>, <span class="k">exists</span>: <span class="n">false</span>  <span class="b">}</span>,
+    <span class="b">]</span>,
+  <span class="b">}</span>,
+  <span class="k">instructions</span>: <span class="b">[</span>
+    <span class="s">"You MUST NOT write HTML for a decision card by hand. Every decision in</span>
+<span class="s">     decisions.json requires a sibling fragment file generated by</span>
+<span class="s">     `node lib/v5/cli/build-decision.mjs &lt;slug&gt; &lt;decision-id&gt;` ..."</span>,
+  <span class="b">]</span>,
+  <span class="k">deferred</span>: <span class="n">false</span>,
+  <span class="k">deferredReason</span>: <span class="n">null</span>,
+<span class="b">}</span>
+<span class="c">// Note: tokensEstimate was removed in the v5 refactor — buildPacket no</span>
+<span class="c">// longer reads file contents, so it can't size tokens. Subagents read</span>
+<span class="c">// their own docs on demand.</span></pre>
   </div>
+</section>
+
+<!-- controlRoot semantics callout -->
+<section class="controlroot-callout">
+  <h4>controlRoot semantics — same everywhere</h4>
+  All v5 modules use the same <code>controlRoot</code>: the <strong>project root</strong> — the directory <em>containing</em> <code>control/v5/</code>, not <code>control/v5/</code> itself.
+  Doc paths in routes already include the <code>control/v5/...</code> prefix, so <code>path.join(controlRoot, route.docs[i].path)</code> always resolves correctly in <code>resolveRoute</code> (when <code>verifyExists: true</code>) and in <code>buildPacket</code>.
 </section>
 
 </body>

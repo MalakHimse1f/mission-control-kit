@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 13 — Telemetry &amp; privacy</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision workflow</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 13 · Path B</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Product telemetry helps us improve.<br>Customer privacy is non-negotiable.</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      We want to know which workflow templates get used, where onboarding stalls, and how often agents finish their flows. Customers — especially enterprise — want explicit control over what leaves their environment. Pick a default that respects both sides.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Path B</span>
+    <p>Opt-in only. Nothing leaves customer environments unless explicitly enabled. Settings show a clear "Send anonymous usage data" toggle (default <strong>off</strong>). Content telemetry never exists. Tradeoff: very little wild usage data — onboarding optimization comes from design partners + sales conversations. Telemetry infrastructure is still built (Edge Function + schema) so opting in is a flip.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>What's the default telemetry posture, and what's the opt-out?</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Usage on by default · content always off · single per-org toggle</div>
+      <div class="path-desc">Anonymized usage events (which CTAs, which workflows started, which steps stalled) are on by default. Content telemetry (decision bodies, journal text) is *never* sent regardless of setting. Org-wide toggle in settings can disable all usage telemetry.</div>
+
+      <div class="diagram">
+        <span class="label">Two clear lanes</span>
+        <div class="flow-col">
+          <div class="flow-box good">Usage events — on (opt-out)</div>
+          <div class="flow-box disabled">Content — always off</div>
+          <div class="flow-arrow">↓ org toggle</div>
+          <div class="flow-box info">Settings → "Send anonymous usage data"</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>We get the data we need for product</li>
+            <li>Content is never at risk</li>
+            <li>One toggle is easy to understand</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Some customers will still want opt-in only</li>
+            <li>Need a clear written policy</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path A</button>
+    </div>
+
+    <!-- PATH B -->
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Opt-in only · no telemetry by default</div>
+      <div class="path-desc">Nothing leaves customer environments unless explicitly enabled. Strongest privacy posture.</div>
+
+      <div class="diagram">
+        <span class="label">Opt-in default</span>
+        <div class="flow-col">
+          <div class="flow-box disabled">All telemetry — off</div>
+          <div class="flow-arrow">↓ admin opts in</div>
+          <div class="flow-box info">Then usage events flow</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Best for enterprise reviews</li>
+            <li>No ambiguity about consent</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>~5% of orgs ever opt in</li>
+            <li>Hard to learn from real usage</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <!-- PATH C -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Three-level slider — off / usage / usage+content</div>
+      <div class="path-desc">Admin picks: none / anonymous usage / usage with content samples. Content samples can include redacted decision bodies for debugging.</div>
+
+      <div class="diagram">
+        <span class="label">Slider levels</span>
+        <div class="flow-col">
+          <div class="flow-box disabled">○ Off</div>
+          <div class="flow-box info">● Usage only (default?)</div>
+          <div class="flow-box warn">● Usage + content (debug)</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Lets power users help with debugging</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Content telemetry is dangerous</li>
+            <li>Three options = more confusing UI</li>
+            <li>Legal review of "redaction" claims</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path C</button>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes if Path A is chosen</span>
+    Telemetry events go through a separate Edge Function endpoint (not the same channel as agent journal). Schema is event-name + small property bag (no free text). Org setting <code>orgs.telemetry_enabled boolean default true</code>. Self-hosted bridge fleet (Enterprise) defaults to false. Public telemetry catalog (a docs page listing every event we capture) ships with the product.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 13 of 13 · last decision · workflow complete after this</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="12-offline-behavior.html">← Previous</a>
+      <a class="btn-ghost" href="index.html">Finish workflow</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 05 — Permission Groups + Teams (terminology corrected)</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision log</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 05 · Terminology corrected</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">Permission Groups and Teams are two different things.<br>Previously conflated — now split.</h1>
+    <div class="problem-statement">
+      <span class="label">The original framing</span>
+      I had treated "Permission Groups" as one mechanism that did both jobs: governing org-config access AND grouping users for workflow assignment. That was wrong, and it generated a precedence puzzle that turned out to be artificial. The correction is to recognize these as two independent axes.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Terminology corrected</span>
+    <p><strong>Permission Group</strong> = governs CRUD on org config (workflows, standards, invites, devices, billing). Each user is in <em>exactly one</em>. System groups: Owner, Admin, Member. Custom groups allowed.</p>
+    <p style="margin-top: 0.5rem;"><strong>Team</strong> = workflow grouping (Designers, Engineers, PMs). A user can be in <em>many</em>. Has no effect on org-config edit access. Workflows assign to users or to Teams.</p>
+    <p style="margin-top: 0.5rem;">Workflow assignment uses <strong>union</strong> — a user sees every workflow assigned to them OR any Team they're in. <code>default: true</code> per Team resolves tiebreaks; otherwise the orchestrator emits a <code>decide</code> step.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Updated model</div>
+    <h2>Two axes, two tables, two questions answered.</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A — Permission Groups -->
+    <div class="path decided" style="grid-column: span 2;">
+      <div class="path-letter-row">
+        <span class="path-letter">PG</span>
+        <span class="decided-badge">Permission Groups</span>
+      </div>
+      <div class="path-title">CRUD on org config · single membership</div>
+      <div class="path-desc">Every user is in <strong>exactly one</strong> Permission Group. Changing a user's group is one explicit action by an Admin. No precedence puzzle.</div>
+
+      <div class="diagram">
+        <span class="label">System + custom groups</span>
+        <div class="flow-col">
+          <div class="flow-box good">Owner — full control + billing (system, immutable)</div>
+          <div class="flow-box good">Admin — full control except billing (system, immutable)</div>
+          <div class="flow-box good">Member — read-only on org config (system, default for new users)</div>
+          <div class="flow-box info">Custom: e.g., "Workflow Editor" — write on workflows, read elsewhere</div>
+          <div class="flow-box info">Custom: e.g., "Billing Approver" — read everywhere, write on billing</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Why single membership</div>
+          <ul>
+            <li>No precedence question — what you can do is obvious</li>
+            <li>Changing a user's role is one action, not "edit five groups"</li>
+            <li>Audit log entries are trivially attributable</li>
+            <li>Matches how org-config access is described to admins</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cost</div>
+          <ul>
+            <li>Need custom groups for any nuanced role split</li>
+            <li>Can't compose access from multiple grants</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATH B — Teams -->
+    <div class="path decided" style="grid-column: span 2;">
+      <div class="path-letter-row">
+        <span class="path-letter">T</span>
+        <span class="decided-badge">Teams</span>
+      </div>
+      <div class="path-title">Workflow assignment · multi-membership</div>
+      <div class="path-desc">Teams are how an org models "Designers, Engineers, PMs." A user can belong to many Teams. Workflows assign to users or Teams. Teams have <strong>no</strong> effect on org-config edit access.</div>
+
+      <div class="diagram">
+        <span class="label">Example resolution</span>
+        <div class="flow-col">
+          <div class="flow-box info">User: maya@acme</div>
+          <div class="flow-box info">Permission Group: Member (read-only on config)</div>
+          <div class="flow-box info">Teams: [Designers, Eng-Leads]</div>
+          <div class="flow-arrow">↓ workflow resolution</div>
+          <div class="flow-box good">Workflows union: design-flow, eng-flow, eng-leads-only-flow</div>
+          <div class="flow-arrow">↓ task type matches 2</div>
+          <div class="flow-box good">Pick the one marked <code>default: true</code> for Eng-Leads</div>
+          <div class="flow-box warn">If no default and ≥2 match → emit <code>decide</code> step</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Why union</div>
+          <ul>
+            <li>"More Teams = more workflows available" matches intuition</li>
+            <li>No "adding to a Team quietly removes access" failure</li>
+            <li>Single workflow can serve multiple Teams</li>
+            <li>Defaults give the orchestrator a deterministic pick</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cost</div>
+          <ul>
+            <li>Authors must remember to mark a default per Team</li>
+            <li>The first time two workflows fight, the user gets a decide step</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Schema impact</span>
+    <code>org_members.permission_group_id</code> — foreign key, NOT NULL. Replaces the old <code>permission_group_members</code> join.<br>
+    <code>teams(id, org_id, slug, name)</code> + <code>team_members(team_id, user_id)</code> — many-to-many.<br>
+    <code>workflow_assignments(workflow_id, user_id?, team_id?, default boolean)</code> — never references <code>permission_group_id</code>.<br>
+    Permission Groups still own <code>permission_grants(permission_group_id, resource_type, resource_id, action)</code> for granular CRUD.
+  </div>
+
+  <div class="notes" style="margin-top: 0.6rem;">
+    <span class="label">Documentation updated</span>
+    All references to "permission groups" in the context of workflow routing have been corrected across <code>requirements-analysis.md</code>, <code>tech-stack.md</code>, <code>briefs/02-web-app.md</code>, and the pitch deck. The web app brief now has separate sections for Permission Groups (CRUD) and Teams (workflow assignment).
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 5 of 13 · terminology corrected by Lane 2026-05-26</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="04-cursor-support.html">← Previous</a>
+      <a class="btn-ghost" href="06-version-control-scope.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

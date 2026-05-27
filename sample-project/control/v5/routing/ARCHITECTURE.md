@@ -1,0 +1,106 @@
+# Architecture
+
+Decision-visualization guidance for the architecture phase: how the
+orchestrator and the `architecture` subagent encode engineering choices,
+which diagram primitive backs them, and the single rule about who writes
+the HTML.
+
+> MVVM layering rules (file naming, boundary rules, state flow, lint
+> contract) live in `ARCHITECTURE-MVVM.md` and are auto-loaded for `build`
+> tasks. This document is the architecture-phase counterpart.
+
+## Purpose
+
+This document is loaded into every dispatch packet whose `taskType` is
+`architecture`. It tells the receiving subagent how each architectural
+decision is shown to the user during the architecture phase — and how
+the visual fragment for each option is produced.
+
+## Decision visualization
+
+Architecture decisions render as visual cards on the feature page, the same
+way UX and UI decisions do. Every architecture decision in `decisions.json`
+under `phases.architecture.decisions[]` has a sibling fragment file in
+`features/{slug}/decisions/`. The fragment is produced by the build-decision
+CLI; the orchestrator and architecture subagent never hand-author it.
+
+### The `mc-arch-node` / `mc-diagram-surface` primitive
+
+Architecture decisions render one card per option. Each card's visual is a
+`mc-diagram-surface` containing a small node/edge schematic built from
+`mc-arch-node` primitives. These live in
+`control/layout/diagrams/architecture/template.html`. Shape:
+
+```html
+<div class="mc-diagram-surface">
+  <div class="mc-arch-node mc-arch-client">Client</div>
+  <div class="mc-arch-edge"></div>
+  <div class="mc-arch-node mc-arch-service">Sync worker</div>
+  <div class="mc-arch-edge"></div>
+  <div class="mc-arch-node mc-arch-store">Storage</div>
+</div>
+```
+
+`lib/v5/decision-visual-builder.mjs` selects the node/edge layout per option
+based on keyword matching against the option string (sync vs. async,
+direct vs. queued, single-service vs. fan-out). You do not assemble these
+`<div>`s by hand — the CLI does it deterministically from the decision data.
+
+### When to use architecture decisions
+
+Use `category: 'engineering'` (sometimes `category: 'architecture'` in
+older fixtures — both accepted) and the diagram-surface visual when the
+choice is about *where code or data lives, how services connect, or which
+storage / transport layer carries the data*. Examples:
+
+- "How does the importer move files to storage?" — pick a transport.
+- "Where does the parser run?" — pick a service.
+- "How do we cache responses?" — pick a cache layout.
+
+Do not use architecture decisions for user-journey ordering (UX) or for
+surface placement (UI).
+
+### Worked example
+
+The decision in `decisions.json`:
+
+```json
+{
+  "id": "arch-transport",
+  "category": "engineering",
+  "question": "How does the importer move file bytes from the browser into long-term storage?",
+  "options": [
+    "Direct browser → S3 pre-signed PUT",
+    "Browser uploads to API, API streams to storage",
+    "Browser uploads chunks to a queue, worker drains queue into storage"
+  ],
+  "selected": "Browser uploads chunks to a queue, worker drains queue into storage",
+  "decidedAt": "..."
+}
+```
+
+To produce the visual fragment:
+
+```
+node lib/v5/cli/build-decision.mjs <your-feature-slug> <your-decision-id>
+```
+
+The CLI writes `features/<your-feature-slug>/decisions/<your-decision-id>.html` —
+a `mc-options-grid` fragment with one `mc-option-card` per option, each
+carrying a `mc-diagram-surface` visual whose nodes and edges reflect the
+transport (direct PUT vs. proxied stream vs. queue + worker).
+
+You do not write that HTML. The CLI uses `lib/v5/decision-visual-builder.mjs`
+and produces it deterministically from the decision data.
+
+### Where this fits alongside MVVM
+
+`ARCHITECTURE-MVVM.md` governs the *code* inside a feature: how Model,
+View, and ViewModel files relate. The fragments described here govern the
+*decision page* for the feature: how each architectural choice is shown
+to the user during the architecture phase. The two are orthogonal — every
+feature has both an MVVM file layout *and* a set of decision fragments.
+
+### The hard rule
+
+> The visual fragment contract is auto-loaded into every dispatch packet — see [ROUTING-MANIFEST.md](./ROUTING-MANIFEST.md#visual-fragment-contract) for the canonical wording.

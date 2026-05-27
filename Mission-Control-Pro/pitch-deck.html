@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Control Pro — Pitch</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  .slide {
+    min-height: 100vh;
+    padding: 5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .slide-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6a8caf;
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+  }
+  h1.hero {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+  }
+  h2 {
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+  }
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+  .lead {
+    font-size: 1.15rem;
+    color: #b8b8b8;
+    max-width: 720px;
+    margin-bottom: 2rem;
+  }
+  p { color: #aaa; }
+  .highlight { color: #f5f5f5; font-weight: 600; }
+  .accent { color: #6a8caf; }
+  .green { color: #5de8a0; }
+  .gold { color: #af8c6a; }
+
+  /* Hero slide */
+  .hero-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+  .tag {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid #2a2a2a;
+    color: #999;
+    background: #111;
+  }
+
+  /* Problem grid */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .problem-card {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.25rem 1.4rem;
+  }
+  .problem-card.bad { border-color: #3a2020; background: #18100f; }
+  .problem-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e85d5d;
+    margin-bottom: 0.4rem;
+    font-family: ui-monospace, monospace;
+  }
+  .problem-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: #e8e8e8;
+  }
+  .problem-body {
+    font-size: 0.82rem;
+    color: #888;
+  }
+
+  /* Insight callout */
+  .insight {
+    background: #0f1620;
+    border: 1px solid #2a3a4a;
+    border-left: 4px solid #6a8caf;
+    border-radius: 12px;
+    padding: 2rem 2.25rem;
+    margin: 2rem 0 1rem;
+  }
+  .insight-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6a8caf;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .insight-quote {
+    font-size: 1.4rem;
+    line-height: 1.35;
+    font-weight: 600;
+    color: #f0f0f0;
+    letter-spacing: -0.01em;
+  }
+  .insight-sub {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #999;
+  }
+
+  /* Three-tier diagram */
+  .tier-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 2rem;
+  }
+  .tier {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .tier.cloud  { border-color: #3a4a6a; }
+  .tier.bridge { border-color: #5a4a2a; }
+  .tier.local  { border-color: #2a4a3a; }
+
+  .tier-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e8e8e8;
+    margin-bottom: 0.2rem;
+  }
+  .tier-tag {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+  }
+  .tier.cloud  .tier-tag { background: #1a2030; color: #8aa8c8; }
+  .tier.bridge .tier-tag { background: #2a2218; color: #d8b888; }
+  .tier.local  .tier-tag { background: #18261e; color: #8ad8a8; }
+  .tier-desc {
+    font-size: 0.78rem;
+    color: #888;
+  }
+  .tier-tech {
+    font-size: 0.72rem;
+    color: #777;
+    font-family: ui-monospace, monospace;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .tier-connector {
+    text-align: center;
+    color: #444;
+    font-size: 0.7rem;
+    font-family: ui-monospace, monospace;
+    padding: 0.4rem 0;
+  }
+
+  /* Feature grid */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .feature-card {
+    background: #141414;
+    border: 1px solid #2a3a4a;
+    border-radius: 12px;
+    padding: 1.4rem;
+  }
+  .feature-icon {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6a8caf;
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+  }
+  .feature-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #f0f0f0;
+  }
+  .feature-body {
+    font-size: 0.82rem;
+    color: #999;
+  }
+
+  /* Differentiator */
+  .diff-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .diff-panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .diff-panel.them { border-color: #3a2020; }
+  .diff-panel.us   { border-color: #1e3a2a; }
+  .diff-panel-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+  }
+  .diff-panel.them .diff-panel-label { color: #e85d5d; }
+  .diff-panel.us   .diff-panel-label { color: #5de8a0; }
+  .diff-panel ul { list-style: none; }
+  .diff-panel li {
+    font-size: 0.82rem;
+    color: #bbb;
+    padding: 0.4rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+    border-top: 1px solid #1a1a1a;
+  }
+  .diff-panel li:first-child { border-top: 0; }
+  .diff-panel li::before {
+    position: absolute;
+    left: 0;
+    top: 0.4rem;
+    font-size: 0.85rem;
+  }
+  .diff-panel.them li::before { content: "×"; color: #e85d5d; }
+  .diff-panel.us   li::before { content: "→"; color: #5de8a0; }
+
+  /* Business model */
+  .pricing-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .price-card {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .price-card.featured {
+    border-color: #6a8caf;
+    box-shadow: 0 0 30px rgba(106, 140, 175, 0.1);
+  }
+  .price-tier {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  .price-card.featured .price-tier { color: #6a8caf; }
+  .price-num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f0f0f0;
+    line-height: 1;
+  }
+  .price-num .unit {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 400;
+  }
+  .price-features {
+    margin-top: 1rem;
+    list-style: none;
+  }
+  .price-features li {
+    font-size: 0.78rem;
+    color: #aaa;
+    padding: 0.3rem 0;
+  }
+
+  /* Risk slide */
+  .risk-table {
+    margin-top: 1.5rem;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .risk-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    border-top: 1px solid #2a2a2a;
+  }
+  .risk-row:first-child { border-top: 0; background: #1a1a1a; }
+  .risk-row.header span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; font-weight: 600; }
+  .risk-row span {
+    padding: 0.85rem 1.1rem;
+    font-size: 0.82rem;
+  }
+  .risk-row span:first-child {
+    background: #121212;
+    color: #af8c6a;
+    font-weight: 600;
+  }
+  .risk-row span:last-child { color: #b0b0b0; }
+
+  /* Slide number */
+  .slide-num {
+    position: absolute;
+    top: 1.25rem;
+    right: 2rem;
+    font-size: 0.7rem;
+    color: #444;
+    font-family: ui-monospace, monospace;
+  }
+  .slide { position: relative; }
+
+  /* Final */
+  .ask-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .ask-card {
+    background: #141414;
+    border: 1px solid #2a3a4a;
+    border-radius: 12px;
+    padding: 1.4rem;
+  }
+  .ask-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6a8caf;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+  .ask-value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f0f0f0;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 700px) {
+    .slide { padding: 3rem 1.25rem; }
+    .pricing-row, .diff-row { grid-template-columns: 1fr; }
+    .tier { flex-direction: column; align-items: flex-start; }
+    .tier-tech { text-align: left; }
+    .risk-row { grid-template-columns: 1fr; }
+    .risk-row span:first-child { background: #121212; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ -->
+<!-- 1. HERO                           -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">01 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">Mission Control Pro</div>
+    <h1 class="hero">Your org's <span class="accent">standards</span>.<br>Every developer's <span class="green">agent</span>.<br>One pane of glass.</h1>
+    <p class="lead">Mission Control Pro is the <span class="highlight">orchestration layer</span> for AI coding agents inside a company. Your dev team's Claude or Cursor sessions follow <span class="highlight">your org's playbook</span> — and you see every one of them, live, from a web dashboard.</p>
+    <div class="hero-tags">
+      <span class="tag">We don't own the agents</span>
+      <span class="tag">We route the work</span>
+      <span class="tag">Local execution</span>
+      <span class="tag">Cloud control</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 2. PROBLEM                        -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">02 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">The Problem</div>
+    <h2>Every dev runs AI agents.<br>Nobody at the org level knows what they're doing.</h2>
+    <p class="lead">Engineering leadership has spent the last two years buying Copilot, Cursor, and Claude Code seats. The result: every developer has a powerful agent — and zero shared discipline.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card bad">
+        <div class="problem-num">01</div>
+        <div class="problem-title">Invisible work</div>
+        <div class="problem-body">Engineering managers can't see what agents are working on. No portfolio view, no progress, no blockers.</div>
+      </div>
+      <div class="problem-card bad">
+        <div class="problem-num">02</div>
+        <div class="problem-title">Inconsistent output</div>
+        <div class="problem-body">Each dev has different prompts, different patterns. Code style drift, missed test coverage, bypassed standards.</div>
+      </div>
+      <div class="problem-card bad">
+        <div class="problem-num">03</div>
+        <div class="problem-title">PRDs in chat history</div>
+        <div class="problem-body">Specs and decisions live in ephemeral conversations. PMs and designers can't follow, review, or hand off.</div>
+      </div>
+      <div class="problem-card bad">
+        <div class="problem-num">04</div>
+        <div class="problem-title">No org guardrails</div>
+        <div class="problem-body">Org architecture rules, design tokens, A11y baselines — nothing reaches the agent at dispatch time.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 3. INSIGHT                        -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">03 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">The Insight</div>
+    <h2>Don't build another agent.<br>Route the agents you already have.</h2>
+
+    <div class="insight">
+      <div class="insight-label">Our position</div>
+      <div class="insight-quote">We don't own the agents. We don't make the agents. We route agent and user interactions so the org can <span class="accent">see them</span> and <span class="accent">shape them</span>.</div>
+      <div class="insight-sub">Claude Code and Cursor are excellent. The team already pays for them. The gap is org-level orchestration — and that's the wedge.</div>
+    </div>
+
+    <p style="margin-top: 1rem; font-size: 0.9rem;">This is the same pattern that worked for GitHub Actions, Linear, and Sentry: <span class="highlight">don't replace the tool, surround it</span>. Be the cloud-side coordination layer for work that runs locally.</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 4. PRODUCT                        -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">04 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">The Product</div>
+    <h2>Cloud sets the rules.<br>Bridge moves the work.<br>Agent does the job.</h2>
+
+    <div class="tier-stack">
+      <div class="tier cloud">
+        <div>
+          <span class="tier-tag">Cloud · Org-Owned</span>
+          <span class="tier-name">Mission Control Pro Web App</span>
+          <div class="tier-desc">Workflows, standards, permission groups, teams, dashboard, mobile push.</div>
+        </div>
+        <div class="tier-tech">Supabase · Next.js · Stripe</div>
+      </div>
+      <div class="tier-connector">↓  wss · signed events  ↓</div>
+      <div class="tier bridge">
+        <div>
+          <span class="tier-tag">Bridge · Per-Dev</span>
+          <span class="tier-name">Local Router (background daemon)</span>
+          <div class="tier-desc">Syncs org config, spawns agent sessions, pipes I/O to cloud and mobile.</div>
+        </div>
+        <div class="tier-tech">Node daemon · macOS · Win · Linux</div>
+      </div>
+      <div class="tier-connector">↓  spawn · attach · pipe  ↓</div>
+      <div class="tier local">
+        <div>
+          <span class="tier-tag">Agent · Local</span>
+          <span class="tier-name">Claude Code (Cursor in v2)</span>
+          <div class="tier-desc">Real execution on the dev's machine, using the dev's existing license &amp; credits.</div>
+        </div>
+        <div class="tier-tech">Hooks · CLI · file system</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 5. SURFACES                       -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">05 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">Four Surfaces</div>
+    <h2>Marketing site signs them up.<br>Web app runs the org.<br>Bridge runs locally.<br>Mobile keeps them in the loop.</h2>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">Surface 01</div>
+        <div class="feature-title">Marketing &amp; Payment Site</div>
+        <div class="feature-body">Public landing, pricing, signup, Stripe checkout, org provisioning. Where CTOs first land and convert.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">Surface 02</div>
+        <div class="feature-title">Web App (Org Control)</div>
+        <div class="feature-body">Workflow editor, standards editor, permissions, live agent dashboard, version history. The product.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">Surface 03</div>
+        <div class="feature-title">Local Router</div>
+        <div class="feature-body">Background daemon installed per dev. Syncs config, spawns agents, pipes I/O. Invisible when working.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">Surface 04</div>
+        <div class="feature-title">Mobile (iOS / Android)</div>
+        <div class="feature-body">Receive push when an agent needs a decision. Answer from anywhere. Personal-only — no org admin from phone.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 6. DIFFERENTIATION                -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">06 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">Why Now / Why Us</div>
+    <h2>Everyone is building agents. We're building the org around them.</h2>
+
+    <div class="diff-row">
+      <div class="diff-panel them">
+        <div class="diff-panel-label">What other tools do</div>
+        <ul>
+          <li>Build yet another coding agent</li>
+          <li>Lock customers into a single model</li>
+          <li>Run everything in the cloud — security risk for code</li>
+          <li>Focus on the individual developer</li>
+          <li>Ignore PMs, designers, and managers</li>
+        </ul>
+      </div>
+      <div class="diff-panel us">
+        <div class="diff-panel-label">What Mission Control Pro does</div>
+        <ul>
+          <li>Wraps the agents devs already use</li>
+          <li>Model-agnostic — Claude today, more later</li>
+          <li>Execution stays on the dev's machine</li>
+          <li>First-class views for the whole org</li>
+          <li>Standards &amp; workflows reach the agent at dispatch</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 7. BUSINESS MODEL                 -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">07 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">Business Model</div>
+    <h2>Per-seat SaaS. Sticky by design.</h2>
+    <p class="lead">Buyer is the engineering manager or CTO. Stickiness comes from org-owned workflows and standards — once a team builds them, the team won't rewrite them in another tool.</p>
+
+    <div class="pricing-row">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-num">$0<span class="unit"> · solo dev</span></div>
+        <ul class="price-features">
+          <li>1 workflow</li>
+          <li>Local-only (no cloud sync)</li>
+          <li>Single user</li>
+          <li>Funnel into Team</li>
+        </ul>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Team · Featured</div>
+        <div class="price-num">$30<span class="unit"> / seat / month</span></div>
+        <ul class="price-features">
+          <li>Unlimited workflows</li>
+          <li>Org standards &amp; permissions</li>
+          <li>Web + mobile dashboard</li>
+          <li>Version history</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-num">Custom</div>
+        <ul class="price-features">
+          <li>SSO / SCIM</li>
+          <li>Self-hosted bridge fleet</li>
+          <li>Audit log export</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 8. RISKS                          -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">08 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">What we have to get right</div>
+    <h2>The risks we've identified — and how we're handling them.</h2>
+
+    <div class="risk-table">
+      <div class="risk-row header">
+        <span>Risk</span>
+        <span>Mitigation</span>
+      </div>
+      <div class="risk-row">
+        <span>Agent vendor APIs change</span>
+        <span>Use stable extension points (hooks, slash commands). Pin minimum versions. Run a compat lab.</span>
+      </div>
+      <div class="risk-row">
+        <span>Bridge install friction</span>
+        <span>Single-binary installer, auto-update, system tray icon. Skip MSI/MDM complexity in v1 by targeting individual installs.</span>
+      </div>
+      <div class="risk-row">
+        <span>Security — bridge can run commands</span>
+        <span>Signed event envelopes, allowlist of spawnable commands, user-confirm on first run, kill-switch in web app.</span>
+      </div>
+      <div class="risk-row">
+        <span>Workflows are confidential</span>
+        <span>Supabase RLS, encryption at rest, audit log. Enterprise tier offers self-hosted bridge fleet.</span>
+      </div>
+      <div class="risk-row">
+        <span>Cursor support cost</span>
+        <span>Ship Claude Code-only for v1. Add Cursor only after design partners ask for it explicitly.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ -->
+<!-- 9. ASK                            -->
+<!-- ════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-num">09 / 09</span>
+  <div class="slide-inner">
+    <div class="eyebrow">The Ask</div>
+    <h2>Mission Control Kit v5 proves the routing idea works locally.<br>Mission Control <span class="accent">Pro</span> makes it an org product.</h2>
+
+    <div class="ask-row">
+      <div class="ask-card">
+        <div class="ask-label">Validation</div>
+        <div class="ask-value">3 design-partner teams, 4 weeks of usage on Claude Code workflows.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-label">Build</div>
+        <div class="ask-value">4 surfaces in parallel: marketing, web app, local bridge, mobile.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-label">Foundation</div>
+        <div class="ask-value">Supabase auth/db/realtime. Next.js front ends. Node bridge. React Native mobile.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-label">First win</div>
+        <div class="ask-value">CTO opens the dashboard and sees seven of their devs' agents — live — for the first time ever.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

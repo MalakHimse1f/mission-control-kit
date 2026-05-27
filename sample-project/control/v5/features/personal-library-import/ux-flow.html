@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Library Import — UX Flow</title>
+<link rel="stylesheet" href="../../_diagram-assets/diagram.css">
+</head>
+<body class="mc-diagram">
+
+<div class="mc-diagram-container">
+
+  <h1 class="mc-diagram-title">Personal Library Import</h1>
+  <p class="mc-diagram-subtitle">Bulk-import existing collections from Goodreads, Letterboxd, Steam, Open Library, or a manual CSV.</p>
+
+  <div class="mc-section-label">UX Flow — Import Wizard</div>
+
+  <div class="mc-flow-timeline">
+
+    <div class="mc-flow-step active">
+      <span class="mc-flow-num">1</span>
+      <div class="mc-flow-circle">📚</div>
+      <span class="mc-flow-label">Pick source</span>
+    </div>
+
+    <div class="mc-flow-step active">
+      <span class="mc-flow-num">2</span>
+      <div class="mc-flow-circle">🔑</div>
+      <span class="mc-flow-label">Auth or upload</span>
+    </div>
+
+    <div class="mc-flow-step active">
+      <span class="mc-flow-num">3</span>
+      <div class="mc-flow-circle">⚖️</div>
+      <span class="mc-flow-label">Review conflicts</span>
+    </div>
+
+    <div class="mc-flow-step">
+      <span class="mc-flow-num">4</span>
+      <div class="mc-flow-circle">✅</div>
+      <span class="mc-flow-label">Confirm &amp; commit</span>
+    </div>
+
+    <div class="mc-flow-step">
+      <span class="mc-flow-num">5</span>
+      <div class="mc-flow-circle">📥</div>
+      <span class="mc-flow-label">Library populated</span>
+    </div>
+
+  </div>
+
+  <div class="mc-decision-node">
+    <h4>Source picker pattern (step 1)</h4>
+    <p class="mc-decision-context">How does the user pick which source to import from?</p>
+
+    <div class="mc-radio-list" data-group="ux-source-picker-pattern" data-category="ux">
+
+      <button type="button" class="mc-radio-choice selected" data-value="wizard-stepped">
+        <span class="mc-radio-dot"></span>
+        Stepped wizard (pick source → authenticate/upload → review → confirm)
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="unified-dropzone">
+        <span class="mc-radio-dot"></span>
+        Unified dropzone that auto-detects file type
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="source-list">
+        <span class="mc-radio-dot"></span>
+        Flat source list with per-source CTA buttons
+      </button>
+
+    </div>
+  </div>
+
+  <div class="mc-decision-node">
+    <h4>Conflict handling (step 3)</h4>
+    <p class="mc-decision-context">How should the import flow handle items that already exist in the library?</p>
+
+    <div class="mc-radio-list" data-group="ux-conflict-handling" data-category="ux">
+
+      <button type="button" class="mc-radio-choice selected" data-value="inline-review">
+        <span class="mc-radio-dot"></span>
+        Inline review — surface each duplicate with keep/replace/skip choices
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="batch-report">
+        <span class="mc-radio-dot"></span>
+        Batch report after the import completes
+      </button>
+
+      <button type="button" class="mc-radio-choice" data-value="silent-skip">
+        <span class="mc-radio-dot"></span>
+        Silent skip — never overwrite, no prompt
+      </button>
+
+    </div>
+  </div>
+
+  <div class="mc-save-bar">
+    <button class="mc-save-btn" data-mc-save type="button">Save Flow Decisions</button>
+  </div>
+
+</div>
+
+<div class="mc-toast" id="mc-toast"></div>
+
+<script src="../../_diagram-assets/diagram-select.js"></script>
+<script src="../../_diagram-assets/decisions-client.js"></script>
+<script>
+  (function () {
+    var SLUG = 'personal-library-import';
+    var toast = document.getElementById('mc-toast');
+
+    function showToast(msg, isError) {
+      toast.innerHTML = '<span class="check">✓</span>' + msg;
+      toast.classList.toggle('error', !!isError);
+      toast.classList.add('visible');
+      setTimeout(function () { toast.classList.remove('visible'); }, 3500);
+    }
+
+    MCDiagramSelect.onSave(function (selections) {
+      if (!SLUG || SLUG.indexOf('{{') === 0) {
+        showToast('Preview save — selections: ' + JSON.stringify(selections));
+        return;
+      }
+      MCDecisions.save(SLUG, { decisions: selections })
+        .then(function () { showToast('Flow decisions saved.'); })
+        .catch(function (err) { showToast(err.message, true); });
+    });
+  }());
+</script>
+
+</body>
+</html>

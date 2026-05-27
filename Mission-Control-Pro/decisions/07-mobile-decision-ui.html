@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 07 — Mobile decision UI</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision workflow</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 07 · Path B</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">"Respond with structure" on mobile spans approve buttons to PRD reviews.<br>What does the phone actually render?</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      Some decisions are tap-once on a phone ("approve next stage"). Others are 800-word PRD reviews that no one wants to read on a 6-inch screen. We need a schema that tells the mobile app which decisions it can render and which it should kick to web.
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Path B</span>
+    <p>Render anything best-effort. Workflow authors can specify any response shape; mobile renders it and the user can escape to web or local for richer review. Decision shape is <strong>open</strong>, not a closed enum. Long content gets a scrollable view or an "Open in web" link — but the choice belongs to the user, not the schema.</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>What's the contract between workflows and the mobile app?</h2>
+  </div>
+
+  <div class="paths">
+
+    <!-- PATH A -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Fixed schema set — mobile renders only what it knows</div>
+      <div class="path-desc">Workflow author picks one of N defined response types: approve, choose-one, choose-many, short-text. Mobile knows how to render each. Anything else can't exist as a workflow step.</div>
+
+      <div class="diagram">
+        <span class="label">Schema enumeration</span>
+        <div class="flow-col">
+          <div class="flow-box good">✓ approve / reject</div>
+          <div class="flow-box good">✓ choose-one</div>
+          <div class="flow-box good">✓ choose-many</div>
+          <div class="flow-box good">✓ short-text (≤200)</div>
+          <div class="flow-box disabled">✗ everything else</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Mobile experience is always good</li>
+            <li>No "this looks broken on phone" surprises</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Workflow authors hit a hard wall</li>
+            <li>PRD review, diff review impossible to express</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path A</button>
+    </div>
+
+    <!-- PATH B -->
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Render anything — let mobile try its best</div>
+      <div class="path-desc">Workflow can specify any response shape. Mobile tries to render it; falls back to "Open in web" for anything that doesn't fit.</div>
+
+      <div class="diagram">
+        <span class="label">Best-effort rendering</span>
+        <div class="flow-col">
+          <div class="flow-box info">decision: arbitrary shape</div>
+          <div class="flow-arrow">↓ mobile inspects</div>
+          <div class="flow-box warn">Can I render this? (heuristic)</div>
+          <div class="flow-box good">Yes → render</div>
+          <div class="flow-box warn">No → "Open in web"</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Flexible for advanced workflows</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>"Open in web" feels like a failure</li>
+            <li>Heuristics are unpredictable</li>
+            <li>Mobile dev complexity explodes</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <!-- PATH C -->
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Schema set + explicit escape hatch</div>
+      <div class="path-desc">Path A's fixed schema set is the only mobile-renderable shape. Workflow authors can additionally declare a step as <code>kind: web-only</code> — mobile sees it but shows "Open in web." No surprises on either side.</div>
+
+      <div class="diagram">
+        <span class="label">Two clear lanes</span>
+        <div class="flow-col">
+          <div class="flow-box good">Mobile-friendly: approve / choose / text</div>
+          <div class="flow-arrow">↓ renders on phone</div>
+          <div class="flow-box info">Web-only: long-form, diff, picker</div>
+          <div class="flow-arrow">↓ mobile shows: Open in web</div>
+          <div class="flow-box good">Either way: notification works</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Mobile UX always good for supported types</li>
+            <li>Authors aren't blocked from rich web flows</li>
+            <li>Push still notifies for everything</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Authors must consciously pick web-only</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">Select Path C</button>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes if Path C is chosen</span>
+    Decision schemas live in <code>@mcp/schema</code> as Zod, shared by workflow DSL parser, web renderer, and mobile renderer. Add type discriminator: <code>kind: 'approve' | 'choose-one' | 'choose-many' | 'short-text' | 'web-only'</code>. Mobile validates incoming decision against schema and renders the matching component.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 7 of 13</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="06-version-control-scope.html">← Previous</a>
+      <a class="btn-ghost" href="09-pricing-structure.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

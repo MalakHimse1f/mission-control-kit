@@ -1,0 +1,18 @@
+{
+  "feature": "Progress Tracker",
+  "slug": "progress-tracker",
+  "stage": "in-progress",
+  "pipelineStage": "in-progress",
+  "currentPhase": "build",
+  "lastUpdatedAt": "2026-05-26T14:00:00.000Z",
+  "description": "Cross-media unified progress tracking — page/chapter for books, episode for series, hours/achievements for games. One model, one widget, one source of truth.",
+  "tasks": [
+    { "id": "t1", "title": "progress.model.ts — data model + types", "status": "done" },
+    { "id": "t2", "title": "progress.view.tsx — read-only progress widget", "status": "done" },
+    { "id": "t3", "title": "Server sync endpoint (POST /api/progress)", "status": "done" },
+    { "id": "t4", "title": "progress.viewmodel.ts — state + actions", "status": "in-progress" },
+    { "id": "t5", "title": "Episode-level tracking for TV shows", "status": "pending" },
+    { "id": "t6", "title": "Stagnation notification (30-day inactivity)", "status": "pending" },
+    { "id": "t7", "title": "Conflict resolution for multi-device updates", "status": "pending" }
+  ]
+}

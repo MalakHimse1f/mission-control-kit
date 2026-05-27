@@ -1,0 +1,574 @@
+/* ============================================================
+   Mission Control Kit v5 — Shared diagram primitives styles
+   ------------------------------------------------------------
+   Dark-theme tokens + reusable building blocks for the three
+   diagram primitive types (architecture, ux-flow, ui-options).
+
+   Style references:
+   - docs/v5-diagrams/02-data-storage.html
+   - docs/v5-diagrams/03-interactive-decisions.html
+   - docs/v5-diagrams/07-feature-presentation.html
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --mc-bg:           #0a0a0a;
+  --mc-panel:        #141414;
+  --mc-panel-2:      #1a1a1a;
+  --mc-panel-3:      #1e1e1e;
+  --mc-inset:        #0c0c0c;
+
+  /* Borders */
+  --mc-border:       #2a2a2a;
+  --mc-border-hover: #3a3a3a;
+  --mc-border-strong:#444444;
+
+  /* Text */
+  --mc-text:         #f5f5f5;
+  --mc-text-2:       #e0e0e0;
+  --mc-text-muted:   #888888;
+  --mc-text-dim:     #555555;
+
+  /* Accents */
+  --mc-accent:       #6a8caf;        /* primary selected (blue-grey) */
+  --mc-accent-2:     #5a7c9f;
+  --mc-accent-soft:  rgba(106, 140, 175, 0.15);
+  --mc-accent-glow:  rgba(106, 140, 175, 0.25);
+  --mc-accent-tint:  #1a2233;
+  --mc-success:      #4caf50;
+  --mc-warn:         #af8c6a;
+  --mc-danger:       #af6a6a;
+  --mc-violet:       #8a6aaf;
+  --mc-green:        #5a9a6a;
+
+  /* Geometry */
+  --mc-radius:       8px;
+  --mc-radius-lg:    12px;
+  --mc-radius-sm:    6px;
+  --mc-transition:   0.2s ease;
+  --mc-shadow-card:  0 0 20px rgba(255,255,255,0.02);
+  --mc-shadow-glow:  0 0 20px var(--mc-accent-glow);
+  --mc-shadow-toast: 0 8px 32px rgba(0,0,0,0.4);
+
+  /* Type */
+  --mc-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body.mc-diagram {
+  margin: 0;
+  padding: 3rem 2rem;
+  background: var(--mc-bg);
+  color: var(--mc-text);
+  font-family: var(--mc-font);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ---------- Layout shell ---------- */
+.mc-diagram-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.mc-diagram-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0 0 0.5rem;
+}
+
+.mc-diagram-subtitle {
+  color: var(--mc-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0 0 2rem;
+}
+
+.mc-section-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mc-accent);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* ---------- Option grid + cards (radio behavior) ---------- */
+.mc-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.mc-options-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
+.mc-options-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 900px) {
+  .mc-options-grid,
+  .mc-options-grid[data-cols="2"],
+  .mc-options-grid[data-cols="4"] {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+}
+
+.mc-option-card {
+  background: var(--mc-panel);
+  border: 1.5px solid var(--mc-border);
+  border-radius: var(--mc-radius-lg);
+  padding: 1.5rem;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: border-color var(--mc-transition),
+              box-shadow var(--mc-transition),
+              transform var(--mc-transition);
+}
+
+.mc-option-card:hover {
+  border-color: var(--mc-border-hover);
+  box-shadow: var(--mc-shadow-card);
+}
+
+.mc-option-card.selected {
+  border-color: var(--mc-accent);
+  box-shadow: var(--mc-shadow-glow);
+}
+
+.mc-option-card.selected:hover { border-color: var(--mc-accent); }
+
+.mc-option-card:focus-visible {
+  outline: 2px solid var(--mc-accent);
+  outline-offset: 2px;
+}
+
+/* Checkmark indicator (top-right of each option card) */
+.mc-checkmark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--mc-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--mc-transition), border-color var(--mc-transition);
+}
+.mc-checkmark svg { opacity: 0; transition: opacity var(--mc-transition); }
+.mc-option-card.selected .mc-checkmark {
+  background: var(--mc-accent);
+  border-color: var(--mc-accent);
+}
+.mc-option-card.selected .mc-checkmark svg { opacity: 1; }
+
+/* Card text */
+.mc-card-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  margin: 1rem 0 0.4rem;
+  text-align: center;
+}
+
+.mc-card-desc {
+  font-size: 0.78rem;
+  color: #777;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Tooltip on hover */
+.mc-card-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateY(4px) translateX(-50%);
+  background: var(--mc-panel-3);
+  border: 1px solid #333;
+  border-radius: var(--mc-radius-sm);
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  color: #aaa;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s, transform 0.18s;
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.mc-option-card:hover .mc-card-tooltip {
+  opacity: 1;
+  transform: translateY(0) translateX(-50%);
+}
+
+/* ---------- Diagram surface (used inside cards) ---------- */
+.mc-diagram-surface {
+  background: var(--mc-inset);
+  border-radius: var(--mc-radius-sm);
+  padding: 16px;
+  min-height: 140px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Architecture nodes (boxes + arrows) ---------- */
+.mc-arch-node {
+  background: var(--mc-panel-3);
+  border: 1px solid #333;
+  border-radius: var(--mc-radius-sm);
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--mc-text-muted);
+  min-width: 70px;
+}
+.mc-arch-node.accent {
+  background: var(--mc-accent-tint);
+  border-color: var(--mc-accent);
+  color: var(--mc-accent);
+}
+.mc-arch-node.green  { border-color: var(--mc-green); color: #b9d4be; }
+.mc-arch-node.warn   { border-color: var(--mc-warn);  color: #d4bba1; }
+.mc-arch-node.danger { border-color: var(--mc-danger); color: #d4a1a1; }
+.mc-arch-node.violet { border-color: var(--mc-violet); color: #c5b4d4; }
+
+.mc-arch-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--mc-text-dim);
+}
+.mc-arch-arrow .line {
+  width: 40px;
+  height: 2px;
+  background: #333;
+  position: relative;
+}
+.mc-arch-arrow .line::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -3px;
+  border: 4px solid transparent;
+  border-left-color: #333;
+}
+.mc-arch-arrow .label {
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* ---------- UX flow timeline ---------- */
+.mc-flow-timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 16px 0;
+  overflow-x: auto;
+}
+.mc-flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 130px;
+  position: relative;
+  flex: 1;
+}
+.mc-flow-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: calc(50% + 22px);
+  width: calc(100% - 44px);
+  height: 2px;
+  background: #333;
+}
+.mc-flow-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--mc-panel);
+  border: 2px solid var(--mc-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+.mc-flow-step.active .mc-flow-circle {
+  border-color: var(--mc-accent);
+  background: var(--mc-accent-tint);
+}
+.mc-flow-step .mc-flow-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mc-text-dim);
+  margin-bottom: 4px;
+}
+.mc-flow-step.active .mc-flow-num { color: var(--mc-accent); }
+.mc-flow-step .mc-flow-label {
+  font-size: 12px;
+  color: var(--mc-text-muted);
+  text-align: center;
+  max-width: 120px;
+}
+
+/* Decision nodes that branch out of a step (radio choices) */
+.mc-decision-node {
+  margin-top: 24px;
+  background: var(--mc-panel);
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius);
+  padding: 16px 20px;
+}
+.mc-decision-node h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--mc-text-2);
+}
+.mc-decision-node .mc-decision-context {
+  font-size: 12px;
+  color: var(--mc-text-dim);
+  margin-bottom: 12px;
+}
+
+/* Radio choices (list style) */
+.mc-radio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mc-radio-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--mc-radius-sm);
+  cursor: pointer;
+  transition: background var(--mc-transition);
+  border: none;
+  background: transparent;
+  color: var(--mc-text);
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  text-align: left;
+}
+.mc-radio-choice:hover { background: rgba(255,255,255,0.04); }
+.mc-radio-choice.selected { background: var(--mc-accent-soft); }
+.mc-radio-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color var(--mc-transition);
+}
+.mc-radio-choice.selected .mc-radio-dot { border-color: var(--mc-accent); }
+.mc-radio-choice.selected .mc-radio-dot::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mc-accent);
+}
+
+/* ---------- UI option mini-layouts (dialog / drawer / sheet) ---------- */
+.mc-mini-frame {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 4 / 5;
+  border: 1px solid #333;
+  border-radius: var(--mc-radius-sm);
+  background: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+}
+.mc-mini-bg-line {
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+  margin-bottom: 6px;
+  opacity: 0.18;
+}
+.mc-mini-bg {
+  position: absolute;
+  inset: 12px;
+}
+.mc-mini-bg-line.title { width: 55%; height: 6px; opacity: 0.28; margin-bottom: 10px; }
+.mc-mini-bg-line.lg    { width: 100%; }
+.mc-mini-bg-line.md    { width: 80%; }
+.mc-mini-bg-line.sm    { width: 60%; }
+
+/* Dialog */
+.mc-mini-dialog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 78%;
+  background: #fff;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.mc-mini-dialog .ln {
+  height: 4px;
+  background: #ccc;
+  border-radius: 2px;
+  margin-bottom: 5px;
+}
+.mc-mini-dialog .ln.first { width: 55%; background: #888; height: 6px; margin-bottom: 8px; }
+.mc-mini-dialog .actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.mc-mini-dialog .actions .btn {
+  width: 26px;
+  height: 8px;
+  border-radius: 3px;
+  background: #ccc;
+}
+.mc-mini-dialog .actions .btn.primary { background: #4a90d9; }
+.mc-mini-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+}
+
+/* Drawer (right side panel) */
+.mc-mini-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  background: #fff;
+  padding: 10px 8px;
+  box-shadow: -4px 0 12px rgba(0,0,0,0.2);
+}
+.mc-mini-drawer .item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 3px;
+  border-radius: 3px;
+  margin-bottom: 3px;
+}
+.mc-mini-drawer .item.active { background: #eef3fb; }
+.mc-mini-drawer .dot {
+  width: 6px; height: 6px; border-radius: 2px;
+  background: #ccc; flex-shrink: 0;
+}
+.mc-mini-drawer .item.active .dot { background: #4a90d9; }
+.mc-mini-drawer .ln { height: 3px; background: #bbb; border-radius: 1px; flex: 1; }
+.mc-mini-drawer .item.active .ln { background: #4a90d9; }
+
+/* Bottom Sheet */
+.mc-mini-sheet {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 55%;
+  background: #fff;
+  border-radius: 10px 10px 0 0;
+  padding: 6px 8px 8px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.18);
+}
+.mc-mini-sheet .handle {
+  width: 24px; height: 3px;
+  background: #ccc;
+  border-radius: 2px;
+  margin: 0 auto 8px;
+}
+.mc-mini-sheet .item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 4px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+}
+.mc-mini-sheet .item.active { background: #eef3fb; }
+.mc-mini-sheet .icon {
+  width: 10px; height: 10px; border-radius: 3px;
+  background: #ddd; flex-shrink: 0;
+}
+.mc-mini-sheet .item.active .icon { background: #4a90d9; }
+.mc-mini-sheet .ln {
+  flex: 1; height: 3px;
+  background: #ccc; border-radius: 1px;
+}
+.mc-mini-sheet .item.active .ln { background: #4a90d9; }
+
+/* ---------- Save bar ---------- */
+.mc-save-bar {
+  text-align: center;
+  margin-top: 2.5rem;
+}
+.mc-save-btn {
+  background: var(--mc-accent);
+  color: #fff;
+  border: none;
+  padding: 10px 32px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--mc-transition), transform 0.1s;
+}
+.mc-save-btn:hover  { background: var(--mc-accent-2); }
+.mc-save-btn:active { transform: scale(0.97); }
+.mc-save-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Toast (save feedback) ---------- */
+.mc-toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--mc-panel-3);
+  border: 1px solid #333;
+  border-left: 3px solid var(--mc-accent);
+  color: var(--mc-text-2);
+  padding: 14px 20px;
+  border-radius: var(--mc-radius);
+  font-size: 0.85rem;
+  box-shadow: var(--mc-shadow-toast);
+  transform: translateY(20px);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 100;
+  max-width: 420px;
+  line-height: 1.6;
+}
+.mc-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.mc-toast.error { border-left-color: var(--mc-danger); }
+.mc-toast .check { color: var(--mc-accent); font-weight: 700; margin-right: 6px; }
+.mc-toast.error .check { color: var(--mc-danger); }

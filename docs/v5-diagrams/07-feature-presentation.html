@@ -78,7 +78,37 @@
     color: var(--text-muted);
   }
 
-  /* Tabs */
+  /* Top-level tabs (Decisions / Documentation) — heavier, with bottom-border accent */
+  .top-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    background: transparent;
+  }
+  .top-tab {
+    background: transparent;
+    border: none;
+    color: #999;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color var(--transition), border-color var(--transition);
+  }
+  .top-tab:hover { color: var(--text); }
+  .top-tab.active {
+    color: #f5f5f5;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .top-section { display: none; }
+  .top-section.visible { display: block; }
+
+  /* Sub-tabs (UX | UI | Architecture, or the 6 doc tabs) */
   .tabs {
     display: flex;
     gap: 4px;
@@ -672,6 +702,206 @@
     font-size: 16px;
   }
 
+  /* ───── Documentation tab content ───── */
+  .doc-md {
+    display: block;
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    color: #cccccc;
+    font-size: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 32px;
+    margin: 0;
+    width: 100%;
+  }
+  .doc-md > * + * { margin-top: 1em; }
+  .doc-md h1, .doc-md h2, .doc-md h3 {
+    color: #f0f0f0;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .doc-md h1 { font-size: 1.6em; margin-top: 0; }
+  .doc-md h2 { font-size: 1.25em; margin-top: 1.4em; color: #6a8caf; }
+  .doc-md h3 { font-size: 1.05em; margin-top: 1.2em; }
+  .doc-md p { color: #c8c8c8; margin: 0; }
+  .doc-md ul, .doc-md ol { padding-left: 1.5em; color: #c8c8c8; }
+  .doc-md li { margin: 0.25em 0; line-height: 1.55; }
+  .doc-md code {
+    background: #1a1a1a;
+    color: #b6d4f0;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.88em;
+  }
+  .doc-md strong { color: #f0f0f0; font-weight: 600; }
+  .doc-md em { color: #d8d8d8; font-style: italic; }
+
+  /* Tasks list */
+  .doc-tasks { display: flex; flex-direction: column; gap: 20px; }
+  .task-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+  }
+  .task-group h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .task-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+    flex-wrap: wrap;
+  }
+  .task-title { flex: 1; min-width: 0; }
+  .status-pill {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .status-pill.done {
+    color: var(--success);
+    border-color: rgba(76,175,80,0.4);
+    background: rgba(76,175,80,0.1);
+  }
+  .status-pill.in-progress {
+    color: var(--accent);
+    border-color: rgba(106,140,175,0.4);
+    background: rgba(106,140,175,0.1);
+  }
+  .status-pill.pending {
+    color: var(--text-muted);
+    border-color: var(--border);
+    background: rgba(255,255,255,0.04);
+  }
+  .commit-link {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.03);
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  /* Disclosures (phases / journal / explore md) */
+  .doc-disclosure {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .doc-disclosure > summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    list-style: none;
+    transition: background var(--transition);
+  }
+  .doc-disclosure > summary::-webkit-details-marker { display: none; }
+  .doc-disclosure > summary::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: 8px;
+    color: var(--text-muted);
+    transition: transform var(--transition);
+  }
+  .doc-disclosure[open] > summary::before { transform: rotate(90deg); }
+  .doc-disclosure > summary:hover { background: rgba(255,255,255,0.03); }
+  .doc-disclosure > .doc-md {
+    border: none;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    max-width: none;
+  }
+
+  /* Explore + wireframes */
+  .doc-explore-item { margin-bottom: 20px; }
+  .doc-explore-item h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .doc-iframe,
+  .iframe-card iframe {
+    width: 100%;
+    height: 360px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    display: block;
+  }
+  .doc-wireframes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .iframe-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .iframe-card h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+
+  /* Hide the save bar entirely while on the Documentation tab */
+  .bottom-bar.hidden { display: none; }
+
+  /* Annotation chips showing fragment-source attribution */
+  .fragment-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .fragment-note code {
+    background: #1a1a1a;
+    color: #b6d4f0;
+    padding: 0.05em 0.35em;
+    border-radius: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-style: normal;
+  }
+
   @media (max-width: 900px) {
     .options-grid { grid-template-columns: 1fr; }
     .decision-panels { grid-template-columns: 1fr; }
@@ -697,6 +927,14 @@
     <p class="subtitle">Real-time collaboration for project documents</p>
   </div>
 
+  <!-- Top-level nav: Decisions / Documentation -->
+  <nav class="top-tabs" role="tablist" aria-label="Feature view">
+    <button class="top-tab active" type="button" data-top-tab="decisions" aria-selected="true">Decisions</button>
+    <button class="top-tab" type="button" data-top-tab="documentation" aria-selected="false">Documentation</button>
+  </nav>
+
+  <!-- ═══════ DECISIONS TOP-SECTION ═══════ -->
+  <section class="top-section visible" data-top-tab="decisions">
   <div class="tabs">
     <button class="tab active" data-tab="architecture">
       <span class="tab-num">1</span>Architecture
@@ -712,6 +950,7 @@
   <!-- Section 1: Architecture -->
   <div class="section visible" id="section-architecture">
     <h2 class="section-title">How should real-time sync work?</h2>
+    <p class="fragment-note">Architecture decisions render as arch-node + arrow diagrams — fragments live at <code>features/&lt;slug&gt;/decisions/&lt;decision-id&gt;.html</code>.</p>
     <div class="options-grid" data-group="architecture">
 
       <div class="option-card" data-value="ot">
@@ -783,6 +1022,7 @@
   <!-- Section 2: UX Flow -->
   <div class="section" id="section-ux-flow">
     <h2 class="section-title">What's the collaboration experience?</h2>
+    <p class="fragment-note">UX decisions render as inline flow-timeline visuals — fragments live at <code>features/&lt;slug&gt;/decisions/&lt;decision-id&gt;.html</code>.</p>
 
     <div class="flow-timeline">
       <div class="flow-step active">
@@ -854,6 +1094,7 @@
   <!-- Section 3: UI Components -->
   <div class="section" id="section-ui-components">
     <h2 class="section-title">What do the collaboration indicators look like?</h2>
+    <p class="fragment-note">Each option below is illustrated by a mini-frame mockup — visuals come from <code>features/team-collaboration/decisions/&lt;decision-id&gt;.html</code> fragments generated by <code>node lib/v5/cli/build-decision.mjs</code>.</p>
     <div class="options-grid" data-group="presence">
 
       <div class="option-card selected" data-value="avatar-stack">
@@ -907,10 +1148,213 @@
 
     </div>
   </div>
+  </section>
+  <!-- /Decisions top-section -->
+
+  <!-- ═══════ DOCUMENTATION TOP-SECTION ═══════ -->
+  <section class="top-section" data-top-tab="documentation">
+    <div class="tabs" role="tablist">
+      <button class="tab active" type="button" data-doc-tab="doc-spec">Spec</button>
+      <button class="tab" type="button" data-doc-tab="doc-tasks">Tasks</button>
+      <button class="tab" type="button" data-doc-tab="doc-phases">Phases</button>
+      <button class="tab" type="button" data-doc-tab="doc-journal">Journal</button>
+      <button class="tab" type="button" data-doc-tab="doc-explore">Explore</button>
+      <button class="tab" type="button" data-doc-tab="doc-wireframes">Wireframes</button>
+    </div>
+
+    <!-- Spec — markdown-rendered spec.md as flowing HTML (NOT <pre>) -->
+    <div class="section visible" data-doc-section="doc-spec">
+      <article class="doc-md">
+        <h1>Team Collaboration — Spec</h1>
+        <p><strong>Status:</strong> UX decisions in progress · 4 of 7 decisions captured</p>
+
+        <h2>Overview</h2>
+        <p>
+          Real-time collaboration on project documents. Multiple users can open the same document
+          and see each other's cursors, edits, and presence in real time. Conflicts are resolved
+          automatically via CRDT.
+        </p>
+
+        <h2>User stories</h2>
+        <ul>
+          <li>As a team member, I can see who else is currently viewing a document.</li>
+          <li>As an editor, my changes appear on other peers' screens within ~200ms.</li>
+          <li>As a reviewer, I can see colored cursors with the author's name attached.</li>
+        </ul>
+
+        <h2>Non-functional requirements</h2>
+        <ul>
+          <li>Offline-tolerant: edits made while offline merge cleanly when reconnected.</li>
+          <li>No central transform server — CRDT removes that coordination requirement.</li>
+          <li>Supports up to <code>16</code> concurrent peers per document.</li>
+        </ul>
+
+        <h2>Out of scope</h2>
+        <p>Comment threads, suggested edits, and version history are deferred to a follow-up feature.</p>
+      </article>
+    </div>
+
+    <!-- Tasks — status-grouped task list (Done / In progress / Pending) -->
+    <div class="section" data-doc-section="doc-tasks">
+      <div class="doc-tasks">
+        <div class="task-group">
+          <h3>Done</h3>
+          <ul>
+            <li class="task-item">
+              <span class="status-pill done">Done</span>
+              <span class="task-title">Bootstrap CRDT data model (Yjs)</span>
+              <span class="commit-link">a1b2c3d</span>
+            </li>
+            <li class="task-item">
+              <span class="status-pill done">Done</span>
+              <span class="task-title">Wire WebSocket transport for peer sync</span>
+              <span class="commit-link">9f4e2a1</span>
+            </li>
+            <li class="task-item">
+              <span class="status-pill done">Done</span>
+              <span class="task-title">Add presence channel (active user list)</span>
+              <span class="commit-link">7d3c5b2</span>
+            </li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <h3>In progress</h3>
+          <ul>
+            <li class="task-item">
+              <span class="status-pill in-progress">In progress</span>
+              <span class="task-title">Render avatar stack from presence state</span>
+            </li>
+            <li class="task-item">
+              <span class="status-pill in-progress">In progress</span>
+              <span class="task-title">Show remote cursors with author name</span>
+            </li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <h3>Pending</h3>
+          <ul>
+            <li class="task-item">
+              <span class="status-pill pending">Pending</span>
+              <span class="task-title">Persist document state to Postgres on idle</span>
+            </li>
+            <li class="task-item">
+              <span class="status-pill pending">Pending</span>
+              <span class="task-title">Add reconnect-with-backoff for dropped WebSockets</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phases — collapsible <details> per phase-N.md (first open by default) -->
+    <div class="section" data-doc-section="doc-phases">
+      <details class="doc-disclosure" open>
+        <summary>Phase 1 — Data model &amp; transport</summary>
+        <article class="doc-md">
+          <p>Wire up the underlying CRDT (<code>Yjs</code>) and pick a transport. Decided on WebSockets
+          via <code>y-websocket</code> with a tiny relay server. No conflict-resolution code lives in our
+          app — Yjs handles it.</p>
+          <ul>
+            <li>Pick CRDT library</li>
+            <li>Implement relay server</li>
+            <li>Wire client provider</li>
+          </ul>
+        </article>
+      </details>
+      <details class="doc-disclosure">
+        <summary>Phase 2 — Presence &amp; cursors</summary>
+        <article class="doc-md">
+          <p>Layer the presence channel on top of the CRDT awareness API. Render avatar stack and
+          remote cursors with author colors.</p>
+        </article>
+      </details>
+      <details class="doc-disclosure">
+        <summary>Phase 3 — Persistence &amp; resilience</summary>
+        <article class="doc-md">
+          <p>Periodically snapshot the Y.Doc to Postgres. Reconnect with exponential backoff.</p>
+        </article>
+      </details>
+    </div>
+
+    <!-- Journal — collapsible disclosures per NNN-*.md entry -->
+    <div class="section" data-doc-section="doc-journal">
+      <details class="doc-disclosure" open>
+        <summary>003 — Switched from Operational Transform to CRDT</summary>
+        <article class="doc-md">
+          <p>OT requires a central server to transform concurrent ops; this adds an availability
+          point we don't want. CRDTs let peers merge state independently and the math guarantees
+          convergence. <strong>Picked Yjs over Automerge</strong> — smaller bundle, mature provider
+          ecosystem.</p>
+        </article>
+      </details>
+      <details class="doc-disclosure">
+        <summary>002 — Cursor color allocation strategy</summary>
+        <article class="doc-md">
+          <p>Hash user id → HSL hue. Fixed saturation and lightness so contrast stays predictable.
+          Falls back to a small palette of 8 distinct colors when the user is a guest.</p>
+        </article>
+      </details>
+      <details class="doc-disclosure">
+        <summary>001 — Initial braindump</summary>
+        <article class="doc-md">
+          <p>Captured original requirements. Up to 16 concurrent peers, offline-tolerant, no central
+          transform server. Comments and version history explicitly out of scope.</p>
+        </article>
+      </details>
+    </div>
+
+    <!-- Explore — HTML iframes for explore artifacts, md files as disclosures -->
+    <div class="section" data-doc-section="doc-explore">
+      <div class="doc-explore-item">
+        <h3>crdt-merge-sandbox.html</h3>
+        <iframe
+          class="doc-iframe"
+          sandbox="allow-scripts"
+          srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;body style='font-family:system-ui;padding:20px;background:#fafafa'&gt;&lt;h3 style='margin-top:0'&gt;CRDT merge sandbox&lt;/h3&gt;&lt;p&gt;Two peers editing concurrently — both edits land cleanly without a server.&lt;/p&gt;&lt;p style='color:#555;font-size:13px'&gt;Peer A: 'Hello' · Peer B: 'world' → Merged: 'Hello world'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;"
+        ></iframe>
+      </div>
+      <details class="doc-disclosure">
+        <summary>notes-on-yjs-vs-automerge.md</summary>
+        <article class="doc-md">
+          <p>Compared bundle size, provider ecosystem, and TypeScript ergonomics across both
+          libraries. Yjs wins on bundle (~28kb gz vs ~80kb gz) and has y-websocket / y-webrtc /
+          y-indexeddb out of the box.</p>
+        </article>
+      </details>
+    </div>
+
+    <!-- Wireframes — responsive grid of sandboxed iframe cards (~360px tall) -->
+    <div class="section" data-doc-section="doc-wireframes">
+      <div class="doc-wireframes-grid">
+        <div class="iframe-card">
+          <h4>document-view.html</h4>
+          <iframe
+            sandbox="allow-scripts"
+            srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;body style='font-family:system-ui;padding:24px;background:#fff;color:#222'&gt;&lt;div style='display:flex;align-items:center;gap:8px;margin-bottom:16px'&gt;&lt;strong&gt;Project plan&lt;/strong&gt;&lt;div style='margin-left:auto;display:flex'&gt;&lt;div style='width:24px;height:24px;border-radius:50%;background:#5b7fa3;border:2px solid #fff;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;margin-left:-6px'&gt;JD&lt;/div&gt;&lt;div style='width:24px;height:24px;border-radius:50%;background:#a35b7f;border:2px solid #fff;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;margin-left:-6px'&gt;AK&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;Q3 roadmap items&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Ship collab beta&lt;/li&gt;&lt;li&gt;Run user interviews&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;"
+          ></iframe>
+        </div>
+        <div class="iframe-card">
+          <h4>conflict-popup.html</h4>
+          <iframe
+            sandbox="allow-scripts"
+            srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;body style='font-family:system-ui;padding:24px;background:#fff;color:#222'&gt;&lt;div style='border:1px solid #e0e0e0;border-radius:8px;padding:16px;max-width:340px;margin:40px auto;background:#fffbe6'&gt;&lt;strong&gt;Edit conflict&lt;/strong&gt;&lt;p style='font-size:13px;color:#555;margin-top:8px'&gt;Alex K. also edited this paragraph. Pick a version or merge:&lt;/p&gt;&lt;div style='display:flex;gap:8px;margin-top:12px'&gt;&lt;button style='padding:6px 12px'&gt;Yours&lt;/button&gt;&lt;button style='padding:6px 12px'&gt;Theirs&lt;/button&gt;&lt;button style='padding:6px 12px;background:#5b7fa3;color:#fff;border:none;border-radius:4px'&gt;Auto-merge&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"
+          ></iframe>
+        </div>
+        <div class="iframe-card">
+          <h4>presence-sidebar.html</h4>
+          <iframe
+            sandbox="allow-scripts"
+            srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;body style='font-family:system-ui;padding:0;background:#fff;color:#222;display:flex;height:100%'&gt;&lt;div style='flex:1;padding:24px'&gt;&lt;p&gt;Document content area&lt;/p&gt;&lt;/div&gt;&lt;div style='width:160px;border-left:1px solid #e0e0e0;padding:16px;background:#fafafa'&gt;&lt;div style='font-size:11px;text-transform:uppercase;color:#888;margin-bottom:12px;letter-spacing:0.6px'&gt;Online&lt;/div&gt;&lt;div style='display:flex;align-items:center;gap:6px;margin:6px 0;font-size:13px'&gt;&lt;span style='width:8px;height:8px;border-radius:50%;background:#4caf50'&gt;&lt;/span&gt;Jane D.&lt;/div&gt;&lt;div style='display:flex;align-items:center;gap:6px;margin:6px 0;font-size:13px'&gt;&lt;span style='width:8px;height:8px;border-radius:50%;background:#5b7fa3'&gt;&lt;/span&gt;Alex K.&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /Documentation top-section -->
 </div>
 
-<!-- Bottom Bar -->
-<div class="bottom-bar">
+<!-- Bottom Bar (visible on Decisions tab, hidden on Documentation) -->
+<div class="bottom-bar" id="bottom-bar">
   <div class="bottom-inner">
     <button class="btn-save" id="btn-save">Save All Decisions</button>
     <a href="#" class="link-next">Next: Generate Spec →</a>
@@ -925,7 +1369,31 @@
 
 <script>
 (function() {
-  const tabs = document.querySelectorAll('.tab');
+  // ─── Top-level nav: Decisions / Documentation ───
+  const topTabs = document.querySelectorAll('.top-tab');
+  const topSections = document.querySelectorAll('.top-section');
+  const bottomBar = document.getElementById('bottom-bar');
+
+  topTabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var target = this.getAttribute('data-top-tab');
+      topTabs.forEach(function(t) {
+        t.classList.toggle('active', t === tab);
+        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      });
+      topSections.forEach(function(sec) {
+        sec.classList.toggle('visible', sec.getAttribute('data-top-tab') === target);
+      });
+      // Hide the save bar on Documentation — nothing to save in that view.
+      if (bottomBar) {
+        bottomBar.classList.toggle('hidden', target === 'documentation');
+      }
+    });
+  });
+
+  // ─── Decisions sub-tabs (UX | UI | Architecture) ───
+  const decisionsRoot = document.querySelector('.top-section[data-top-tab="decisions"]');
+  const tabs = decisionsRoot.querySelectorAll('.tab');
   const sections = {
     'architecture': document.getElementById('section-architecture'),
     'ux-flow': document.getElementById('section-ux-flow'),
@@ -953,6 +1421,22 @@
       });
     }.bind(tab));
   });
+
+  // ─── Documentation sub-tabs (6 tabs) ───
+  const docRoot = document.querySelector('.top-section[data-top-tab="documentation"]');
+  if (docRoot) {
+    const docTabs = docRoot.querySelectorAll('.tab');
+    const docSections = docRoot.querySelectorAll('[data-doc-section]');
+    docTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var target = this.getAttribute('data-doc-tab');
+        docTabs.forEach(function(t) { t.classList.toggle('active', t === tab); });
+        docSections.forEach(function(sec) {
+          sec.classList.toggle('visible', sec.getAttribute('data-doc-section') === target);
+        });
+      });
+    });
+  }
 
   document.querySelectorAll('.options-grid').forEach(function(grid) {
     grid.querySelectorAll('.option-card').forEach(function(card) {

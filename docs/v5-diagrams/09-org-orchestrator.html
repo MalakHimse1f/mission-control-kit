@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCK — Org Orchestrator (Tech Stack &amp; Data Flow)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    line-height: 1.5;
+    padding: 3rem 2rem 5rem;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .pitch-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+  .pitch {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid #2a2a2a;
+    color: #aaa;
+    background: #111;
+  }
+  .pitch.accent { color: #6a8caf; border-color: #2a3a4a; }
+
+  .section { margin-bottom: 4rem; }
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6a8caf;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #1e2e3a;
+  }
+
+  /* ── Layer Stack ── */
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .layer {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+  }
+  .layer.cloud  { border-color: #3a4a6a; box-shadow: 0 0 24px rgba(106, 140, 175, 0.08); }
+  .layer.bridge { border-color: #5a4a2a; box-shadow: 0 0 24px rgba(175, 140, 106, 0.06); }
+  .layer.local  { border-color: #2a4a3a; box-shadow: 0 0 24px rgba(93, 232, 160, 0.06); }
+  .layer.agent  { border-color: #4a3a5a; box-shadow: 0 0 24px rgba(155, 89, 182, 0.06); }
+  .layer.repo   { border-color: #2a2a2a; }
+
+  .layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+  }
+  .layer-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .layer-tag {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .layer.cloud  .layer-tag { background: #1a2030; color: #8aa8c8; }
+  .layer.bridge .layer-tag { background: #2a2218; color: #d8b888; }
+  .layer.local  .layer-tag { background: #18261e; color: #8ad8a8; }
+  .layer.agent  .layer-tag { background: #251a2c; color: #c898d8; }
+  .layer.repo   .layer-tag { background: #1a1a1a; color: #888; }
+
+  .layer-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+  .layer-where {
+    font-size: 0.72rem;
+    color: #666;
+    font-family: ui-monospace, monospace;
+  }
+
+  .layer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.6rem;
+  }
+  .chip {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+  }
+  .chip-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 0.15rem;
+  }
+  .chip-tech {
+    font-size: 0.68rem;
+    color: #777;
+    font-family: ui-monospace, monospace;
+  }
+  .layer.cloud  .chip { border-color: #2a3a4a; }
+  .layer.bridge .chip { border-color: #3a3020; }
+  .layer.local  .chip { border-color: #1f3328; }
+  .layer.agent  .chip { border-color: #2f2238; }
+
+  .connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.4rem 0;
+  }
+  .connector .line {
+    width: 2px;
+    height: 22px;
+    background: linear-gradient(180deg, #333, #2a2a2a);
+  }
+  .connector .pill {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-family: ui-monospace, monospace;
+    padding: 3px 10px;
+    color: #888;
+    margin: 4px 0;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Org-Level Cards ── */
+  .org-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+  .org-card {
+    background: #141414;
+    border: 1px solid #2a3a4a;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+  .org-card-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6a8caf;
+    margin-bottom: 0.4rem;
+  }
+  .org-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e8e8e8;
+    margin-bottom: 0.35rem;
+  }
+  .org-card-desc {
+    font-size: 0.75rem;
+    color: #999;
+    margin-bottom: 0.6rem;
+  }
+  .org-card-list {
+    list-style: none;
+    font-size: 0.72rem;
+    color: #aaa;
+  }
+  .org-card-list li {
+    padding: 0.2rem 0;
+    padding-left: 0.85rem;
+    position: relative;
+  }
+  .org-card-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #3a5a7a;
+  }
+
+  /* ── Flow Diagram ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: stretch;
+  }
+  .flow-step {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+  }
+  .flow-step.cloud  { border-left: 3px solid #6a8caf; }
+  .flow-step.bridge { border-left: 3px solid #af8c6a; }
+  .flow-step.local  { border-left: 3px solid #5de8a0; }
+  .flow-step.agent  { border-left: 3px solid #9b59b6; }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #ccc;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-body { flex: 1; }
+  .step-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.25rem;
+    flex-wrap: wrap;
+  }
+  .step-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #e8e8e8;
+  }
+  .step-loc {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .step-loc.cloud  { background: #1a2030; color: #8aa8c8; }
+  .step-loc.bridge { background: #2a2218; color: #d8b888; }
+  .step-loc.local  { background: #18261e; color: #8ad8a8; }
+  .step-loc.agent  { background: #251a2c; color: #c898d8; }
+
+  .step-desc {
+    font-size: 0.76rem;
+    color: #999;
+  }
+  .step-desc code {
+    background: #1e1e1e;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: #ccc;
+  }
+
+  .flow-arrow {
+    display: flex;
+    justify-content: center;
+    padding: 0.35rem 0;
+  }
+  .flow-arrow svg { width: 18px; height: 22px; }
+  .flow-arrow line { stroke: #333; stroke-width: 1.5; }
+  .flow-arrow polygon { fill: #333; }
+
+  /* ── Dashboard Mockup ── */
+  .browser-frame {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .browser-chrome {
+    background: #111;
+    padding: 0.55rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .window-dots { display: flex; gap: 5px; }
+  .window-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .window-dots .close { background: #e85d5d; }
+  .window-dots .minimize { background: #e8c95d; }
+  .window-dots .maximize { background: #5de8a0; }
+  .url-bar {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: #888;
+  }
+  .url-bar .protocol { color: #555; }
+  .url-bar .host { color: #6a8caf; }
+  .url-bar .path { color: #aaa; }
+
+  .browser-body {
+    padding: 1.25rem;
+    background: #0e0e0e;
+  }
+  .dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .dash-org {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .dash-org-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f0f0f0;
+  }
+  .dash-org-sub {
+    font-size: 0.7rem;
+    color: #666;
+  }
+  .dash-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.72rem;
+  }
+  .stat .stat-num {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #5de8a0;
+  }
+  .stat .stat-label {
+    color: #666;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .agent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .agent-row {
+    background: #141414;
+    border: 1px solid #232323;
+    border-radius: 8px;
+    padding: 0.7rem 0.85rem;
+    display: grid;
+    grid-template-columns: 1fr 1.6fr auto auto;
+    gap: 0.85rem;
+    align-items: center;
+    font-size: 0.78rem;
+  }
+  .agent-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ddd;
+  }
+  .avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a5a7a, #2a3a4a);
+    font-size: 0.62rem;
+    color: #c0c8d8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .agent-user-meta {
+    font-size: 0.65rem;
+    color: #666;
+  }
+  .agent-task {
+    color: #b0b0b0;
+    font-size: 0.76rem;
+  }
+  .agent-task .feature {
+    color: #e0e0e0;
+    font-weight: 500;
+  }
+  .agent-task .stage {
+    color: #6a8caf;
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+  }
+  .agent-status {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: #999;
+  }
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pulse-dot.running {
+    background: #5de8a0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .pulse-dot.waiting { background: #e8c95d; }
+  .pulse-dot.idle    { background: #555; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(93, 232, 160, 0.4); }
+    50% { box-shadow: 0 0 0 5px rgba(93, 232, 160, 0); }
+  }
+  .agent-action {
+    font-size: 0.7rem;
+    color: #6a8caf;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid #2a3a4a;
+    border-radius: 4px;
+    background: #0f1620;
+  }
+
+  /* ── Comparison ── */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .compare-panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+  .compare-panel.v5    { border-color: #2a4a3a; }
+  .compare-panel.org   { border-color: #3a4a6a; }
+  .compare-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+  }
+  .compare-panel.v5 .compare-label  { color: #5de8a0; }
+  .compare-panel.org .compare-label { color: #6a8caf; }
+  .compare-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    font-size: 0.74rem;
+    padding: 0.3rem 0;
+    border-top: 1px solid #1c1c1c;
+  }
+  .compare-row:first-of-type { border-top: 0; }
+  .compare-key { color: #777; }
+  .compare-val { color: #ccc; }
+
+  @media (max-width: 760px) {
+    .compare { grid-template-columns: 1fr; }
+    .agent-row { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Org-Wide Agent Orchestrator</h1>
+  <p class="subtitle">Tech stack &amp; data flow — moving the brain to the cloud while keeping the hands local</p>
+
+  <div class="pitch-bar">
+    <span class="pitch accent">CTO Pitch</span>
+    <span class="pitch">Structured prompts on YOUR org's standards</span>
+    <span class="pitch">Every agent, every dev, one dashboard</span>
+    <span class="pitch">Local execution · Cloud orchestration</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 1. v5 vs Org — what changes                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-title">v5 (today) vs Org Orchestrator</div>
+    <div class="compare">
+      <div class="compare-panel v5">
+        <div class="compare-label">MCK v5 — Local Skill</div>
+        <div class="compare-row"><span class="compare-key">Workflows</span><span class="compare-val">Per-repo files (<code>control/</code>)</span></div>
+        <div class="compare-row"><span class="compare-key">Standards</span><span class="compare-val">Per-repo, copied from kit</span></div>
+        <div class="compare-row"><span class="compare-key">Dashboard</span><span class="compare-val">Local Node server, one user</span></div>
+        <div class="compare-row"><span class="compare-key">Orchestrator</span><span class="compare-val">Claude Code / Cursor on disk</span></div>
+        <div class="compare-row"><span class="compare-key">State</span><span class="compare-val"><code>state.json</code>, <code>decisions.json</code> on disk</span></div>
+        <div class="compare-row"><span class="compare-key">Visibility</span><span class="compare-val">One repo, one dev</span></div>
+      </div>
+      <div class="compare-panel org">
+        <div class="compare-label">Org Orchestrator — Cloud-Coordinated</div>
+        <div class="compare-row"><span class="compare-key">Workflows</span><span class="compare-val">Org-owned, edited in cloud, versioned</span></div>
+        <div class="compare-row"><span class="compare-key">Standards</span><span class="compare-val">Org-level (MVVM, TDD, UI primitives)</span></div>
+        <div class="compare-row"><span class="compare-key">Dashboard</span><span class="compare-val">Web app, all users &amp; agents</span></div>
+        <div class="compare-row"><span class="compare-key">Orchestrator</span><span class="compare-val">Cloud routes; agents still run locally</span></div>
+        <div class="compare-row"><span class="compare-key">State</span><span class="compare-val">Synced through bridge daemon</span></div>
+        <div class="compare-row"><span class="compare-key">Visibility</span><span class="compare-val">Whole org — every agent, in flight</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 2. Layered Architecture                              -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-title">System Layers &amp; Tech Stack</div>
+
+    <div class="stack">
+
+      <!-- CLOUD LAYER -->
+      <div class="layer cloud">
+        <div class="layer-header">
+          <div class="layer-title">
+            <span class="layer-tag">Cloud · Org-Owned</span>
+            <span class="layer-name">Orchestration Plane</span>
+          </div>
+          <span class="layer-where">app.missioncontrol.com</span>
+        </div>
+        <div class="layer-grid">
+          <div class="chip">
+            <div class="chip-name">Web Dashboard</div>
+            <div class="chip-tech">Next.js · React · Server Components</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Workflow Editor</div>
+            <div class="chip-tech">Monaco / TipTap · Markdown DSL</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Standards Editor</div>
+            <div class="chip-tech">Versioned docs · MVVM · TDD · A11y</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">UI Primitives Library</div>
+            <div class="chip-tech">Tokens · components · stub generators</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Orchestrator API</div>
+            <div class="chip-tech">Node · tRPC / GraphQL</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Realtime Gateway</div>
+            <div class="chip-tech">WebSocket · agent ↔ cloud streams</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">State &amp; Journal Store</div>
+            <div class="chip-tech">Postgres · Redis (live) · S3 (docs)</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Auth &amp; Roles</div>
+            <div class="chip-tech">WorkOS / Clerk · SSO · RBAC</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="line"></div><div class="pill">wss · signed events · diffs</div><div class="line"></div></div>
+
+      <!-- BRIDGE LAYER -->
+      <div class="layer bridge">
+        <div class="layer-header">
+          <div class="layer-title">
+            <span class="layer-tag">Bridge · User-Installed</span>
+            <span class="layer-name">Local Daemon</span>
+          </div>
+          <span class="layer-where">mck-bridge (background process)</span>
+        </div>
+        <div class="layer-grid">
+          <div class="chip">
+            <div class="chip-name">Cloud Sync</div>
+            <div class="chip-tech">Pulls workflows, standards, primitives</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Local Cache</div>
+            <div class="chip-tech">~/.mck/cache · signed manifest</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Session Spawner</div>
+            <div class="chip-tech">Launches Claude Code / Cursor on cue</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">I/O Pipe</div>
+            <div class="chip-tech">Hooks · stdin/stdout · journal tail</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">State Reporter</div>
+            <div class="chip-tech">Watches <code>.mc/</code> · pushes diffs</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Auth Token</div>
+            <div class="chip-tech">Device-bound · org-scoped</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="line"></div><div class="pill">spawn · attach · pipe</div><div class="line"></div></div>
+
+      <!-- AGENT LAYER -->
+      <div class="layer agent">
+        <div class="layer-header">
+          <div class="layer-title">
+            <span class="layer-tag">Agent · Local</span>
+            <span class="layer-name">Claude Code / Cursor Session</span>
+          </div>
+          <span class="layer-where">user's machine · their API credits</span>
+        </div>
+        <div class="layer-grid">
+          <div class="chip">
+            <div class="chip-name">Orchestrator Skill</div>
+            <div class="chip-tech">Reads org workflow from cache</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Router</div>
+            <div class="chip-tech">Task type → org-defined context packet</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Subagent Dispatch</div>
+            <div class="chip-tech">explore · spec · mock · plan · build</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Hook Bridge</div>
+            <div class="chip-tech">SessionStart · PostToolUse · Stop</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="line"></div><div class="pill">reads · writes</div><div class="line"></div></div>
+
+      <!-- REPO LAYER -->
+      <div class="layer repo">
+        <div class="layer-header">
+          <div class="layer-title">
+            <span class="layer-tag">Project · Local</span>
+            <span class="layer-name">Repository on Disk</span>
+          </div>
+          <span class="layer-where">~/code/your-project</span>
+        </div>
+        <div class="layer-grid">
+          <div class="chip">
+            <div class="chip-name">.mc/ state</div>
+            <div class="chip-tech">state.json · decisions.json · journal</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">features/</div>
+            <div class="chip-tech">braindump · spec · mocks · phase plans</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">src/</div>
+            <div class="chip-tech">Real code · built by subagents</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">.mck-link</div>
+            <div class="chip-tech">Maps repo ↔ org workspace</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 3. What the Org Owns                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-title">What the Org Owns (cloud-edited, dev-applied)</div>
+    <div class="org-grid">
+      <div class="org-card">
+        <div class="org-card-label">Routing</div>
+        <div class="org-card-title">Workflows</div>
+        <div class="org-card-desc">Pipelines per role — what stages exist, who reviews, what docs route in.</div>
+        <ul class="org-card-list">
+          <li>PM: braindump → PRD → review</li>
+          <li>Eng: spec → plan → build → validate</li>
+          <li>Design: research → mock → handoff</li>
+        </ul>
+      </div>
+      <div class="org-card">
+        <div class="org-card-label">Quality</div>
+        <div class="org-card-title">Standards</div>
+        <div class="org-card-desc">How code &amp; specs must look. Loaded into every subagent context packet.</div>
+        <ul class="org-card-list">
+          <li>MVVM, hexagonal, repository pattern</li>
+          <li>TDD gates &amp; coverage thresholds</li>
+          <li>A11y, security, perf budgets</li>
+        </ul>
+      </div>
+      <div class="org-card">
+        <div class="org-card-label">Build</div>
+        <div class="org-card-title">UI Primitives</div>
+        <div class="org-card-desc">Org-blessed components, tokens, layouts. Mock generators target them.</div>
+        <ul class="org-card-list">
+          <li>Design tokens (color, type, space)</li>
+          <li>Layout primitives (grid, stack)</li>
+          <li>Component contracts &amp; stubs</li>
+        </ul>
+      </div>
+      <div class="org-card">
+        <div class="org-card-label">Visibility</div>
+        <div class="org-card-title">Dashboard</div>
+        <div class="org-card-desc">Live view of every agent across the org — features, stages, blockers.</div>
+        <ul class="org-card-list">
+          <li>All agents, all users, in flight</li>
+          <li>Portfolio &amp; dependency view</li>
+          <li>Click "Start" → spawn local session</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 4. Data Flow: Start from Cloud                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-title">Data Flow — "Start" from Cloud Dashboard</div>
+
+    <div class="flow">
+
+      <div class="flow-step cloud">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">User clicks Start on a feature card</span>
+            <span class="step-loc cloud">Web App</span>
+          </div>
+          <div class="step-desc">Dashboard reads feature's current stage from cloud state, e.g. <code>stage: braindump</code> or <code>stage: build-phase-2</code>.</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 18 22"><line x1="9" y1="0" x2="9" y2="16"/><polygon points="5,13 9,21 13,13"/></svg></div>
+
+      <div class="flow-step cloud">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">Orchestrator API picks the action</span>
+            <span class="step-loc cloud">Cloud</span>
+          </div>
+          <div class="step-desc">Maps stage → command. Interactive stage (Q&amp;A) opens chat in browser. Build stage runs subagent-driven development on the machine. Sends a <code>spawn-session</code> event to the user's bridge.</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 18 22"><line x1="9" y1="0" x2="9" y2="16"/><polygon points="5,13 9,21 13,13"/></svg></div>
+
+      <div class="flow-step bridge">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">Bridge daemon receives event</span>
+            <span class="step-loc bridge">Local</span>
+          </div>
+          <div class="step-desc">Verifies device + org token over WebSocket. Resolves the local repo path from <code>.mck-link</code>. Confirms workflow &amp; standards cache is up to date.</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 18 22"><line x1="9" y1="0" x2="9" y2="16"/><polygon points="5,13 9,21 13,13"/></svg></div>
+
+      <div class="flow-step agent">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">Bridge spawns Claude Code / Cursor</span>
+            <span class="step-loc agent">Local</span>
+          </div>
+          <div class="step-desc">Launches the user's chosen agent with the right command: <code>/mc</code>, <code>/mc-feature {slug}</code>, or build resume. Hooks pipe transcript &amp; tool calls back to the bridge.</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 18 22"><line x1="9" y1="0" x2="9" y2="16"/><polygon points="5,13 9,21 13,13"/></svg></div>
+
+      <div class="flow-step agent">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">Agent runs the org workflow</span>
+            <span class="step-loc agent">Local</span>
+          </div>
+          <div class="step-desc">Orchestrator skill reads cached org workflow. Router builds context packet — pulls only the docs the stage needs, plus the org's standards block. Dispatches subagents.</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 18 22"><line x1="9" y1="0" x2="9" y2="16"/><polygon points="5,13 9,21 13,13"/></svg></div>
+
+      <div class="flow-step bridge">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">Bridge streams everything back</span>
+            <span class="step-loc bridge">Local</span>
+          </div>
+          <div class="step-desc">Journal lines, status diffs, decisions, and assistant messages flow up. For interactive stages, the web chat panel becomes the Q&amp;A surface — user can answer from anywhere.</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 18 22"><line x1="9" y1="0" x2="9" y2="16"/><polygon points="5,13 9,21 13,13"/></svg></div>
+
+      <div class="flow-step cloud">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-title-row">
+            <span class="step-title">Org dashboard updates live</span>
+            <span class="step-loc cloud">Web App</span>
+          </div>
+          <div class="step-desc">Stage, progress, and blockers update in real time for every viewer. Other org members see the agent running. Portfolio order recomputes.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 5. Org Dashboard Mockup                              -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-title">Org Dashboard — Every Agent, In Flight</div>
+
+    <div class="browser-frame">
+      <div class="browser-chrome">
+        <div class="window-dots">
+          <span class="close"></span>
+          <span class="minimize"></span>
+          <span class="maximize"></span>
+        </div>
+        <div class="url-bar">
+          <span class="protocol">https://</span><span class="host">app.missioncontrol.com</span><span class="path">/orgs/acme/agents</span>
+        </div>
+      </div>
+      <div class="browser-body">
+
+        <div class="dash-header">
+          <div class="dash-org">
+            <div class="dash-org-name">Acme · Agents in Flight</div>
+            <div class="dash-org-sub">live · updated 2s ago</div>
+          </div>
+          <div class="dash-stats">
+            <div class="stat"><div class="stat-num">7</div><div class="stat-label">Running</div></div>
+            <div class="stat"><div class="stat-num" style="color:#e8c95d">3</div><div class="stat-label">Awaiting</div></div>
+            <div class="stat"><div class="stat-num" style="color:#888">12</div><div class="stat-label">Idle</div></div>
+          </div>
+        </div>
+
+        <div class="agent-list">
+
+          <div class="agent-row">
+            <div class="agent-user">
+              <div class="avatar">JL</div>
+              <div>
+                <div>Jamie Lin</div>
+                <div class="agent-user-meta">claude code · macbook-pro</div>
+              </div>
+            </div>
+            <div class="agent-task">
+              <span class="feature">user-onboarding</span> ·
+              <span class="stage">stage: build-phase-2</span>
+            </div>
+            <div class="agent-status"><span class="pulse-dot running"></span>writing tests</div>
+            <div class="agent-action">Open ↗</div>
+          </div>
+
+          <div class="agent-row">
+            <div class="agent-user">
+              <div class="avatar">MR</div>
+              <div>
+                <div>Maya Rao</div>
+                <div class="agent-user-meta">cursor · linux-desktop</div>
+              </div>
+            </div>
+            <div class="agent-task">
+              <span class="feature">billing-export</span> ·
+              <span class="stage">stage: spec-review</span>
+            </div>
+            <div class="agent-status"><span class="pulse-dot waiting"></span>awaiting decision</div>
+            <div class="agent-action">Answer ↗</div>
+          </div>
+
+          <div class="agent-row">
+            <div class="agent-user">
+              <div class="avatar">PT</div>
+              <div>
+                <div>Priya Tan</div>
+                <div class="agent-user-meta">claude code · m3-air</div>
+              </div>
+            </div>
+            <div class="agent-task">
+              <span class="feature">checkout-redesign</span> ·
+              <span class="stage">stage: research</span>
+            </div>
+            <div class="agent-status"><span class="pulse-dot running"></span>gathering patterns</div>
+            <div class="agent-action">Open ↗</div>
+          </div>
+
+          <div class="agent-row">
+            <div class="agent-user">
+              <div class="avatar">DK</div>
+              <div>
+                <div>Devon Kim</div>
+                <div class="agent-user-meta">offline · last seen 14m</div>
+              </div>
+            </div>
+            <div class="agent-task">
+              <span class="feature">audit-log</span> ·
+              <span class="stage">stage: build-paused</span>
+            </div>
+            <div class="agent-status"><span class="pulse-dot idle"></span>idle</div>
+            <div class="agent-action">Start ↗</div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 14 — Project identification</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="crumb">
+    <a href="index.html">← Decision log</a>
+    <span class="crumb-tag decided">✓ Decided · Issue 14 · Hybrid</span>
+  </div>
+
+  <div class="issue-header">
+    <h1 class="issue-title">How do we identify a Project?<br>Software houses + agencies need this to work for both.</h1>
+    <div class="problem-statement">
+      <span class="label">The problem</span>
+      Most orgs aren't building one product — software houses ship multiple products, agencies maintain many client projects. We need a Project entity that's elegant for both. The tension: free-form names are flexible but loose; git-repo identity is definitive but rigid (and excludes non-code work).
+    </div>
+  </div>
+
+  <div class="decision-recap">
+    <span class="label">Decided 2026-05-26 · Hybrid (named + optional repo linkage)</span>
+    <p>A Project has a <strong>name</strong> (required) and an <strong>optional array of associated git repo URLs</strong>. Bridge auto-detects via <code>.git/config</code> on workflow start and offers to link the repo to the matching Project. Default UX is "name your Project"; git linkage is a power feature.</p>
+    <p style="margin-top: 0.5rem;">Supports <strong>monorepos</strong> (one repo linked to multiple Projects via path scoping — <code>apps/web</code> vs <code>apps/api</code>) and <strong>multi-platform Projects</strong> (one Project linked to many repos — "Mobile App" = iOS + Android + backend).</p>
+  </div>
+
+  <div class="decision-question">
+    <div class="label">Decision</div>
+    <h2>Project identity model — naming, git, or both?</h2>
+  </div>
+
+  <div class="paths">
+
+    <div class="path decided">
+      <div class="path-letter-row">
+        <span class="path-letter">A</span>
+        <span class="decided-badge">Decided</span>
+      </div>
+      <div class="path-title">Hybrid — named with optional repo linkage</div>
+      <div class="path-desc">Project name is required. Repo URLs optional. Bridge auto-detects and suggests linkage. Monorepo support via per-repo path scoping. Multi-platform support via multiple repos per Project.</div>
+
+      <div class="diagram">
+        <span class="label">Schema shape</span>
+        <div class="flow-col">
+          <div class="flow-box good">projects(id, name, slug, description, archived_at)</div>
+          <div class="flow-box good">project_repos(project_id, repo_url, path?)</div>
+          <div class="flow-box info">→ monorepo: many rows per repo, different paths</div>
+          <div class="flow-box info">→ multi-platform: many rows per project, different repos</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Default UX is naming — works for everyone</li>
+            <li>Auto-detection rewards git users without forcing it</li>
+            <li>Software houses, agencies, monorepos all model cleanly</li>
+            <li>Non-code work (research, design-only) still gets Projects</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Slightly more schema (join table)</li>
+            <li>Auto-link suggestion flow needs UX care</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="select-btn">✓ Selected</button>
+    </div>
+
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">B</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Free-form named Projects only</div>
+      <div class="path-desc">No git linkage at all. Just named entities — "Customer Portal," "Mobile App."</div>
+
+      <div class="diagram">
+        <span class="label">Simpler, less definitive</span>
+        <div class="flow-col">
+          <div class="flow-box info">projects(id, name, slug)</div>
+          <div class="flow-box warn">no auto-detection</div>
+          <div class="flow-box warn">two repos could be mis-tagged</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Smallest schema</li>
+            <li>Works for any kind of work</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>No auto-detection</li>
+            <li>No branch-tracking grounding</li>
+            <li>Naming inconsistency over time</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="path not-chosen">
+      <div class="path-letter-row">
+        <span class="path-letter">C</span>
+        <span class="not-chosen-badge">Not chosen</span>
+      </div>
+      <div class="path-title">Git-repo defines Project</div>
+      <div class="path-desc">A Project IS its git URL. No separate naming. Forces git. Monorepos awkward.</div>
+
+      <div class="diagram">
+        <span class="label">Rigid identity</span>
+        <div class="flow-col">
+          <div class="flow-box info">projects(repo_url PK, ...)</div>
+          <div class="flow-box warn">monorepo: awkward</div>
+          <div class="flow-box warn">renames: broken linkage</div>
+          <div class="flow-box warn">non-code: no Project possible</div>
+        </div>
+      </div>
+
+      <div class="tradeoffs">
+        <div class="pros">
+          <div class="tradeoff-col-label">Pros</div>
+          <ul>
+            <li>Definitive identity</li>
+            <li>Auto-detection trivial</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <div class="tradeoff-col-label">Cons</div>
+          <ul>
+            <li>Forces git on everyone</li>
+            <li>Monorepo support requires path hacks</li>
+            <li>Repo renames break the world</li>
+            <li>Non-code work locked out</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <span class="label">Implementation notes</span>
+    Bridge reads <code>remote.origin.url</code> from <code>.git/config</code> on workflow start. Queries cloud for matching <code>project_repos</code> rows. If exactly one match → auto-attach session. If multiple matches (monorepo with overlapping paths) → web prompt next time user opens dashboard. If no match → "Attach to Project?" prompt with an "Add as new repo to existing Project" option. Path scoping (`path` column) is null by default; users only set it for monorepo sub-Projects.
+  </div>
+
+  <div class="workflow-footer">
+    <div class="footer-meta">Decision 14 of 17 · portfolio additions</div>
+    <div class="footer-actions">
+      <a class="btn-ghost" href="index.html">← Back to log</a>
+      <a class="btn-ghost" href="15-items.html">Next decision →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
