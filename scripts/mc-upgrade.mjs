@@ -11,7 +11,6 @@ import {
   readKitManifest,
   readInstallStamp,
   compareVersions,
-  resolvePaths,
   runUpgrade,
 } from '../lib/mc-upgrade.mjs';
 
@@ -45,8 +44,8 @@ const kitRootForCheck = kitRootArg ? path.resolve(kitRootArg) : defaultKitRoot;
 const manifest = readKitManifest(
   fs.existsSync(path.join(kitRootForCheck, 'kit-manifest.json')) ? kitRootForCheck : defaultKitRoot,
 );
-const { controlRoot } = resolvePaths(projectRoot, kitRootForCheck);
-const stamp = readInstallStamp(controlRoot);
+// v5.2.0: install stamp lives at the project root, not under the control plane.
+const stamp = readInstallStamp(projectRoot);
 const installed = stamp?.kitVersion ?? '0.0.0';
 const latest = manifest.kitVersion;
 
@@ -97,12 +96,9 @@ if (!dryRun) {
       }
     }
   }
-  if (fs.existsSync(path.join(controlRoot, 'scripts/generate-dashboard.mjs'))) {
-    execSync('node docs/superpowers/control/scripts/generate-dashboard.mjs', {
-      cwd: projectRoot,
-      stdio: 'inherit',
-    });
-  }
+  // v5.2.0+: the v4 static dashboard generator is gone. The v5 dashboard
+  // is served live from `mission-control-kit/control/scripts/v5/dashboard-server.mjs`;
+  // there's no post-upgrade artifact to regenerate.
 }
 
 process.exit(0);
