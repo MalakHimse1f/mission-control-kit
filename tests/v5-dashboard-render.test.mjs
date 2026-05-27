@@ -62,6 +62,82 @@ test('loadDashboardData buckets sample-project features correctly', async () => 
   assert.equal(total, data.allItems.length);
 });
 
+test('allItems is sorted by state.json build order (not alphabetical, not by timestamp)', async () => {
+  const data = await loadDashboardData({ controlRoot: SAMPLE_V5 });
+  // state.json features[] order is the canonical build order. The sample
+  // project lists the features in this order on purpose — the dashboard
+  // must surface them the same way, regardless of stage or lastUpdatedAt.
+  assert.deepEqual(
+    data.allItems.map((f) => f.slug),
+    [
+      'personal-library-import',
+      'backlog-prioritization',
+      'progress-tracker',
+      'cross-media-search',
+    ],
+  );
+});
+
+test('allItems falls back to alphabetical when state.json is missing', async () => {
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-no-state-'));
+  try {
+    const featuresRoot = path.join(tmp, 'control', 'v5', 'features');
+    for (const slug of ['zebra', 'alpha', 'mango']) {
+      const dir = path.join(featuresRoot, slug);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(
+        path.join(dir, 'status.json'),
+        JSON.stringify({ slug, stage: 'needs-input' }),
+        'utf8',
+      );
+    }
+    // No state.json on purpose.
+    const data = await loadDashboardData({ controlRoot: tmp });
+    assert.deepEqual(
+      data.allItems.map((f) => f.slug),
+      ['alpha', 'mango', 'zebra'],
+    );
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
+test('allItems places features not in state.json after listed ones (alphabetical)', async () => {
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-partial-state-'));
+  try {
+    const featuresRoot = path.join(tmp, 'control', 'v5', 'features');
+    for (const slug of ['third', 'first', 'orphan-b', 'orphan-a', 'second']) {
+      const dir = path.join(featuresRoot, slug);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(
+        path.join(dir, 'status.json'),
+        JSON.stringify({ slug, stage: 'needs-input' }),
+        'utf8',
+      );
+    }
+    await fs.mkdir(path.join(tmp, 'control', 'v5'), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, 'control', 'v5', 'state.json'),
+      JSON.stringify({
+        version: '5.0.0',
+        features: [
+          { slug: 'first' },
+          { slug: 'second' },
+          { slug: 'third' },
+        ],
+      }),
+      'utf8',
+    );
+    const data = await loadDashboardData({ controlRoot: tmp });
+    assert.deepEqual(
+      data.allItems.map((f) => f.slug),
+      ['first', 'second', 'third', 'orphan-a', 'orphan-b'],
+    );
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
 test('loadDashboardData handles missing features directory gracefully', async () => {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'mc-v5-dash-data-'));
   try {
