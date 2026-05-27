@@ -717,7 +717,7 @@ export function buildDashboardHtml({
         </div>
         <div class="detail-section">
           <h4>Skill findings</h4>
-          <p class="muted">Research, strategy, and interaction HTML layouts (layout primitives + wireframe.css) — review before build when decision review is on.</p>
+          <p class="muted">Research, strategy, and interaction HTML layouts — review before build when decision review is on.</p>
           <div id="detail-skill-findings"></div>
         </div>
         <div class="detail-section" id="detail-wireframes-section">

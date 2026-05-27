@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mission Control v5 — safe upgrade (no reinstall). Preserves features + state.
+# Mission Control v4 — safe upgrade (no reinstall). Preserves specs and features.
 set -euo pipefail
 
 KIT_ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -30,12 +30,11 @@ fi
 
 echo ""
 echo "Updating Mission Control into: $PROJECT_ROOT"
-echo "Your feature specs and journals are preserved."
+echo "Your feature specs and journals will not be overwritten."
 echo ""
 
 node "$KIT_ROOT/scripts/mc-upgrade.mjs" "$PROJECT_ROOT" --target="$TARGET"
 
 echo ""
-echo "Done! Launch the v5 dashboard with:"
-echo "  cd $PROJECT_ROOT && node mission-control-kit/control/scripts/v5/dashboard-server.mjs ."
+echo "Done! Open docs/superpowers/control/dashboard.html"
 echo ""

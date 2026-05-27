@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Example — UI selection deck</title>
+<style>
+  :root{ --ink:#141414; --ink-soft:#555; --line:#d9d9d9; --line2:#c4c4c4;
+    --bg:#f4f4f4; --panel:#fff; --muted:#8a8a8a; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;padding:40px 24px 64px;
+    display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1040px}
+
+  .deck-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .pager{display:flex;align-items:center;gap:8px}
+  .dots{display:flex;gap:6px}
+  .dot-nav{width:8px;height:8px;border-radius:50%;background:#cfcfcf;border:none;padding:0;cursor:pointer}
+  .dot-nav.on{background:var(--ink)} .dot-nav.answered{background:#9a9a9a}
+  .navbtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;
+    border-radius:7px;padding:6px 12px;cursor:pointer}
+  .navbtn:disabled{opacity:.35;cursor:default}
+
+  h1{font-size:25px;font-weight:680;letter-spacing:-.01em;margin:14px 0 4px}
+  .sub{color:var(--ink-soft);font-size:15px;max-width:62ch;margin-bottom:26px}
+
+  .question{display:none}.question.active{display:block}
+  .grid{display:grid;gap:18px}
+  .grid[data-count="2"]{grid-template-columns:1fr 1fr}
+  .grid[data-count="3"]{grid-template-columns:repeat(3,1fr)}
+  .grid[data-count="4"]{grid-template-columns:1fr 1fr}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+    cursor:pointer;transition:border-color .12s,box-shadow .12s;position:relative;
+    display:flex;flex-direction:column;gap:12px}
+  .card:hover{border-color:#9a9a9a}
+  .card.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+  .badge{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;
+    border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:11px;color:#fff;background:transparent}
+  .card.sel .badge{background:var(--ink);border-color:var(--ink)}
+  .opt-key{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .card h3{font-size:15px;font-weight:650}
+  .card p{font-size:13px;color:var(--ink-soft)}
+
+  /* ===================== mini UI kit (higher fidelity, B/W/gray) ===================== */
+  .mf{border:1px solid var(--line2);border-radius:9px;overflow:hidden;background:#fff;
+    aspect-ratio:4/3;position:relative;font-size:8px;color:#3a3a3a}
+  .mf .chrome{height:22px;background:#efefef;border-bottom:1px solid var(--line2);
+    display:flex;align-items:center;gap:4px;padding:0 8px}
+  .mf .tl{width:6px;height:6px;border-radius:50%;background:#cdcdcd}
+  .mf .url{flex:1;height:9px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;margin-left:6px}
+  .mf .shell{position:absolute;inset:22px 0 0 0;display:flex}
+  .mf .side{width:34%;border-right:1px solid #eee;background:#fafafa;padding:7px 6px}
+  .mf .navitem{height:7px;background:#e3e3e3;border-radius:3px;margin-bottom:6px}
+  .mf .navitem.on{background:#bdbdbd;width:80%}
+  .mf .main{flex:1;padding:9px 10px;position:relative;overflow:hidden}
+  .mf .htitle{font-weight:700;font-size:10px;color:#1c1c1c;margin-bottom:7px}
+  .mf .row{height:8px;background:#ededed;border-radius:3px;margin-bottom:6px}
+  .mf .row.s{width:60%}.mf .row.m{width:80%}
+
+  .mf .label{font-size:7px;color:#9a9a9a;margin:0 0 2px}
+  .mf .field{height:13px;border:1px solid #d2d2d2;border-radius:4px;background:#fff;margin-bottom:7px;
+    display:flex;align-items:center;padding:0 5px;color:#b3b3b3}
+  .mf .btns{display:flex;gap:5px;justify-content:flex-end;margin-top:3px}
+  .mf .btn{font-size:7.5px;padding:3px 8px;border-radius:4px;border:1px solid #cfcfcf;background:#fff;color:#444}
+  .mf .btn.primary{background:#1c1c1c;color:#fff;border-color:#1c1c1c}
+  .mf .btn.icon{display:inline-flex;align-items:center;gap:3px}
+
+  .mf .scrim{position:absolute;inset:0;background:rgba(20,20,20,.34)}
+  .mf .modal{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:74%;background:#fff;
+    border:1px solid #b0b0b0;border-radius:7px;box-shadow:0 10px 26px rgba(0,0,0,.22);padding:9px}
+  .mf .modal .htitle{font-size:9px;margin-bottom:6px}
+
+  .mf .empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center}
+  .mf .empty svg{opacity:.5}
+  .mf .empty .cap{font-size:8px;color:#8a8a8a}
+
+  .mf .menu{position:absolute;top:6px;right:8px;width:52%;background:#fff;border:1px solid #c0c0c0;
+    border-radius:6px;box-shadow:0 8px 18px rgba(0,0,0,.16);padding:5px;z-index:2}
+  .mf .menu .mi{font-size:7.5px;padding:4px 6px;border-radius:4px;color:#555;display:flex;align-items:center;gap:4px}
+  .mf .menu .mi.on{background:#f0f0f0;color:#111;font-weight:600}
+
+  .mf .toast{position:absolute;right:8px;bottom:8px;background:#1c1c1c;color:#fff;border-radius:6px;
+    padding:5px 8px;font-size:7.5px;display:flex;align-items:center;gap:5px;width:62%}
+  .mf .pbar{height:6px;border-radius:3px;background:#e2e2e2;overflow:hidden;margin-top:3px}
+  .mf .pbar>span{display:block;height:100%;width:58%;background:#1c1c1c}
+  .mf .pbar.light>span{background:#9a9a9a}
+  .mf .pbar.tiny{height:4px;flex:1}
+  .mf .spin{width:22px;height:22px;border-radius:50%;border:3px solid #e2e2e2;border-top-color:#1c1c1c;margin:6px auto}
+  .mf .statusrow{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+  .mf .statusrow .tick{width:11px;height:11px;border-radius:50%;border:1px solid #bbb;display:flex;align-items:center;justify-content:center;font-size:7px;color:#444}
+  .mf .statusrow .tick.ok{background:#1c1c1c;color:#fff;border-color:#1c1c1c}
+  .mf .statusrow .nm{flex:1;height:7px;background:#ededed;border-radius:3px}
+  .mf .hdrbtn{position:absolute;top:9px;right:10px}
+
+  /* cumulative answer dock */
+  .answer{margin-top:34px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+  .answer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+    border-bottom:1px solid var(--line);background:#fafafa}
+  .answer-head .lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .count{font-size:12px;color:var(--muted);font-weight:600}
+  .copybtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--ink);background:#fff;border-radius:7px;padding:6px 14px;cursor:pointer}
+  .copybtn.done{background:var(--ink);color:#fff}
+  .answer pre{padding:16px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;color:var(--ink);white-space:pre-wrap;margin:0}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="deck-head">
+    <span class="eyebrow">Decisions · Import contacts</span>
+    <div class="pager">
+      <button class="navbtn" id="prev" onclick="go(-1)">‹ Back</button>
+      <div class="dots" id="dots"></div>
+      <button class="navbtn" id="next" onclick="go(1)">Next ›</button>
+    </div>
+  </div>
+
+  <!-- ============ Q1 — 2 options ============ -->
+  <section class="question active" data-qid="form-placement" data-q="Where should the Import form live?">
+    <h1>Where should the “Import contacts” form live?</h1>
+    <p class="sub">Same fields either way — the difference is whether importing takes over the page or floats above the current context.</p>
+    <div class="grid" data-count="2">
+      <div class="card sel" data-key="A" data-label="Full-width form (dedicated page)" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option A</div>
+        <div class="mf">
+          <div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell">
+            <div class="side"><div class="navitem on"></div><div class="navitem"></div><div class="navitem"></div></div>
+            <div class="main">
+              <div class="htitle">Import contacts</div>
+              <div class="label">CSV FILE</div><div class="field">contacts.csv</div>
+              <div class="label">MAP “EMAIL” COLUMN</div><div class="field">Column C</div>
+              <div class="label">MAP “NAME” COLUMN</div><div class="field">Column A</div>
+              <div class="btns"><span class="btn">Cancel</span><span class="btn primary">Import 248</span></div>
+            </div>
+          </div>
+        </div>
+        <div><h3>Full-width form</h3><p>Its own page in the app shell. Room for column mapping and error lists; the user leaves their current screen.</p></div>
+      </div>
+
+      <div class="card" data-key="B" data-label="Form in a modal dialog" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option B</div>
+        <div class="mf">
+          <div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell">
+            <div class="side"><div class="navitem on"></div><div class="navitem"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Contacts</div><div class="row m"></div><div class="row"></div><div class="row s"></div><div class="row m"></div></div>
+          </div>
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="htitle">Import contacts</div>
+            <div class="label">CSV FILE</div><div class="field">contacts.csv</div>
+            <div class="btns"><span class="btn">Cancel</span><span class="btn primary">Import</span></div>
+          </div>
+        </div>
+        <div><h3>Form in a modal</h3><p>Opens in a dialog over the dimmed Contacts page. Fast and contextual; tight for big mapping tables.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Q2 — 3 options ============ -->
+  <section class="question" data-qid="entry-point" data-q="How does the user start an import?">
+    <h1>How does the user start an import?</h1>
+    <p class="sub">Where the entry point lives shapes how discoverable importing is.</p>
+    <div class="grid" data-count="3">
+      <div class="card" data-key="A" data-label="Button in the page header" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option A</div>
+        <div class="mf">
+          <div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Contacts</div>
+              <span class="btn primary icon hdrbtn">↑ Import</span>
+              <div class="row m"></div><div class="row"></div><div class="row s"></div></div></div>
+        </div>
+        <div><h3>Header button</h3><p>Always-visible “Import” beside the page title. Discoverable; uses toolbar space.</p></div>
+      </div>
+
+      <div class="card" data-key="B" data-label="Empty-state call to action" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option B</div>
+        <div class="mf">
+          <div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="empty">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9a9a9a" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
+              <div class="cap">No contacts yet</div>
+              <span class="btn primary">Import contacts</span>
+            </div></div></div>
+        </div>
+        <div><h3>Empty-state CTA</h3><p>Shown only when the list is empty. Guides first-run; disappears once data exists.</p></div>
+      </div>
+
+      <div class="card" data-key="C" data-label="Item in the settings / overflow menu" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option C</div>
+        <div class="mf">
+          <div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Contacts ⋯</div><div class="row m"></div><div class="row"></div>
+              <div class="menu"><div class="mi">Export…</div><div class="mi on">↑ Import…</div><div class="mi">Settings</div></div></div></div>
+        </div>
+        <div><h3>Settings menu</h3><p>Tucked inside an overflow menu. Keeps the UI clean, but harder to find.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Q3 — 4 options ============ -->
+  <section class="question" data-qid="progress-ui" data-q="How do we show import progress?">
+    <h1>How do we show import progress?</h1>
+    <p class="sub">Imports can take a while. How much should we interrupt the user while it runs?</p>
+    <div class="grid" data-count="4">
+      <div class="card" data-key="A" data-label="Inline progress bar" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option A</div>
+        <div class="mf"><div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Contacts</div><div class="label">IMPORTING 144 / 248</div><div class="pbar"><span></span></div><div class="row m" style="margin-top:8px"></div><div class="row"></div></div></div></div>
+        <div><h3>Inline bar</h3><p>Progress bar sits on the page; the user keeps working.</p></div>
+      </div>
+
+      <div class="card" data-key="B" data-label="Toast notification" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option B</div>
+        <div class="mf"><div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Contacts</div><div class="row m"></div><div class="row"></div><div class="row s"></div>
+              <div class="toast"><div class="spin" style="width:11px;height:11px;border-width:2px;margin:0"></div><span>Importing… 58%</span></div></div></div></div>
+        <div><h3>Toast</h3><p>Small corner notice; non-blocking, but easy to miss.</p></div>
+      </div>
+
+      <div class="card" data-key="C" data-label="Dedicated status page" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option C</div>
+        <div class="mf"><div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Import status</div>
+              <div class="statusrow"><span class="tick ok">✓</span><span class="nm"></span></div>
+              <div class="statusrow"><span class="tick ok">✓</span><span class="nm"></span></div>
+              <div class="statusrow"><span class="tick">!</span><span class="nm"></span></div>
+              <div class="pbar light" style="margin-top:5px"><span></span></div></div></div></div>
+        <div><h3>Status page</h3><p>Full page with per-row results. Best for big imports with errors.</p></div>
+      </div>
+
+      <div class="card" data-key="D" data-label="Blocking modal spinner" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option D</div>
+        <div class="mf"><div class="chrome"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="url"></span></div>
+          <div class="shell"><div class="side"><div class="navitem on"></div><div class="navitem"></div></div>
+            <div class="main"><div class="htitle">Contacts</div><div class="row m"></div><div class="row"></div></div></div>
+          <div class="scrim"></div><div class="modal" style="text-align:center"><div class="spin"></div><div class="cap" style="font-size:8px;color:#777">Importing…</div></div></div>
+        <div><h3>Modal spinner</h3><p>Blocks the screen until done. Simple, but freezes the UI.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="answer">
+    <div class="answer-head">
+      <span class="lbl">Your answers — paste back in chat</span>
+      <span class="count" id="count"></span>
+      <button class="copybtn" id="copybtn" onclick="copyAll()">Copy all</button>
+    </div>
+    <pre id="ans"></pre>
+  </div>
+  <p class="hint">Standalone file — no server. Answer as many as you like, page through with Back / Next, then copy everything at once.</p>
+</div>
+
+<script>
+  var qs = Array.prototype.slice.call(document.querySelectorAll('.question'));
+  var idx = 0; var dotsEl = document.getElementById('dots');
+  qs.forEach(function(q,i){ var b=document.createElement('button'); b.className='dot-nav'+(i===0?' on':'');
+    b.onclick=function(){idx=i;render();}; dotsEl.appendChild(b); });
+  function pick(el){ var q=el.closest('.question');
+    q.querySelectorAll('.card').forEach(function(x){x.classList.remove('sel')}); el.classList.add('sel'); resetCopy(); render(); }
+  function go(d){ idx=Math.max(0,Math.min(qs.length-1, idx+d)); render(); }
+  function render(){
+    qs.forEach(function(q,i){ q.classList.toggle('active', i===idx); });
+    document.getElementById('prev').disabled = idx===0;
+    document.getElementById('next').disabled = idx===qs.length-1;
+    Array.prototype.forEach.call(dotsEl.children, function(d,i){
+      d.classList.toggle('on', i===idx);
+      d.classList.toggle('answered', !!qs[i].querySelector('.card.sel') && i!==idx); });
+    var lines=[], n=0;
+    qs.forEach(function(q){ var sel=q.querySelector('.card.sel');
+      if(sel){ n++; lines.push("Q: "+q.dataset.q+"\nA: Option "+sel.dataset.key+" — "+sel.dataset.label); }
+      else { lines.push("Q: "+q.dataset.q+"\n[ not answered yet ]"); } });
+    document.getElementById('ans').textContent = lines.join("\n\n");
+    document.getElementById('count').textContent = n+" of "+qs.length+" answered";
+  }
+  function resetCopy(){ var b=document.getElementById('copybtn'); b.textContent='Copy all'; b.classList.remove('done'); }
+  function copyAll(){
+    var pre=document.getElementById('ans'), b=document.getElementById('copybtn');
+    function ok(){ b.textContent='Copied ✓'; b.classList.add('done'); }
+    function fallback(){
+      var r=document.createRange(); r.selectNodeContents(pre);
+      var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      try{ document.execCommand('copy'); ok(); }catch(e){ b.textContent='Press ⌘/Ctrl+C'; }
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(pre.textContent).then(ok).catch(fallback);
+    } else { fallback(); }
+  }
+  render();
+</script>
+</body>
+</html>

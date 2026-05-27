@@ -29,13 +29,13 @@ Read `tech-stack/stack.json` → `layoutTargets[]` and use those skeleton IDs fo
 
 ## This session only
 
-1. Read `tech-stack/stack.json`, `CONTEXT.md`, feature `spec.md`, `layout/CATALOG.md`.
+1. Read `tech-stack/stack.json`, `CONTEXT.md`, feature `spec.md`, `control/layout/selection/SELECTION-UI.md`.
 2. Ask **feature-specific** questions only (one at a time, structured ask tool):
    - Primary user path for **this feature**
    - Screens/views for **this feature**
    - Navigation within **this feature** (tabs, links, sheets — not which OS/platform)
    - If ambiguous: new app vs new feature in existing app (infer from `projectMode` when possible)
-3. Copy skeletons for each `layoutTargets` entry; compose primitives.
+3. Copy `control/layout/selection/template.html` for each `layoutTargets` entry and follow `SELECTION-UI.md`.
 4. Write `layout/layout.md`, `platforms.json` (include `"fromStack": true`, `"layoutTargets"` copied from stack), `wireframes/*.html`.
 5. `layoutStatus: "approved"`; update HANDOFF + regenerate dashboard.
 

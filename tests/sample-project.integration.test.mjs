@@ -25,11 +25,18 @@ describe('sample project install', () => {
     run(`bash "${path.join(kitRoot, 'install.sh')}" "${sampleRoot}" both`);
   });
 
-  // v5.2.0: v4 control docs (ROUTER.md, PROJECT-START-PIPELINE.md, etc.)
-  // are no longer synced into the user project — install.sh runs v5
-  // migrations only. The test that asserted those files were copied has
-  // been retired; the routing.test.mjs unit tests still cover the v4
-  // dispatch logic itself.
+  it('installs v4 control docs', () => {
+    for (const doc of [
+      'ROUTER.md',
+      'PROJECT-START-PIPELINE.md',
+      'ADD-FEATURE-PIPELINE.md',
+      'SKILL-DEPENDENCIES.md',
+      'CONTEXT-PACKETS.md',
+      'BUILD-GATES.md',
+    ]) {
+      assert.ok(fs.existsSync(path.join(controlRoot, doc)), `missing ${doc}`);
+    }
+  });
 
   it('installs mc-start and mc-feature skills', () => {
     assert.ok(fs.existsSync(path.join(sampleRoot, '.claude/skills/mc-start/SKILL.md')));
@@ -65,9 +72,10 @@ describe('sample project install', () => {
     assert.ok(check.includes('superpowers'));
   });
 
-  // v5.2.0: the v4 static dashboard generator is no longer wired into the
-  // installer (the v5 dashboard is served live from
-  // `mission-control-kit/control/scripts/v5/dashboard-server.mjs`).
+  it('generates dashboard without error', () => {
+    run('node docs/superpowers/control/scripts/generate-dashboard.mjs', sampleRoot);
+    assert.ok(fs.existsSync(path.join(controlRoot, 'dashboard.html')));
+  });
 });
 
 describe('orchestrator routing simulation on sample project', () => {

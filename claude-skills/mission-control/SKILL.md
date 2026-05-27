@@ -22,7 +22,7 @@ Disk is the source of truth. Every subagent writes a journal file.
 - `{CONTROL_ROOT}ORCHESTRATOR-CONTROLS.md` (when using dashboard control panel)
 - `{CONTROL_ROOT}WORKFLOW-CONTROLS.md` (build/plan routing from dashboard)
 - `{CONTROL_ROOT}SESSION-INTENT.md` (pipeline scope + decision review — session start)
-- `{CONTROL_ROOT}RESEARCH-LAYOUT.md` (research HTML + present-to-user rules)
+- `{CONTROL_ROOT}layout/selection/SELECTION-UI.md` (research HTML + present-to-user rules)
 - Active pipeline: `PROJECT-START-PIPELINE.md` or `ADD-FEATURE-PIPELINE.md`
 
 ## Paths
@@ -35,12 +35,12 @@ Disk is the source of truth. Every subagent writes a journal file.
 ## Prime directive
 
 ```
-READ disk → SESSION INTENT (AskUserQuestion) → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → NEXT
+READ disk → SESSION INTENT (AskQuestion) → CHECK vendor skills → PACKET context → DISPATCH → READ journal → UPDATE → NEXT
 ```
 
 ## Session intent (every `/mc`)
 
-Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs as HTML layouts per `RESEARCH-LAYOUT.md`. **After each research stage, present the HTML files in chat and explain how to view them** (dashboard + browser).
+Read `SESSION-INTENT.md` and `USER-QUESTIONS.md`. Ask pipeline scope and decision review before first dispatch. Write skill outputs as self-contained selection-deck HTML pages per `layout/selection/SELECTION-UI.md`. **After each research stage, present the HTML files in chat and explain how to view them** (dashboard + browser).
 
 ## Entry commands
 
@@ -68,7 +68,7 @@ Build tasks require lint, compile, test, and build evidence per `BUILD-GATES.md`
 
 ## Continuous run
 
-One session runs the full active pipeline until done, BLOCKED, or user pause. Never tell the user to start a new session between stages.
+One session runs the full active pipeline until done, BLOCKED, or user pause. Never tell the user to start a new chat between stages.
 
 When `.mc/orchestrator-controls.json` has `advanceToNextFeature: true` and portfolio is approved, advance to the next build-queue feature after validate passes — see `ORCHESTRATOR-CONTROLS.md`.
 

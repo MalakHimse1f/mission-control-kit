@@ -9,21 +9,12 @@ description: "Mission Control v3 — Orchestrator hub. Usage: /mc [braindump|val
 
 **MUST invoke:** `mission-control` skill.
 
-**MUST read:**
-- `docs/superpowers/control/ORCHESTRATOR.md`
-- `docs/superpowers/control/PIPELINE.md`
-- `docs/superpowers/control/JOURNAL-RULES.md`
-- `docs/superpowers/control/AGENT-DATA-RULES.md`
+## Pickup (resume from disk)
+1. Read `state.json`, `HANDOFF.md`, and the active `features/{slug}/status.json`.
+2. Open `control/ROUTING.md`, find the row for the current `pipelineStage`, and load **only** those documents.
+3. Dispatch the subagent for that stage (per the routing row). Do not pre-load other docs.
 
-## Hub behavior — `/mc` with no subcommand
-
-1. Read `state.json`, `HANDOFF.md`, list all features
-2. Gate: if `techStackStatus` not established → tell user `/mc-init`, stop
-3. Resolve focus feature (AskQuestion if ambiguous)
-4. Read `features/{slug}/status.json` → `pipelineStage`
-5. **Dispatch the appropriate subagent for the current stage** (see PIPELINE.md)
-6. After subagent DONE: read journal, update status, regenerate dashboard
-7. Continue until step needs user input, BLOCKED, or rotation cap
+Gate: if `techStackStatus` is not established, tell the user `/mc-init` and stop.
 
 ## Route by `pipelineStage`
 

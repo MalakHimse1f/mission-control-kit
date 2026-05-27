@@ -62,7 +62,7 @@ Vendor skill outputs must land at known paths so the dashboard can embed them:
 | Interaction design | `features/{slug}/interaction.html` |
 | Codebase exploration | `features/{slug}/explore/*.html` |
 
-The dashboard **Skill findings** section shows these in the feature detail modal. The orchestrator **must also post the file paths and viewing instructions in chat** after each research stage — see `RESEARCH-LAYOUT.md` → **Present to the user**.
+The dashboard **Skill findings** section shows these in the feature detail modal. The orchestrator **must also post the file paths and viewing instructions in chat** after each research stage — see `layout/selection/SELECTION-UI.md` → **Present to the user**.
 
 ---
 

@@ -6,7 +6,7 @@ All later stages (`/mc-layout`, `/mc-braindump`, `/mc-plan`, `/mc-build`) **read
 
 ## `layoutTargets` values
 
-These IDs match wireframe skeletons in `layout/skeletons/`:
+These IDs correspond to platform targets for wireframes built from `control/layout/selection/template.html` (see `SELECTION-UI.md`):
 
 | ID | User-facing label (use in `/mc-init` ask tool) |
 |----|------------------------------------------------|

@@ -6,5 +6,6 @@ vendor/startup-skill/
 vendor/designer-skills/
 vendor/prd-generator/
 node_modules/
-.DS_Store
-**/.DS_Store
+
+# Brainstorming visual companion scratch
+.superpowers/

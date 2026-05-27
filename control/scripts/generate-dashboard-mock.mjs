@@ -12,7 +12,7 @@ import { buildPickupPrompt } from "./dashboard-data.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONTROL = join(__dirname, "..");
 
-const mockWfHtml = readFileSync(join(CONTROL, "layout/skeletons/web-saas.html"), "utf8");
+const mockWfHtml = `<!DOCTYPE html><html><body><div class="wf-card">Web SaaS skeleton (retired wireframe system)</div></body></html>`;
 const mockSvg = readFileSync(join(CONTROL, "mock-assets/e2e-placeholder.svg"), "utf8");
 const mockShotDataUrl = `data:image/svg+xml;base64,${Buffer.from(mockSvg).toString("base64")}`;
 

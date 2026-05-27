@@ -1,9 +1,0 @@
-{
-  "feature": "Personal Library Import",
-  "slug": "personal-library-import",
-  "stage": "needs-input",
-  "pipelineStage": "needs-input",
-  "currentPhase": "architecture",
-  "lastUpdatedAt": "2026-05-26T14:00:00.000Z",
-  "description": "Bulk-import existing collections from Goodreads, Letterboxd, Steam, Open Library, and manual CSV so a new user can populate their library in minutes instead of typing items one at a time."
-}

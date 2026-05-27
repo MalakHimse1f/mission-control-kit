@@ -18,10 +18,10 @@ See `{CONTROL_ROOT}CONTEXT-PACKETS.md`.
 
 ## Outputs (required before DONE)
 
-1. **`features/{slug}/explore/{label}.html`** — HTML layout using Mission Control primitives (see `RESEARCH-LAYOUT.md` and `features/_template/explore/_example.html`)
+1. **`features/{slug}/explore/{label}.html`** — HTML layout using the selection-deck approach (see `control/layout/selection/example-ui.html` and `SELECTION-UI.md`)
 2. **`features/{slug}/journal/NNN-explore-{label}.md`** — journal per `JOURNAL-RULES.md`
 
-Use `list`, `table`, and `desktop-card` primitives for structure. Link `../../../layout/wireframe.css`.
+Use `list`, `table`, and `desktop-card` sections for structure. Pages are self-contained (inline CSS — do not link an external stylesheet).
 
 ## Exploration checklist
 

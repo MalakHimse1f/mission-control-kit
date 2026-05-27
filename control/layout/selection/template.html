@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Selection deck template</title>
+<style>
+  :root{ --ink:#141414; --ink-soft:#555; --line:#d9d9d9; --line2:#c4c4c4;
+    --bg:#f4f4f4; --panel:#fff; --muted:#8a8a8a; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;padding:40px 24px 64px;
+    display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1040px}
+
+  .deck-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .pager{display:flex;align-items:center;gap:8px}
+  .dots{display:flex;gap:6px}
+  .dot-nav{width:8px;height:8px;border-radius:50%;background:#cfcfcf;border:none;padding:0;cursor:pointer}
+  .dot-nav.on{background:var(--ink)} .dot-nav.answered{background:#9a9a9a}
+  .navbtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;
+    border-radius:7px;padding:6px 12px;cursor:pointer}
+  .navbtn:disabled{opacity:.35;cursor:default}
+
+  h1{font-size:25px;font-weight:680;letter-spacing:-.01em;margin:14px 0 4px}
+  .sub{color:var(--ink-soft);font-size:15px;max-width:62ch;margin-bottom:26px}
+
+  .question{display:none}.question.active{display:block}
+  .grid{display:grid;gap:18px}
+  .grid[data-count="2"]{grid-template-columns:1fr 1fr}
+  .grid[data-count="3"]{grid-template-columns:repeat(3,1fr)}
+  .grid[data-count="4"]{grid-template-columns:1fr 1fr}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+    cursor:pointer;transition:border-color .12s,box-shadow .12s;position:relative;
+    display:flex;flex-direction:column;gap:12px}
+  .card:hover{border-color:#9a9a9a}
+  .card.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+  .badge{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;
+    border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:11px;color:#fff;background:transparent}
+  .card.sel .badge{background:var(--ink);border-color:var(--ink)}
+  .opt-key{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .card h3{font-size:15px;font-weight:650}
+  .card p{font-size:13px;color:var(--ink-soft)}
+
+  /* ===================== mini UI kit (higher fidelity, B/W/gray) ===================== */
+  .mf{border:1px solid var(--line2);border-radius:9px;overflow:hidden;background:#fff;
+    aspect-ratio:4/3;position:relative;font-size:8px;color:#3a3a3a}
+  .mf .chrome{height:22px;background:#efefef;border-bottom:1px solid var(--line2);
+    display:flex;align-items:center;gap:4px;padding:0 8px}
+  .mf .tl{width:6px;height:6px;border-radius:50%;background:#cdcdcd}
+  .mf .url{flex:1;height:9px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;margin-left:6px}
+  .mf .shell{position:absolute;inset:22px 0 0 0;display:flex}
+  .mf .side{width:34%;border-right:1px solid #eee;background:#fafafa;padding:7px 6px}
+  .mf .navitem{height:7px;background:#e3e3e3;border-radius:3px;margin-bottom:6px}
+  .mf .navitem.on{background:#bdbdbd;width:80%}
+  .mf .main{flex:1;padding:9px 10px;position:relative;overflow:hidden}
+  .mf .htitle{font-weight:700;font-size:10px;color:#1c1c1c;margin-bottom:7px}
+  .mf .row{height:8px;background:#ededed;border-radius:3px;margin-bottom:6px}
+  .mf .row.s{width:60%}.mf .row.m{width:80%}
+
+  .mf .label{font-size:7px;color:#9a9a9a;margin:0 0 2px}
+  .mf .field{height:13px;border:1px solid #d2d2d2;border-radius:4px;background:#fff;margin-bottom:7px;
+    display:flex;align-items:center;padding:0 5px;color:#b3b3b3}
+  .mf .btns{display:flex;gap:5px;justify-content:flex-end;margin-top:3px}
+  .mf .btn{font-size:7.5px;padding:3px 8px;border-radius:4px;border:1px solid #cfcfcf;background:#fff;color:#444}
+  .mf .btn.primary{background:#1c1c1c;color:#fff;border-color:#1c1c1c}
+  .mf .btn.icon{display:inline-flex;align-items:center;gap:3px}
+
+  .mf .scrim{position:absolute;inset:0;background:rgba(20,20,20,.34)}
+  .mf .modal{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:74%;background:#fff;
+    border:1px solid #b0b0b0;border-radius:7px;box-shadow:0 10px 26px rgba(0,0,0,.22);padding:9px}
+  .mf .modal .htitle{font-size:9px;margin-bottom:6px}
+
+  .mf .empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center}
+  .mf .empty svg{opacity:.5}
+  .mf .empty .cap{font-size:8px;color:#8a8a8a}
+
+  .mf .menu{position:absolute;top:6px;right:8px;width:52%;background:#fff;border:1px solid #c0c0c0;
+    border-radius:6px;box-shadow:0 8px 18px rgba(0,0,0,.16);padding:5px;z-index:2}
+  .mf .menu .mi{font-size:7.5px;padding:4px 6px;border-radius:4px;color:#555;display:flex;align-items:center;gap:4px}
+  .mf .menu .mi.on{background:#f0f0f0;color:#111;font-weight:600}
+
+  .mf .toast{position:absolute;right:8px;bottom:8px;background:#1c1c1c;color:#fff;border-radius:6px;
+    padding:5px 8px;font-size:7.5px;display:flex;align-items:center;gap:5px;width:62%}
+  .mf .pbar{height:6px;border-radius:3px;background:#e2e2e2;overflow:hidden;margin-top:3px}
+  .mf .pbar>span{display:block;height:100%;width:58%;background:#1c1c1c}
+  .mf .pbar.light>span{background:#9a9a9a}
+  .mf .pbar.tiny{height:4px;flex:1}
+  .mf .spin{width:22px;height:22px;border-radius:50%;border:3px solid #e2e2e2;border-top-color:#1c1c1c;margin:6px auto}
+  .mf .statusrow{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+  .mf .statusrow .tick{width:11px;height:11px;border-radius:50%;border:1px solid #bbb;display:flex;align-items:center;justify-content:center;font-size:7px;color:#444}
+  .mf .statusrow .tick.ok{background:#1c1c1c;color:#fff;border-color:#1c1c1c}
+  .mf .statusrow .nm{flex:1;height:7px;background:#ededed;border-radius:3px}
+  .mf .hdrbtn{position:absolute;top:9px;right:10px}
+
+  /* cumulative answer dock */
+  .answer{margin-top:34px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+  .answer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+    border-bottom:1px solid var(--line);background:#fafafa}
+  .answer-head .lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .count{font-size:12px;color:var(--muted);font-weight:600}
+  .copybtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--ink);background:#fff;border-radius:7px;padding:6px 14px;cursor:pointer}
+  .copybtn.done{background:var(--ink);color:#fff}
+  .answer pre{padding:16px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;color:var(--ink);white-space:pre-wrap;margin:0}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!--
+    SELECTION DECK TEMPLATE — copy this file, fill it in. Rules:
+    • Black / white / gray only. Clean layout + typography. Generous whitespace.
+    • 2–4 options per question (never 1, never >4). Set <div class="grid" data-count="N">.
+    • Each option's mockup MUST visibly show what its <h3>/<p> describe. Two options must never look alike.
+    • Draw the mockup by hand: .mf device frame (UI), inline <svg> boxes/arrows (architecture), .flow tiles (UX).
+    • One <section class="question" data-qid="..." data-q="..."> per decision. First gets class "active".
+    • Pagination (.pager + .dots) is OPTIONAL — delete it for a single-decision file.
+    • Do NOT add external CSS/JS — keep the page self-contained so it opens as a standalone file.
+    See example-ui.html, example-ux.html, example-engineer.html and SELECTION-UI.md.
+  -->
+  <div class="deck-head">
+    <span class="eyebrow">DECISION GROUP · {context}</span>
+    <div class="pager">
+      <button class="navbtn" id="prev" onclick="go(-1)">‹ Back</button>
+      <div class="dots" id="dots"></div>
+      <button class="navbtn" id="next" onclick="go(1)">Next ›</button>
+    </div>
+  </div>
+
+  <section class="question active" data-qid="{decision-id}" data-q="{Question text shown in the answer?}">
+    <h1>{Question headline}</h1>
+    <p class="sub">{One sentence framing the tradeoff.}</p>
+    <div class="grid" data-count="2">
+      <div class="card sel" data-key="A" data-label="{Short label for option A}" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option A</div>
+        <!-- DRAW OPTION A's mockup here (.mf / <svg> / .flow) -->
+        <div><h3>{Option A title}</h3><p>{What it is and its tradeoff.}</p></div>
+      </div>
+      <div class="card" data-key="B" data-label="{Short label for option B}" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option B</div>
+        <!-- DRAW OPTION B's mockup here -->
+        <div><h3>{Option B title}</h3><p>{What it is and its tradeoff.}</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="answer">
+    <div class="answer-head">
+      <span class="lbl">Your answers — paste back in chat</span>
+      <span class="count" id="count"></span>
+      <button class="copybtn" id="copybtn" onclick="copyAll()">Copy all</button>
+    </div>
+    <pre id="ans"></pre>
+  </div>
+</div>
+
+<script>
+  var qs = Array.prototype.slice.call(document.querySelectorAll('.question'));
+  var idx = 0; var dotsEl = document.getElementById('dots');
+  qs.forEach(function(q,i){ var b=document.createElement('button'); b.className='dot-nav'+(i===0?' on':'');
+    b.onclick=function(){idx=i;render();}; dotsEl.appendChild(b); });
+  function pick(el){ var q=el.closest('.question');
+    q.querySelectorAll('.card').forEach(function(x){x.classList.remove('sel')}); el.classList.add('sel'); resetCopy(); render(); }
+  function go(d){ idx=Math.max(0,Math.min(qs.length-1, idx+d)); render(); }
+  function render(){
+    qs.forEach(function(q,i){ q.classList.toggle('active', i===idx); });
+    document.getElementById('prev').disabled = idx===0;
+    document.getElementById('next').disabled = idx===qs.length-1;
+    Array.prototype.forEach.call(dotsEl.children, function(d,i){
+      d.classList.toggle('on', i===idx);
+      d.classList.toggle('answered', !!qs[i].querySelector('.card.sel') && i!==idx); });
+    var lines=[], n=0;
+    qs.forEach(function(q){ var sel=q.querySelector('.card.sel');
+      if(sel){ n++; lines.push("Q: "+q.dataset.q+"\nA: Option "+sel.dataset.key+" — "+sel.dataset.label); }
+      else { lines.push("Q: "+q.dataset.q+"\n[ not answered yet ]"); } });
+    document.getElementById('ans').textContent = lines.join("\n\n");
+    document.getElementById('count').textContent = n+" of "+qs.length+" answered";
+  }
+  function resetCopy(){ var b=document.getElementById('copybtn'); b.textContent='Copy all'; b.classList.remove('done'); }
+  function copyAll(){
+    var pre=document.getElementById('ans'), b=document.getElementById('copybtn');
+    function ok(){ b.textContent='Copied ✓'; b.classList.add('done'); }
+    function fallback(){
+      var r=document.createRange(); r.selectNodeContents(pre);
+      var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      try{ document.execCommand('copy'); ok(); }catch(e){ b.textContent='Press ⌘/Ctrl+C'; }
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(pre.textContent).then(ok).catch(fallback);
+    } else { fallback(); }
+  }
+  render();
+</script>
+</body>
+</html>

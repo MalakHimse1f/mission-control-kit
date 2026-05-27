@@ -1,9 +1,0 @@
-{
-  "feature": "Backlog Prioritization",
-  "slug": "backlog-prioritization",
-  "stage": "ready",
-  "pipelineStage": "ready",
-  "currentPhase": "build",
-  "lastUpdatedAt": "2026-05-26T14:00:00.000Z",
-  "description": "Home-dashboard widget that ranks the user's backlog by recency, completion likelihood, and series continuity — so the answer to 'what should I play/watch/read next?' is one glance away."
-}

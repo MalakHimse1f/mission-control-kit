@@ -65,7 +65,7 @@ Persist → `sessionIntent.decisionReview`.
 
 When `decisionReview` is `review-first`, orchestrator **must** pause after research, strategy, interaction, explore synthesis, clarify, prd, mock, and plan — even if `pipelineScope` is full-pipeline.
 
-When `decisionReview` is `auto-proceed`, still write all skill outputs to disk as HTML layouts (`research.html`, `ux-strategy.html`, `interaction.html`, `explore/*.html`) per `RESEARCH-LAYOUT.md`.
+When `decisionReview` is `auto-proceed`, still write all skill outputs to disk as self-contained selection-deck HTML pages (`research.html`, `ux-strategy.html`, `interaction.html`, `explore/*.html`) per `layout/selection/SELECTION-UI.md`.
 
 ### Present research HTML to the user (orchestrator)
 
@@ -75,7 +75,7 @@ After explore, research, strategy, or interaction stages complete, the orchestra
 2. Brief highlights (2–4 bullets)
 3. **How to view** — dashboard (generate-dashboard → dashboard-server → feature detail → Skill findings / Exploration findings) and local browser
 
-See `RESEARCH-LAYOUT.md` → **Present to the user**. Helper: `formatResearchPresentationMessage()` in `research-layout.mjs`.
+See `layout/selection/SELECTION-UI.md` → **Present to the user**. Helper: `formatResearchPresentationMessage()` in `research-layout.mjs`.
 
 When `decisionReview` is `review-first`, AskQuestion comes **after** the presentation message.
 

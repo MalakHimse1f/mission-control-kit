@@ -98,7 +98,7 @@ export function buildPickupPrompt({ workstream, slug, stage, status, global, con
     for (const cb of status.targetCodebases) {
       lines.push(`- ${cb.label}: ${cb.path}`);
     }
-    lines.push("", "Dispatch one mc-explore subagent per codebase. Each must write explore/{label}.html (RESEARCH-LAYOUT.md) and a journal file.");
+    lines.push("", "Dispatch one mc-explore subagent per codebase. Each must write explore/{label}.html and a journal file.");
   }
 
   if (pipelineStage === "clarify") {

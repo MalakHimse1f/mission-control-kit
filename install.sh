@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Mission Control v5 installer — delegates safe migration runs to mc-upgrade.
-# v5.2.0+ uses the v5-native layout: control plane at {project}/control/,
-# install stamp at {project}/.mc/install.json. No more docs/superpowers/.
+# Mission Control v4 installer — delegates safe sync to mc-upgrade.
 set -euo pipefail
 
 KIT_ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -27,6 +25,7 @@ publish_user_guide() {
   kit_name="$(basename "$kit")"
   [[ -f "$kit/User-Guide.html" ]] || return 0
   sed \
+    -e 's|href="control/|href="docs/superpowers/control/|g' \
     -e "s|href=\"Run-Installer\\.hta\"|href=\"$kit_name/Run-Installer.hta\"|g" \
     -e "s|href=\"Run-Updater\\.hta\"|href=\"$kit_name/Run-Updater.hta\"|g" \
     -e "s|href=\"Run-Installer\\.command\"|href=\"$kit_name/Run-Installer.command\"|g" \
@@ -63,20 +62,29 @@ esac
 echo "  $PROJECT_ROOT"
 echo ""
 
+if [[ ! -f "$PROJECT_ROOT/docs/superpowers/IMPLEMENTATION_RULES.md" ]]; then
+  mkdir -p "$PROJECT_ROOT/docs/superpowers"
+  cp "$KIT_ROOT/templates/IMPLEMENTATION_RULES.example.md" "$PROJECT_ROOT/docs/superpowers/IMPLEMENTATION_RULES.md"
+  echo "Created docs/superpowers/IMPLEMENTATION_RULES.md"
+fi
+
 if ! command -v node >/dev/null 2>&1; then
   echo "ERROR: Node.js required for Mission Control install/upgrade." >&2
   exit 1
 fi
 
-echo "Running v5 install (user specs preserved, no docs/superpowers wrapping)..."
+echo "Running safe install/upgrade (user specs preserved)..."
 node "$KIT_ROOT/scripts/mc-upgrade.mjs" "$PROJECT_ROOT" --install --target="$TARGET"
 
 publish_user_guide "$PROJECT_ROOT" "$KIT_ROOT"
 
 echo ""
-echo "Done! Launch the v5 dashboard with:"
-echo "  cd $PROJECT_ROOT && node mission-control-kit/control/scripts/v5/dashboard-server.mjs ."
+echo "Running setup check..."
+cd "$PROJECT_ROOT"
+node docs/superpowers/control/scripts/check-setup.mjs 2>/dev/null || true
+
 echo ""
+echo "Done! Open User-Guide.html or docs/superpowers/control/dashboard.html"
 echo "To upgrade later: double-click Run-Updater.command, /mc-upgrade, or:"
 echo "  node $KIT_ROOT/scripts/mc-upgrade.mjs ."
 echo ""
