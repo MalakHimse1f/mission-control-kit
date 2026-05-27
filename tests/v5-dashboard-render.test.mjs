@@ -245,8 +245,8 @@ test('renderDashboard renders How to use as a table with copy buttons', async ()
   assert.ok(html.includes('howto-table-skills'), 'expected skills table');
   // Copy buttons present for slash commands
   assert.ok(
-    html.includes('data-copy="/mc-v5"'),
-    'expected copy button for /mc-v5',
+    html.includes('data-copy="/mc"'),
+    'expected copy button for /mc',
   );
   // Copy buttons present for bundled skills
   assert.ok(
@@ -257,12 +257,17 @@ test('renderDashboard renders How to use as a table with copy buttons', async ()
 
 test('renderDashboard lists key slash commands in How to use', async () => {
   const html = renderDashboard(await loadDashboardData({ controlRoot: SAMPLE_V5 }));
-  for (const cmd of ['/mc-v5', '/mc-v5-resume', '/mc-start', '/mc-feature', '/mc-init', '/mc-build', '/mc-handoff']) {
+  for (const cmd of ['/mc', '/mc-start', '/mc-feature', '/mc-init', '/mc-build', '/mc-handoff']) {
     assert.ok(
       html.includes(`data-copy="${cmd}`),
       `expected slash command ${cmd} in How to use`,
     );
   }
+  // /mc-resume <slug> is HTML-attribute-escaped when rendered
+  assert.ok(
+    html.includes('data-copy="/mc-resume &lt;slug&gt;"'),
+    'expected slash command /mc-resume <slug> in How to use',
+  );
 });
 
 test('renderDashboard "How to use" has no v4 label', async () => {

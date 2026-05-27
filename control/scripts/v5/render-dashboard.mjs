@@ -109,7 +109,7 @@ function renderPickupPanel(data) {
     return `
     <div class="section-label">Pickup where you left off</div>
     <div class="panel">
-      <div class="muted-text empty-state">Nothing active yet — start a feature with <code>/mc-v5</code>.</div>
+      <div class="muted-text empty-state">Nothing active yet — start a feature with <code>/mc</code>.</div>
     </div>`;
   }
   const slug = feature.slug;
@@ -267,12 +267,11 @@ function renderItemRow(feature, now) {
  * to use it" copy. Each row gets a copy-to-clipboard button in the UI.
  */
 const SLASH_COMMANDS = [
-  { cmd: '/mc', desc: 'Mission Control router — picks the right workflow for your input.' },
+  { cmd: '/mc', desc: 'Mission Control hub — routes any input to the right workflow.' },
   { cmd: '/mc-start', desc: 'Start a new project. Establishes the tech stack and seeds the first feature.' },
   { cmd: '/mc-init', desc: 'Establish tech-stack context. Run before any feature work in a new project.' },
-  { cmd: '/mc-v5', desc: 'v5 orchestrator hub. Entry point for new features in the v5 pipeline.' },
-  { cmd: '/mc-v5-resume <slug>', desc: 'Resume a v5 feature where you left off. Reads status.json + decisions.json from disk.' },
   { cmd: '/mc-feature', desc: 'Add a new feature. Drives braindump → explore → spec → build for one feature.' },
+  { cmd: '/mc-braindump', desc: 'Run the brainstorm flow. Offers research, captures decisions, opens the dashboard.' },
   { cmd: '/mc-refine', desc: 'Resume an interrupted braindump. Picks up after a /clear or session crash.' },
   { cmd: '/mc-layout', desc: 'Wireframe + layout step. Produces HTML mocks for screens in the active feature.' },
   { cmd: '/mc-plan', desc: 'Generate a phased implementation plan from the approved spec.' },
@@ -280,6 +279,7 @@ const SLASH_COMMANDS = [
   { cmd: '/mc-build', desc: 'Dispatch the build subagent from the active HANDOFF doc.' },
   { cmd: '/mc-validate', desc: 'Orchestrator-internal validation gate. Used between phases of the pipeline.' },
   { cmd: '/mc-handoff', desc: 'Structured end-of-chat session handoff. Run before /clear so the next session can pick up.' },
+  { cmd: '/mc-resume <slug>', desc: 'Resume a feature where you left off. Reads status.json + decisions.json from disk.' },
   { cmd: '/mc-upgrade', desc: 'Safe kit upgrade to the latest release. Runs migrations, preserves your data.' },
 ];
 
@@ -295,15 +295,13 @@ const SLASH_COMMANDS = [
  */
 const BUNDLED_SKILLS = [
   // Mission Control Kit — built into this repo
-  { name: 'mc-v5', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Orchestrator hub. Routes a fresh user message into the right v5 workflow.' },
-  { name: 'mc-v5-brainstorm', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Brainstorm flow. Always offers research, transforms patterns into a UX flow diagram, opens the dashboard.' },
-  { name: 'mc-v5-decide', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Encodes a single decision. Writes decisions.json + generates the visual fragment via build-decision.mjs.' },
-  { name: 'mc-v5-build', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Build subagent. Enforces MVVM layering and checks every decision has a visual fragment.' },
-  { name: 'mc-v5-review', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Auto-launches the dashboard at decision points so you can review without leaving the loop.' },
+  { name: 'mc-braindump', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Brainstorm flow. Always offers research, transforms patterns into a UX flow diagram, opens the dashboard.' },
+  { name: 'mc-decide', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Encodes a single decision. Writes decisions.json + generates the visual fragment via build-decision.mjs.' },
+  { name: 'mc-review', source: 'MCK', sourceClass: 'tag-mck', sourceHref: 'https://github.com/MalakHimse1f/mission-control-kit', desc: 'Auto-launches the dashboard at decision points so you can review without leaving the loop.' },
 
   // superpowers — Jesse Vincent (obra)
-  { name: 'brainstorming', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Question-driven ideation. Drives the conversational arc inside mc-v5-brainstorm.' },
-  { name: 'parallel-web-search', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Dispatched by mc-v5-brainstorm whenever the user says "yes" to research.' },
+  { name: 'brainstorming', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Question-driven ideation. Drives the conversational arc inside mc-braindump.' },
+  { name: 'parallel-web-search', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Dispatched by mc-braindump whenever the user says "yes" to research.' },
   { name: 'parallel-deep-research', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Deeper alternative to parallel-web-search. Used when the user asks for "deep" research.' },
   { name: 'writing-plans', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Plan authoring. Turns a spec into a phased implementation plan.' },
   { name: 'subagent-driven-development', source: 'superpowers', sourceClass: 'tag-superpowers', sourceHref: 'https://github.com/obra/superpowers', desc: 'Task dispatch loop. The orchestrator uses this to drive parallel build subagents.' },
@@ -314,7 +312,7 @@ const BUNDLED_SKILLS = [
 
   // designer-skills — Owl-Listener
   { name: 'design-research', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'Pattern research for UI decisions. Feeds into UI-tab diagrams.' },
-  { name: 'ux-strategy', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'UX flow rationale. Used by mc-v5-brainstorm to ground UX decisions.' },
+  { name: 'ux-strategy', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'UX flow rationale. Used by mc-braindump to ground UX decisions.' },
   { name: 'interaction-design', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'Affordance + interaction modeling. Used when building diagrams in the UX phase.' },
   { name: 'visual-critique', source: 'designer-skills', sourceClass: 'tag-designer', sourceHref: 'https://github.com/Owl-Listener/designer-skills', desc: 'Layout and hierarchy review. Auto-invoked during UI decisions.' },
 
@@ -328,19 +326,15 @@ const BUNDLED_SKILLS = [
 const TYPICAL_WORKFLOWS = [
   {
     label: 'Brand new project',
-    sequence: ['/mc-start', '/mc-init', '/mc-v5 (per feature)'],
+    sequence: ['/mc-start', '/mc-init', '/mc-feature (per feature)'],
   },
   {
     label: 'Add a feature',
-    sequence: ['/mc-v5', 'brainstorm → decisions saved', '/mc-v5-resume <slug>', '/mc-build'],
+    sequence: ['/mc-feature', '/mc-braindump', '/mc-layout', '/mc-plan', '/mc-build', '/mc-validate'],
   },
   {
-    label: 'Quick feature (no brainstorm)',
-    sequence: ['/mc-feature', '/mc-layout', '/mc-plan', '/mc-build', '/mc-validate'],
-  },
-  {
-    label: 'End of session',
-    sequence: ['/mc-handoff', '/clear', '(new session) /mc-v5-resume <slug>'],
+    label: 'End of session / resume later',
+    sequence: ['/mc-handoff', '/clear', '(new session) /mc-resume <slug>'],
   },
 ];
 
