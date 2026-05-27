@@ -65,7 +65,7 @@ Capture every UX/UI/architecture choice via the `mc-decide` skill:
 2. Run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to generate the visual fragment.
 3. Call `openDashboard({ slug, anchor: 'decisions' })` from `lib/v5/auto-launch.mjs` to surface the visual.
 
-Vendor skills (`designer-skills`, `prd-generator`) are referenced through `control/vendor/manifest.json`. The `mc-prd` subagent must invoke `prd-generator` before writing `spec.md`.
+Vendor skills are referenced through `control/vendor/manifest.json`. During the UX/UI phases, dispatch the `designer-skills` research skills — `design-research`, `ux-strategy` — to ground pattern choices before encoding decisions. The `mc-prd` subagent must invoke `prd-generator` before writing `spec.md`.
 
 ### Asking the user
 
