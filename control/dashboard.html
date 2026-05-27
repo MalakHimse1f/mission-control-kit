@@ -184,7 +184,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
   <div id="view-dashboard" class="view active">
   <h1>Mission Control v4</h1>
   <p class="subtitle">Orchestrator-driven pipeline — Project START and Add Feature. Drill into a card for spec, plans, mocks, journal, and tasks.</p>
-  <p class="top-meta">Generated 2026-05-27T22:44:19.109Z · All content embedded — open this file directly, no external links required.</p>
+  <p class="top-meta">Generated 2026-05-27T22:46:25.511Z · All content embedded — open this file directly, no external links required.</p>
 
   
 
@@ -441,7 +441,8 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
 (function () {
   const items = window.MC_ITEMS || [];
   const workGrid = document.getElementById("mc-work-grid");
-  const detail = document.getElementById("mc-detail");
+  const viewDashboard = document.getElementById("view-dashboard");
+  const viewFeature = document.getElementById("view-feature");
   const detailTitle = document.getElementById("detail-title");
   const detailMeta = document.getElementById("detail-meta");
   const detailTasks = document.getElementById("detail-tasks");
@@ -457,6 +458,11 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
   const detailPhases = document.getElementById("detail-phases");
   const detailJournal = document.getElementById("detail-journal");
   const detailLayoutDoc = document.getElementById("detail-layout-doc");
+  function setView(which){
+    viewDashboard.classList.toggle("active", which === "dashboard");
+    viewFeature.classList.toggle("active", which === "feature");
+    window.scrollTo(0,0);
+  }
   const strip = document.getElementById("in-progress-strip");
   const searchInput = document.getElementById("filter-search");
   const typeFilter = document.getElementById("filter-type");
@@ -726,8 +732,6 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
     const i = items.find((x) => x.id === id);
     if (!i) return;
     selectedId = id;
-    detail.classList.add("open");
-    document.body.classList.add("modal-open");
     detailTitle.textContent = i.id + " (" + i.type + ")";
     detailMeta.innerHTML = '<span class="' + stageClass(i.stageKey) + '">' + esc(i.stage) + '</span> · Pipeline: <code>' + esc(i.pipelineStage || i.stageKey) + '</code> · Last updated ' + esc(i.lastUpdatedDisplay) +
       (i.hasWorkingTask ? ' · <span class="badge badge-working">Working now</span> <code>' + esc(i.workingTaskId) + '</code>' + (i.workingTaskTitle ? ' — ' + esc(i.workingTaskTitle) : '') : '') +
@@ -752,13 +756,16 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
     }
     detailScreenshots.innerHTML = renderScreenshots(i);
     renderWorkGrid();
-    detail.querySelector(".modal-body").scrollTop = 0;
+    setView("feature");
+    if (location.hash !== "#feature/" + encodeURIComponent(id)) {
+      history.pushState({ featureId: id }, "", "#feature/" + encodeURIComponent(id));
+    }
   }
 
-  function closeDetail() {
+  function goDashboard(){
     selectedId = null;
-    detail.classList.remove("open");
-    document.body.classList.remove("modal-open");
+    setView("dashboard");
+    if (location.hash) history.pushState({}, "", location.pathname + location.search);
     renderWorkGrid();
   }
 
@@ -823,17 +830,13 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
   document.getElementById("detail-copy-pickup").addEventListener("click", () => {
     if (selectedId) copyPickup(selectedId);
   });
-  document.getElementById("detail-close").addEventListener("click", closeDetail);
-  detail.addEventListener("click", (e) => {
-    if (e.target === detail) { closeDetail(); return; }
+  document.getElementById("detail-back").addEventListener("click", goDashboard);
+  viewFeature.addEventListener("click", (e) => {
     const copyBtn = e.target.closest(".copy-value");
     if (copyBtn && copyBtn.dataset.copy) {
       e.stopPropagation();
       copyText(copyBtn.dataset.copy, copyBtn);
     }
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && detail.classList.contains("open")) closeDetail();
   });
 
   const handoffBtn = document.getElementById("copy-handoff");
@@ -847,6 +850,13 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
   }
 
   renderWorkGrid();
+  function routeFromHash(){
+    var m = (location.hash || "").match(/^#feature\/(.+)$/);
+    if (m) { var fid = decodeURIComponent(m[1]); if (items.some(function(x){return x.id===fid;})) { openDetail(fid); return; } }
+    setView("dashboard");
+  }
+  window.addEventListener("popstate", routeFromHash);
+  routeFromHash();
 })();
 </script>
   <script>
