@@ -379,6 +379,75 @@ test('renderDashboard links to /dashboard.css and /dashboard-client.js', async (
   assert.ok(html.includes('/dashboard-client.js'), 'expected /dashboard-client.js script');
 });
 
+test('renderDashboard always emits a kit-version-strip mount point (hidden when no SSR data)', () => {
+  // The client JS targets #kit-version-strip; it MUST be present on every
+  // page load even when SSR has no kitVersion to surface, so the client
+  // can fill it in after polling /api/kit-version.
+  const empty = {
+    liveAgents: [],
+    upNext: null,
+    allItems: [],
+    filterCounts: { needsInput: 0, ready: 0, inProgress: 0, complete: 0 },
+  };
+  const html = renderDashboard(empty);
+  assert.match(
+    html,
+    /<div class="kit-version-strip"[^>]*id="kit-version-strip"[^>]*hidden/,
+    'expected an empty hidden kit-version-strip in the rendered HTML',
+  );
+  // It should NOT have an Upgrade button when no SSR data was provided.
+  assert.ok(!html.includes('Upgrade kit'), 'no SSR data means no button');
+});
+
+test('renderDashboard SSRs the banner + Upgrade-kit button when kitVersion shows updateAvailable', () => {
+  const data = {
+    liveAgents: [],
+    upNext: null,
+    allItems: [],
+    filterCounts: { needsInput: 0, ready: 0, inProgress: 0, complete: 0 },
+    kitVersion: {
+      ok: true,
+      local: '5.0.0',
+      remote: '5.1.1',
+      repo: 'MalakHimse1f/mission-control-kit',
+      ref: 'main',
+      updateAvailable: true,
+      newMigrations: ['5.1.0-expanded-primitives', '5.1.1-install-stamp-backfill'],
+    },
+  };
+  const html = renderDashboard(data);
+  assert.match(html, /kit-version-strip update-available/);
+  assert.match(html, /Mission Control Kit update available/);
+  assert.match(html, /<code class="kit-version-pill">5\.0\.0<\/code>/);
+  assert.match(html, /<code class="kit-version-pill">5\.1\.1<\/code>/);
+  assert.match(html, /id="kit-upgrade-btn"[^>]*class="kit-upgrade-btn"/);
+  assert.match(html, /5\.1\.0-expanded-primitives/);
+  assert.match(html, /5\.1\.1-install-stamp-backfill/);
+});
+
+test('renderDashboard does NOT render the banner when up-to-date', () => {
+  const data = {
+    liveAgents: [],
+    upNext: null,
+    allItems: [],
+    filterCounts: { needsInput: 0, ready: 0, inProgress: 0, complete: 0 },
+    kitVersion: {
+      ok: true,
+      local: '5.1.1',
+      remote: '5.1.1',
+      repo: 'x/y',
+      ref: 'main',
+      updateAvailable: false,
+      newMigrations: [],
+    },
+  };
+  const html = renderDashboard(data);
+  assert.ok(!html.includes('Upgrade kit'), 'no button when up-to-date');
+  assert.ok(!html.includes('update available'), 'no headline when up-to-date');
+  // The hidden mount point still ships so the client can refresh it later.
+  assert.match(html, /<div class="kit-version-strip"[^>]*id="kit-version-strip"[^>]*hidden/);
+});
+
 test('renderDashboard handles empty data (no live agents, no up next, no items)', () => {
   const empty = {
     liveAgents: [],

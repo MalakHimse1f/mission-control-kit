@@ -484,6 +484,39 @@ function renderAllItemsPanel(allItems, filterCounts, now) {
  * @param {{ now?: number, title?: string }} [opts]
  * @returns {string}
  */
+/**
+ * Render the kit-version banner. Empty string when the install is
+ * up-to-date or the check hasn't run yet — the dashboard-client.js
+ * polls `/api/kit-version` and replaces this strip after page load,
+ * so a non-empty SSR value just primes the first render.
+ */
+function renderKitVersionStrip(kitVersion) {
+  if (!kitVersion || !kitVersion.updateAvailable) {
+    // Empty mount-point — client JS will populate it if the polled check
+    // surfaces an update or an error after the page renders.
+    return '<div class="kit-version-strip" id="kit-version-strip" hidden></div>';
+  }
+  const local = escapeHtml(kitVersion.local || '');
+  const remote = escapeHtml(kitVersion.remote || '');
+  const repo = escapeHtml(kitVersion.repo || '');
+  const ref = escapeHtml(kitVersion.ref || '');
+  const migs = (kitVersion.newMigrations || [])
+    .map((m) => `<code class="kit-migration-pill">${escapeHtml(m)}</code>`)
+    .join(' ');
+  const migLine = migs ? `<div class="kit-migration-line">new migrations: ${migs}</div>` : '';
+  return `<div class="kit-version-strip update-available" id="kit-version-strip">
+    <div class="kit-version-body">
+      <strong class="kit-version-headline">Mission Control Kit update available</strong>
+      — you're on <code class="kit-version-pill">${local}</code>,
+      latest is <code class="kit-version-pill">${remote}</code>
+      on <a href="https://github.com/${repo}/releases" target="_blank" rel="noopener">${repo}@${ref}</a>.
+      ${migLine}
+      <div class="kit-upgrade-msg" id="kit-upgrade-msg"></div>
+    </div>
+    <button type="button" id="kit-upgrade-btn" class="kit-upgrade-btn">Upgrade kit</button>
+  </div>`;
+}
+
 export function renderDashboard(data, opts = {}) {
   const safeData = data || {};
   const liveAgents = Array.isArray(safeData.liveAgents) ? safeData.liveAgents : [];
@@ -495,6 +528,7 @@ export function renderDashboard(data, opts = {}) {
     inProgress: 0,
     complete: 0,
   };
+  const kitVersion = safeData.kitVersion || null;
   const now = typeof opts.now === 'number' ? opts.now : Date.now();
   const title = opts.title || 'Mission Control Kit v5 — Dashboard';
 
@@ -505,9 +539,10 @@ export function renderDashboard(data, opts = {}) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title)}</title>
   <link rel="stylesheet" href="/dashboard.css" />
-  <!-- API: /api/v5/features (JSON) -->
+  <!-- API: /api/v5/features (JSON) · /api/kit-version · /api/kit-upgrade -->
 </head>
 <body>
+${renderKitVersionStrip(kitVersion)}
   <div class="container">
     <h1>Mission Control Kit</h1>
     <p class="subtitle">v5 Dashboard — Feature pipeline at a glance</p>

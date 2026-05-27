@@ -118,4 +118,112 @@
   });
 
   applyFromUrl();
+
+  // ---- Kit-version banner ----
+  // Polls /api/kit-version on load, rewrites the strip's inner HTML based on
+  // the result, and wires the Upgrade-kit button to POST /api/kit-upgrade.
+  // Server-side render primes the strip when SSR already had the data;
+  // this loop covers the case where SSR ran before the network check
+  // returned (the data loader makes the remote check best-effort).
+  (function kitVersionStrip() {
+    var strip = document.getElementById('kit-version-strip');
+    if (!strip) return;
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderUpToDate() {
+      strip.hidden = true;
+      strip.classList.remove('update-available');
+      strip.classList.remove('check-error');
+      strip.innerHTML = '';
+    }
+
+    function renderError(kv) {
+      strip.hidden = false;
+      strip.classList.remove('update-available');
+      strip.classList.add('check-error');
+      strip.innerHTML =
+        '<div class="kit-version-body">' +
+        '<span class="kit-version-muted">Kit update check failed: ' +
+        esc(kv && kv.error ? kv.error : 'unknown error') +
+        '</span></div>';
+    }
+
+    function renderUpdate(kv) {
+      var local = esc(kv.local || '');
+      var remote = esc(kv.remote || '');
+      var repo = esc(kv.repo || '');
+      var ref = esc(kv.ref || '');
+      var migs = (kv.newMigrations || [])
+        .map(function (m) { return '<code class="kit-migration-pill">' + esc(m) + '</code>'; })
+        .join(' ');
+      var migLine = migs
+        ? '<div class="kit-migration-line">new migrations: ' + migs + '</div>'
+        : '';
+      strip.hidden = false;
+      strip.classList.remove('check-error');
+      strip.classList.add('update-available');
+      strip.innerHTML =
+        '<div class="kit-version-body">' +
+        '<strong class="kit-version-headline">Mission Control Kit update available</strong>' +
+        " — you're on <code class=\"kit-version-pill\">" + local + '</code>, ' +
+        'latest is <code class="kit-version-pill">' + remote + '</code> ' +
+        'on <a href="https://github.com/' + repo + '/releases" target="_blank" rel="noopener">' +
+        repo + '@' + ref + '</a>.' +
+        migLine +
+        '<div class="kit-upgrade-msg" id="kit-upgrade-msg"></div>' +
+        '</div>' +
+        '<button type="button" id="kit-upgrade-btn" class="kit-upgrade-btn">Upgrade kit</button>';
+      wireUpgradeButton();
+    }
+
+    function wireUpgradeButton() {
+      var btn = document.getElementById('kit-upgrade-btn');
+      var msg = document.getElementById('kit-upgrade-msg');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        btn.classList.add('busy');
+        btn.textContent = 'Upgrading…';
+        if (msg) msg.textContent = 'Fetching kit and running migrations — this can take a few seconds.';
+        fetch('/api/kit-upgrade', { method: 'POST' })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+          .then(function (res) {
+            if (!res.ok || !res.body || res.body.ok !== true) {
+              throw new Error((res.body && res.body.error) || 'Upgrade failed');
+            }
+            btn.textContent = 'Upgraded — reloading…';
+            if (msg) msg.textContent = 'Now on ' + res.body.toVersion + '. Reloading dashboard…';
+            setTimeout(function () { location.reload(); }, 900);
+          })
+          .catch(function (err) {
+            btn.disabled = false;
+            btn.classList.remove('busy');
+            btn.textContent = 'Upgrade kit';
+            if (msg) msg.textContent = 'Failed: ' + (err.message || String(err));
+          });
+      });
+    }
+
+    function render(kv) {
+      if (!kv || !kv.ok) return renderError(kv || { error: 'no response' });
+      if (kv.updateAvailable) return renderUpdate(kv);
+      return renderUpToDate();
+    }
+
+    // If SSR already rendered an update banner, wire the button immediately
+    // and ALSO refresh asynchronously so a manual stamp edit shows up.
+    if (document.getElementById('kit-upgrade-btn')) wireUpgradeButton();
+
+    fetch('/api/kit-version')
+      .then(function (r) { return r.json(); })
+      .then(render)
+      .catch(function (err) { renderError({ error: err.message || String(err) }); });
+  })();
 })();

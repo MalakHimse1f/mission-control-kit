@@ -40,6 +40,7 @@ import {
 } from '../../../lib/v5/server-port.mjs';
 import { loadDashboardData } from '../../../lib/v5/dashboard-data.mjs';
 import { loadFeatureData } from '../../../lib/v5/feature-data.mjs';
+import { checkKitVersion, runKitUpgrade } from '../../../lib/v5/kit-version.mjs';
 import { renderDashboard } from './render-dashboard.mjs';
 import { renderFeature } from './render-feature.mjs';
 
@@ -400,6 +401,23 @@ export function createServer({ controlRoot, diagramsRoot } = {}) {
       if (method === 'GET' && pathname === '/api/v5/features') {
         const features = await listFeatures(controlRootAbs);
         return sendJson(res, 200, features);
+      }
+
+      // GET /api/kit-version — what the dashboard banner consumes.
+      if (method === 'GET' && pathname === '/api/kit-version') {
+        const result = await checkKitVersion({ projectRoot: controlRootAbs });
+        return sendJson(res, 200, result);
+      }
+
+      // POST /api/kit-upgrade — fetch latest kit, run pending migrations,
+      // update install stamp. Returns { ok, fromVersion, toVersion, migrations[] }.
+      if (method === 'POST' && pathname === '/api/kit-upgrade') {
+        try {
+          const result = await runKitUpgrade({ projectRoot: controlRootAbs });
+          return sendJson(res, 200, result);
+        } catch (err) {
+          return sendJson(res, 500, { ok: false, error: err.message || String(err) });
+        }
       }
 
       // GET/POST /api/v5/decisions/:slug

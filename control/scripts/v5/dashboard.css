@@ -772,6 +772,66 @@ a.skill-tag:hover { filter: brightness(1.15); }
   font-size: 0.75rem;
 }
 
+/* Kit-version banner — sits flush at the top of <body>, escapes body padding */
+.kit-version-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 24px;
+  margin: -3rem -2rem 2rem;
+  font: 13px/1.5 -apple-system, system-ui, sans-serif;
+  border-bottom: 1px solid #2e4970;
+  background: #1a2d4a;
+  color: #b3d2ea;
+}
+.kit-version-strip[hidden] { display: none !important; }
+.kit-version-strip.check-error { background: #3a2a1a; color: #d4a85a; border-bottom-color: #5a4030; }
+.kit-version-body { flex: 1; }
+.kit-version-headline { color: #5fa9e8; }
+.kit-version-strip.check-error .kit-version-headline { color: #d4a85a; }
+.kit-version-pill {
+  background: rgba(255,255,255,0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.kit-version-strip a { color: #5fa9e8; text-decoration: none; }
+.kit-version-strip a:hover { text-decoration: underline; }
+.kit-version-muted { opacity: 0.85; }
+.kit-migration-line {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.kit-migration-pill {
+  background: rgba(255,255,255,0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin: 0 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.kit-upgrade-msg {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.kit-upgrade-btn {
+  background: #5fa9e8;
+  color: #0a1a2a;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font: 600 13px/1 -apple-system, system-ui, sans-serif;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.kit-upgrade-btn:hover { background: #79bbf5; }
+.kit-upgrade-btn:disabled,
+.kit-upgrade-btn.busy {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 /* Responsive */
 @media (max-width: 700px) {
   body {
@@ -786,4 +846,11 @@ a.skill-tag:hover { filter: brightness(1.15); }
   .how-to-hint {
     display: none;
   }
+  .kit-version-strip {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 16px;
+    margin: -2rem -1rem 1.5rem;
+  }
+  .kit-upgrade-btn { align-self: stretch; }
 }
