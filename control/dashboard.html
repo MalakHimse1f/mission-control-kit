@@ -130,6 +130,17 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .guide-disclosure summary::before { content: '▸'; color: var(--muted); margin-right: 0.45rem; display: inline-block; transition: transform 0.15s; }
 .guide-disclosure[open] summary::before { transform: rotate(90deg); }
 .guide-body { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border); }
+.guide>summary{cursor:pointer;font-weight:640;list-style:none}
+.guide>summary::-webkit-details-marker{display:none}
+.guide-hint{margin-left:8px;font-weight:400;font-size:12px}
+.cmd-list{margin:10px 0 4px}
+.cmd{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--border)}
+.cmd:first-child{border-top:none}
+.cmd code{background:#0c0c0e;border:1px solid var(--line-2);border-radius:6px;padding:4px 9px;min-width:118px;text-align:center;color:var(--ink)}
+.cmd .desc{flex:1;color:var(--ink-soft);font-size:13px}
+.copy-cmd{font:inherit;font-size:11.5px;font-weight:600;border:1px solid var(--line-2);background:transparent;color:var(--ink-soft);border-radius:6px;padding:4px 10px;cursor:pointer}
+.copy-cmd:hover{color:var(--ink)}
+.copy-cmd.done{background:var(--accent);color:#161616;border-color:var(--accent)}
 .guide-section { margin-bottom: 1.25rem; }
 .guide-section:last-child { margin-bottom: 0; }
 .guide-section h3 { font-size: 0.92rem; margin: 0 0 0.5rem; font-weight: 600; color: var(--ink-soft); }
@@ -184,7 +195,7 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
   <div id="view-dashboard" class="view active">
   <h1>Mission Control v4</h1>
   <p class="subtitle">Orchestrator-driven pipeline — Project START and Add Feature. Drill into a card for spec, plans, mocks, journal, and tasks.</p>
-  <p class="top-meta">Generated 2026-05-27T22:52:24.549Z · All content embedded — open this file directly, no external links required.</p>
+  <p class="top-meta">Generated 2026-05-27T22:56:10.117Z · All content embedded — open this file directly, no external links required.</p>
 
   
 
@@ -250,9 +261,80 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
     <p class="workflow-hint" id="workflow-hint">Default: SDD + TDD with full review chain. Orchestrator confirms session intent at every <code>/mc</code> start.</p>
   </div>
 
-  <details class="guide-disclosure panel" open>
-    <summary>How to use Mission Control</summary>
+  <p class="notice">Tech stack not established — run <code>/mc-init</code> for an existing codebase, or <code>/mc-start</code> for a brand-new product.</p>
+
+  <div class="panel">
+    <h2>In progress</h2>
+    <p class="muted">0 items building · expand for tasks, commits, and pickup prompt</p>
+    <div class="stack-line"><strong>Stack:</strong> — · —</div>
+    <div id="in-progress-strip" class="in-progress-list-root"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Build order</h2>
+    <p class="muted">Recommended sequence from <code>/mc-portfolio</code> dependency analysis — build top to bottom.</p>
+    <div id="build-order-panel"><div class="order-columns"><div class="order-column">
+    <div class="order-column-head">
+      <h3>UX features</h3>
+      <span class="badge order-badge-unset">Not set</span>
+    </div>
+    <p class="muted">No build order yet — run &lt;code&gt;/mc-portfolio&lt;/code&gt; after 2+ approved specs.</p>
+    <p class="order-hint muted">Not set — run /mc-portfolio when you have 2+ approved specs</p><p class="order-unlisted muted">Not in order: <code>safe-upgrade</code></p></div><div class="order-column">
+    <div class="order-column-head"><h3>Tech setup</h3></div>
+    <p class="muted">No setup order — items appear as you add them via &lt;code&gt;/mc-init&lt;/code&gt; or &lt;code&gt;/mc-braindump&lt;/code&gt;.</p>
+    <p class="order-hint muted">Not set — add items via /mc-init or /mc-braindump</p></div></div></div>
+  </div>
+
+  <details class="handoff-collapsed panel">
+    <summary>Full session handoff (all features)</summary>
+    <pre class="handoff-pre" id="handoff-text"># Mission Control Handoff
+
+No active session. Run `/mc-start` for a new product or `/mc-feature` to add a capability.
+</pre>
+    <button type="button" class="btn" id="copy-handoff">Copy full handoff</button>
+  </details>
+
+  <div class="panel">
+    <h2>All work</h2>
+    <div class="toolbar">
+      <label>Search <input type="search" id="filter-search" placeholder="Feature name…" /></label>
+      <label>Type
+        <select id="filter-type">
+          <option value="all">All</option>
+          <option value="feature">Features</option>
+          <option value="tech-stack">Tech stack</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="filter-status">
+          <option value="all">All</option>
+          <option value="in-progress">In progress only</option>
+          <option value="build">Building</option>
+          <option value="plan">Plan</option>
+          <option value="layout">Layout</option>
+          <option value="spec">Spec</option>
+          <option value="done">Complete</option>
+        </select>
+      </label>
+      <label>Sort
+        <select id="filter-sort">
+          <option value="lastUpdated">Last updated</option>
+          <option value="id">Name</option>
+          <option value="stage">Status</option>
+          <option value="progress">Progress</option>
+          <option value="currentTask">Current task</option>
+          <option value="order">Build order</option>
+        </select>
+      </label>
+    </div>
+    <div id="mc-work-grid" class="work-grid"></div>
+  </div>
+
+  <details class="guide panel">
+    <summary>How to use Mission Control <span class="guide-hint muted">commands &amp; workflow reference</span></summary>
     <div class="guide-body">
+      <div class="cmd-list"><div class="cmd"><code>/mc-start</code><span class="desc">Brand-new product — market validation, stack, portfolio</span><button type="button" class="copy-cmd" data-cmd="/mc-start">Copy</button></div><div class="cmd"><code>/mc-init</code><span class="desc">Existing codebase — establish tech stack once (required before Add Feature)</span><button type="button" class="copy-cmd" data-cmd="/mc-init">Copy</button></div><div class="cmd"><code>/mc-feature</code><span class="desc">New capability — design, PRD, mock, plan, build</span><button type="button" class="copy-cmd" data-cmd="/mc-feature">Copy</button></div><div class="cmd"><code>/mc</code><span class="desc">Resume where disk left off</span><button type="button" class="copy-cmd" data-cmd="/mc">Copy</button></div><div class="cmd"><code>/mc-portfolio</code><span class="desc">Approve build order when multiple features exist</span><button type="button" class="copy-cmd" data-cmd="/mc-portfolio">Copy</button></div><div class="cmd"><code>/mc-handoff</code><span class="desc">Chat summary before /clear</span><button type="button" class="copy-cmd" data-cmd="/mc-handoff">Copy</button></div><div class="cmd"><code>/mc-upgrade</code><span class="desc">Update the kit</span><button type="button" class="copy-cmd" data-cmd="/mc-upgrade">Copy</button></div></div>
+      
       <section class="guide-section">
         <h3>Commands</h3>
         <table class="guide-table">
@@ -341,75 +423,6 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
       </section>
     </div>
   </details>
-
-  <p class="notice">Tech stack not established — run <code>/mc-init</code> for an existing codebase, or <code>/mc-start</code> for a brand-new product.</p>
-
-  <div class="panel">
-    <h2>In progress</h2>
-    <p class="muted">0 items building · expand for tasks, commits, and pickup prompt</p>
-    <div class="stack-line"><strong>Stack:</strong> — · —</div>
-    <div id="in-progress-strip" class="in-progress-list-root"></div>
-  </div>
-
-  <div class="panel">
-    <h2>Build order</h2>
-    <p class="muted">Recommended sequence from <code>/mc-portfolio</code> dependency analysis — build top to bottom.</p>
-    <div id="build-order-panel"><div class="order-columns"><div class="order-column">
-    <div class="order-column-head">
-      <h3>UX features</h3>
-      <span class="badge order-badge-unset">Not set</span>
-    </div>
-    <p class="muted">No build order yet — run &lt;code&gt;/mc-portfolio&lt;/code&gt; after 2+ approved specs.</p>
-    <p class="order-hint muted">Not set — run /mc-portfolio when you have 2+ approved specs</p><p class="order-unlisted muted">Not in order: <code>safe-upgrade</code></p></div><div class="order-column">
-    <div class="order-column-head"><h3>Tech setup</h3></div>
-    <p class="muted">No setup order — items appear as you add them via &lt;code&gt;/mc-init&lt;/code&gt; or &lt;code&gt;/mc-braindump&lt;/code&gt;.</p>
-    <p class="order-hint muted">Not set — add items via /mc-init or /mc-braindump</p></div></div></div>
-  </div>
-
-  <details class="handoff-collapsed panel">
-    <summary>Full session handoff (all features)</summary>
-    <pre class="handoff-pre" id="handoff-text"># Mission Control Handoff
-
-No active session. Run `/mc-start` for a new product or `/mc-feature` to add a capability.
-</pre>
-    <button type="button" class="btn" id="copy-handoff">Copy full handoff</button>
-  </details>
-
-  <div class="panel">
-    <h2>All work</h2>
-    <div class="toolbar">
-      <label>Search <input type="search" id="filter-search" placeholder="Feature name…" /></label>
-      <label>Type
-        <select id="filter-type">
-          <option value="all">All</option>
-          <option value="feature">Features</option>
-          <option value="tech-stack">Tech stack</option>
-        </select>
-      </label>
-      <label>Status
-        <select id="filter-status">
-          <option value="all">All</option>
-          <option value="in-progress">In progress only</option>
-          <option value="build">Building</option>
-          <option value="plan">Plan</option>
-          <option value="layout">Layout</option>
-          <option value="spec">Spec</option>
-          <option value="done">Complete</option>
-        </select>
-      </label>
-      <label>Sort
-        <select id="filter-sort">
-          <option value="lastUpdated">Last updated</option>
-          <option value="id">Name</option>
-          <option value="stage">Status</option>
-          <option value="progress">Progress</option>
-          <option value="currentTask">Current task</option>
-          <option value="order">Build order</option>
-        </select>
-      </label>
-    </div>
-    <div id="mc-work-grid" class="work-grid"></div>
-  </div>
   </div>
 
   <div id="view-feature" class="view">
@@ -847,6 +860,13 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
       setTimeout(() => { handoffBtn.textContent = "Copy full handoff"; }, 1500);
     });
   }
+
+  function copyCmd(btn){
+    var text = btn.getAttribute("data-cmd");
+    function ok(){ var t=btn.textContent; btn.textContent="Copied ✓"; btn.classList.add("done"); setTimeout(function(){btn.textContent=t;btn.classList.remove("done");},1200); }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(ok).catch(ok); } else { ok(); }
+  }
+  document.addEventListener("click", function(e){ var b=e.target.closest && e.target.closest(".copy-cmd"); if(b) copyCmd(b); });
 
   renderWorkGrid();
   function routeFromHash(){

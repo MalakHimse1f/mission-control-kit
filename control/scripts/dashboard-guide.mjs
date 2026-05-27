@@ -2,10 +2,8 @@
  * Collapsible getting-started guide embedded in dashboard.html.
  * PM-facing — commands, new project, existing project init, feature build flow.
  */
-export function renderUserGuideDisclosure() {
-  return `<details class="guide-disclosure panel" open>
-    <summary>How to use Mission Control</summary>
-    <div class="guide-body">
+
+const GUIDE_PROSE = `
       <section class="guide-section">
         <h3>Commands</h3>
         <table class="guide-table">
@@ -91,7 +89,27 @@ export function renderUserGuideDisclosure() {
           <li><code>/mc-build</code> — resume implementation when phase plans exist (v3-style shortcut)</li>
           <li><code>/mc-validate {slug} phase-N</code> — run validation gate after a phase completes</li>
         </ul>
-      </section>
+      </section>`;
+
+export function renderUserGuideDisclosure() {
+  const cmds = [
+    ["/mc-start", "Brand-new product — market validation, stack, portfolio"],
+    ["/mc-init", "Existing codebase — establish tech stack once (required before Add Feature)"],
+    ["/mc-feature", "New capability — design, PRD, mock, plan, build"],
+    ["/mc", "Resume where disk left off"],
+    ["/mc-portfolio", "Approve build order when multiple features exist"],
+    ["/mc-handoff", "Chat summary before /clear"],
+    ["/mc-upgrade", "Update the kit"],
+  ];
+  const rows = cmds.map(([c, d]) =>
+    `<div class="cmd"><code>${c}</code><span class="desc">${d}</span>` +
+    `<button type="button" class="copy-cmd" data-cmd="${c}">Copy</button></div>`
+  ).join("");
+  return `<details class="guide panel">
+    <summary>How to use Mission Control <span class="guide-hint muted">commands &amp; workflow reference</span></summary>
+    <div class="guide-body">
+      <div class="cmd-list">${rows}</div>
+      ${GUIDE_PROSE}
     </div>
   </details>`;
 }

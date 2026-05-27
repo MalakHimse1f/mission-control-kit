@@ -139,6 +139,17 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .guide-disclosure summary::before { content: '▸'; color: var(--muted); margin-right: 0.45rem; display: inline-block; transition: transform 0.15s; }
 .guide-disclosure[open] summary::before { transform: rotate(90deg); }
 .guide-body { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border); }
+.guide>summary{cursor:pointer;font-weight:640;list-style:none}
+.guide>summary::-webkit-details-marker{display:none}
+.guide-hint{margin-left:8px;font-weight:400;font-size:12px}
+.cmd-list{margin:10px 0 4px}
+.cmd{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--border)}
+.cmd:first-child{border-top:none}
+.cmd code{background:#0c0c0e;border:1px solid var(--line-2);border-radius:6px;padding:4px 9px;min-width:118px;text-align:center;color:var(--ink)}
+.cmd .desc{flex:1;color:var(--ink-soft);font-size:13px}
+.copy-cmd{font:inherit;font-size:11.5px;font-weight:600;border:1px solid var(--line-2);background:transparent;color:var(--ink-soft);border-radius:6px;padding:4px 10px;cursor:pointer}
+.copy-cmd:hover{color:var(--ink)}
+.copy-cmd.done{background:var(--accent);color:#161616;border-color:var(--accent)}
 .guide-section { margin-bottom: 1.25rem; }
 .guide-section:last-child { margin-bottom: 0; }
 .guide-section h3 { font-size: 0.92rem; margin: 0 0 0.5rem; font-weight: 600; color: var(--ink-soft); }
@@ -582,6 +593,13 @@ export const DASHBOARD_CLIENT_JS = `
     });
   }
 
+  function copyCmd(btn){
+    var text = btn.getAttribute("data-cmd");
+    function ok(){ var t=btn.textContent; btn.textContent="Copied ✓"; btn.classList.add("done"); setTimeout(function(){btn.textContent=t;btn.classList.remove("done");},1200); }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(ok).catch(ok); } else { ok(); }
+  }
+  document.addEventListener("click", function(e){ var b=e.target.closest && e.target.closest(".copy-cmd"); if(b) copyCmd(b); });
+
   renderWorkGrid();
   function routeFromHash(){
     var m = (location.hash || "").match(/^#feature\\/(.+)$/);
@@ -635,8 +653,6 @@ export function buildDashboardHtml({
   ${controls ? renderControlPanel({ controls, gate: gate ?? {}, nextPick: nextPick ?? {}, serveMode }) : ""}
 
   ${controls ? renderWorkflowPanel({ controls, serveMode }) : ""}
-
-  ${renderUserGuideDisclosure()}
 
   ${initNotice}
 
@@ -694,6 +710,8 @@ export function buildDashboardHtml({
     </div>
     <div id="mc-work-grid" class="work-grid"></div>
   </div>
+
+  ${renderUserGuideDisclosure()}
   </div>
 
   <div id="view-feature" class="view">
