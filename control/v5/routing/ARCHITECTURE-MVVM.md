@@ -2,7 +2,7 @@
 
 Code-layering rules for v5 feature builds. Auto-loaded into every dispatch
 packet whose `taskType` is `build`. The build subagent
-(`skills/mc-v5-build/SKILL.md`) does **not** restate these rules — it
+(`skills/mc-build/SKILL.md`) does **not** restate these rules — it
 references this document.
 
 > Decision-visualization guidance for the architecture phase lives in
@@ -145,11 +145,11 @@ The four violation types it emits:
 | `model-imports-view` | A `*.model.{ts,tsx,jsx}` file importing from a `*.view` specifier |
 | `view-missing-viewmodel` | A directory with a `*.view.tsx` but no sibling `*.viewmodel.{ts,tsx,jsx}` |
 
-The v5 build subagent (`skills/mc-v5-build/SKILL.md`) instructs the spec reviewer to run this lint against every changed file set. Any violation blocks task approval unless explicitly justified in the review notes.
+The v5 build subagent (`skills/mc-build/SKILL.md`) instructs the spec reviewer to run this lint against every changed file set. Any violation blocks task approval unless explicitly justified in the review notes.
 
 ## Build Subagent Hook
 
-The build subagent skill at `skills/mc-v5-build/SKILL.md`:
+The build subagent skill at `skills/mc-build/SKILL.md`:
 
 - Requires every task spec to declare `Layer: Model | View | ViewModel | N/A`.
 - Forbids combining layer changes in a single task.
