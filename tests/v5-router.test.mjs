@@ -239,17 +239,17 @@ test('stageToDefaultTaskType falls back to "brainstorm" for unknown stages', asy
   assert.equal(stageToDefaultTaskType(null), 'brainstorm');
 });
 
-test('mc-v5-resume command file invokes the mc-v5 skill', async () => {
+test('mc-resume command file invokes the mc skill', async () => {
   const fs = await import('node:fs/promises');
   const path = await import('node:path');
   const { fileURLToPath } = await import('node:url');
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const cmdPath = path.join(here, '..', 'commands', 'mc-v5-resume.md');
+  const cmdPath = path.join(here, '..', 'commands', 'mc-resume.md');
   const body = await fs.readFile(cmdPath, 'utf8');
   assert.match(
     body,
-    /Invoke skill:\s*mc-v5/i,
-    'mc-v5-resume.md must contain an explicit "Invoke skill: mc-v5" directive',
+    /Invoke skill:\s*`?mc`?/i,
+    'mc-resume.md must contain an explicit "Invoke skill: mc" directive',
   );
 });
 
