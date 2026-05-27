@@ -1,17 +1,17 @@
 import { escapeHtml } from './dashboard-helpers.mjs';
 
 export const CONTROL_PANEL_CSS = `
-.control-panel { border-color: #3a4a5a; }
+.control-panel { border-color: var(--line-2); }
 .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem 1.25rem; margin-top: 0.5rem; }
 .control-toggle { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.84rem; cursor: pointer; }
 .control-toggle input { margin-top: 0.2rem; }
 .control-toggle span { line-height: 1.35; }
-.control-status { font-size: 0.82rem; margin: 0.65rem 0 0; padding: 0.55rem 0.65rem; background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; }
-.control-status.warn { border-color: #665; color: #cc9; }
-.control-status.ok { border-color: #484; color: #9c9; }
+.control-status { font-size: 0.82rem; margin: 0.65rem 0 0; padding: 0.55rem 0.65rem; background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; }
+.control-status.warn { border-color: #3a3322; color: var(--warn); }
+.control-status.ok { border-color: #2c3e30; color: var(--ok); }
 .control-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; align-items: center; }
 .control-save-msg { font-size: 0.78rem; color: var(--muted); }
-.control-offline { border-color: #844; background: #1a1010; color: #daa; font-size: 0.82rem; padding: 0.55rem 0.65rem; border-radius: 8px; margin-bottom: 0.65rem; }
+.control-offline { border-color: var(--stop); background: var(--panel-2); color: var(--stop); font-size: 0.82rem; padding: 0.55rem 0.65rem; border-radius: 8px; margin-bottom: 0.65rem; }
 `;
 
 export function renderControlPanel({ controls, gate, nextPick, serveMode = false }) {

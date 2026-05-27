@@ -5,32 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mission Control</title>
   <style>
-:root { color-scheme: dark; --bg: #0a0a0a; --panel: #141414; --border: #2a2a2a; --muted: #888; --accent: #6a8caf; }
+:root { color-scheme: dark;
+  --bg:#0f0f11; --panel:#17181b; --panel-2:#1c1d21; --raised:#212227;
+  --ink:#ededee; --ink-soft:#a6a7ac; --muted:#6f7177;
+  --border:#2a2c31; --line-2:#3a3d44; --accent:#e8e8ea;
+  --ok:#7fb38a; --warn:#c9a86a; --stop:#c98a8a; }
 * { box-sizing: border-box; }
-body.modal-open { overflow: hidden; }
-body { font-family: ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: #f5f5f5; margin: 0; padding: 1.25rem 1.5rem 2rem; line-height: 1.45; }
+body { font-family: ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--ink); margin: 0; padding: 1.25rem 1.5rem 2rem; line-height: 1.45; }
 h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
-.subtitle { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.25rem; }
-.top-meta { font-size: 0.78rem; color: #666; margin-bottom: 1rem; }
-.top-meta a { color: #aaa; }
-.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.15rem; margin-bottom: 1rem; }
+.subtitle { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 1.25rem; }
+.top-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
+.top-meta a { color: var(--ink-soft); }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1rem; }
 .panel h2 { font-size: 1.05rem; margin: 0 0 0.65rem; font-weight: 600; border: none; padding: 0; }
 .muted { color: var(--muted); }
-.notice { background: #1a1810; border: 1px solid #443; border-radius: 8px; padding: 0.65rem 0.85rem; font-size: 0.88rem; margin-bottom: 0.85rem; }
+.notice { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.85rem; font-size: 0.88rem; margin-bottom: 0.85rem; }
 .progress-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-top: 0.5rem; }
 .progress-table th, .progress-table td { border-bottom: 1px solid var(--border); padding: 0.55rem 0.5rem; text-align: left; vertical-align: middle; }
 .progress-table th { color: var(--muted); font-weight: 500; font-size: 0.78rem; }
 .progress-table tbody tr { cursor: pointer; }
-.progress-table tbody tr:hover { background: #1a1a1a; }
+.progress-table tbody tr:hover { background: var(--panel-2); }
 .progress-table .pickup-col { width: 1%; white-space: nowrap; text-align: right; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; margin-bottom: 0.75rem; }
 .toolbar label { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 0.35rem; }
-.toolbar input, .toolbar select { background: #1a1a1a; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
+.toolbar input, .toolbar select { background: var(--panel-2); border: 1px solid var(--border); color: var(--ink); border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
 .toolbar input { min-width: 10rem; }
 .work-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
-.work-card { background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
-.work-card:hover { border-color: #444; background: #1c1c1c; }
-.work-card.selected { border-color: #3a4a5a; background: #1f2430; box-shadow: 0 0 0 1px #3a4a5a; }
+.work-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.work-card:hover { border-color: var(--line-2); background: var(--panel-2); }
+.work-card.selected { border-color: var(--line-2); background: var(--panel-2); box-shadow: 0 0 0 1px var(--line-2); }
 .work-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.4rem; }
 .work-card-name { font-weight: 600; font-size: 0.95rem; margin: 0; line-height: 1.25; }
 .work-card-type { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
@@ -41,86 +44,77 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .work-card-actions .btn { flex: 1 1 auto; }
 .empty-cards { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 2rem 1rem; border: 1px dashed var(--border); border-radius: 10px; }
 .progress-cell { min-width: 0; }
-.progress-bar { height: 5px; background: #222; border-radius: 3px; overflow: hidden; margin-top: 0.2rem; }
-.progress-fill { height: 100%; background: #888; border-radius: 3px; }
-.progress-fill-tech { background: var(--accent); }
-.modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.72); padding: 1rem; overflow-y: auto; }
-.modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
-.modal-dialog { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: min(920px, 100%); max-height: calc(100vh - 2rem); display: flex; flex-direction: column; margin: auto; }
-.modal-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.75rem; padding: 1rem 1.15rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.modal-header h3 { margin: 0; font-size: 1.15rem; }
-.modal-body { overflow-y: auto; padding: 0 1.15rem 1.15rem; flex: 1; min-height: 0; }
+.progress-bar { height: 5px; background: #0c0c0e; border-radius: 3px; overflow: hidden; margin-top: 0.2rem; }
+.progress-fill { height: 100%; background: var(--ink-soft); border-radius: 3px; }
+.progress-fill-tech { background: var(--ink-soft); }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.pickup-pre { background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; white-space: pre-wrap; margin: 0.75rem 0; max-height: 12rem; overflow: auto; }
+.pickup-pre { background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; white-space: pre-wrap; margin: 0.75rem 0; max-height: 12rem; overflow: auto; }
 .task-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.task-table th, .task-table td { border-bottom: 1px solid #1f1f1f; padding: 0.4rem 0.45rem; text-align: left; }
-.task-table tr.task-in-progress td { color: #fff; font-weight: 500; background: #1a2430; }
+.task-table th, .task-table td { border-bottom: 1px solid var(--border); padding: 0.4rem 0.45rem; text-align: left; }
+.task-table tr.task-in-progress td { color: var(--ink); font-weight: 500; background: var(--raised); }
 .task-table tr.task-done td { color: var(--muted); }
 .handoff-collapsed summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; margin-bottom: 0.5rem; }
-.handoff-pre { white-space: pre-wrap; font-size: 0.8rem; background: #0f0f0f; border: 1px solid var(--border); padding: 0.65rem; border-radius: 8px; max-height: 10rem; overflow: auto; }
-.stack-line { font-size: 0.85rem; color: #aaa; margin-bottom: 0.5rem; }
-.footer { margin-top: 1.5rem; font-size: 0.72rem; color: #555; }
-.detail-section { margin-top: 1.25rem; }
-.detail-section h4 { font-size: 0.92rem; margin: 0 0 0.5rem; font-weight: 600; color: #ccc; }
+.handoff-pre { white-space: pre-wrap; font-size: 0.8rem; background: #0c0c0e; border: 1px solid var(--border); padding: 0.65rem; border-radius: 8px; max-height: 10rem; overflow: auto; }
+.stack-line { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 0.5rem; }
+.footer { margin-top: 1.5rem; font-size: 0.72rem; color: var(--muted); }
 .visual-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
-.wireframe-card, .shot-card { margin: 0; flex: 1 1 280px; max-width: 420px; background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.wireframe-card, .shot-card { margin: 0; flex: 1 1 280px; max-width: 420px; background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .wireframe-card iframe { display: block; width: 100%; height: 360px; border: none; background: #fff; }
 .research-card iframe { height: 420px; }
-.wireframe-card figcaption, .shot-card figcaption { font-size: 0.75rem; color: var(--muted); padding: 0.45rem 0.6rem; border-top: 1px solid #1f1f1f; }
-.shot-card img { display: block; width: 100%; height: auto; max-height: 280px; object-fit: contain; background: #111; }
-.btn { background: #262626; color: #fff; border: 1px solid #555; padding: 0.35rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.78rem; white-space: nowrap; }
-.btn:hover { background: #333; }
-.btn-primary { background: #2a3544; border-color: var(--accent); }
+.wireframe-card figcaption, .shot-card figcaption { font-size: 0.75rem; color: var(--muted); padding: 0.45rem 0.6rem; border-top: 1px solid var(--border); }
+.shot-card img { display: block; width: 100%; height: auto; max-height: 280px; object-fit: contain; background: #0c0c0e; }
+.btn { background: transparent; color: var(--ink); border: 1px solid var(--line-2); padding: 0.35rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.78rem; white-space: nowrap; }
+.btn:hover { border-color: #52565e; }
+.btn-primary { background: var(--accent); color: #161616; border-color: var(--accent); }
 .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.72rem; }
-.badge { display: inline-block; padding: 0.12rem 0.45rem; border-radius: 4px; font-size: 0.72rem; border: 1px solid #444; }
-.badge-build { border-color: #666; color: #fff; }
-.badge-spec, .badge-layout, .badge-plan, .badge-braindump, .badge-explore, .badge-clarify, .badge-prd, .badge-mock { color: #bbb; }
+.badge { display: inline-block; padding: 0.12rem 0.45rem; border-radius: 999px; font-size: 0.72rem; border: 1px solid var(--line-2); color: var(--ink-soft); }
+.badge-build { color: #bfe3f0; border-color: #2c3a44; background: #141b20; }
+.badge-spec, .badge-layout, .badge-plan, .badge-braindump, .badge-explore, .badge-clarify, .badge-prd, .badge-mock { color: var(--ink-soft); }
 .step-timeline { list-style: none; padding: 0; margin: 0.5rem 0 0; }
-.step-item { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid #1a1a1a; font-size: 0.82rem; }
-.step-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; margin-top: 0.25rem; flex-shrink: 0; border: 1px solid #555; background: #222; }
-.step-item.step-done .step-dot { background: #484; border-color: #6a6; }
-.step-item.step-in-progress .step-dot { background: var(--accent); border-color: var(--accent); }
-.step-item.step-blocked .step-dot { background: #844; border-color: #a66; }
+.step-item { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+.step-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; margin-top: 0.25rem; flex-shrink: 0; border: 1px solid var(--line-2); background: var(--raised); }
+.step-item.step-done .step-dot { background: var(--ok); border-color: var(--ok); }
+.step-item.step-in-progress .step-dot { background: var(--ink-soft); border-color: var(--ink-soft); }
+.step-item.step-blocked .step-dot { background: var(--stop); border-color: var(--stop); }
 .step-body { flex: 1; min-width: 0; }
 .step-label { font-weight: 500; }
 .step-meta { font-size: 0.72rem; color: var(--muted); }
 .doc-wrap { margin: 0.5rem 0 1rem; }
-.doc-title { font-size: 0.85rem; margin: 0 0 0.35rem; color: #aaa; font-weight: 600; }
-.doc-block { white-space: pre-wrap; font-size: 0.78rem; background: #0f0f0f; border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px; max-height: 24rem; overflow: auto; margin: 0; line-height: 1.45; }
-.collapsible-doc summary { cursor: pointer; color: #ccc; font-size: 0.88rem; font-weight: 500; margin-bottom: 0.35rem; }
+.doc-title { font-size: 0.85rem; margin: 0 0 0.35rem; color: var(--ink-soft); font-weight: 600; }
+.doc-block { white-space: pre-wrap; font-size: 0.78rem; background: #0c0c0e; border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px; max-height: 24rem; overflow: auto; margin: 0; line-height: 1.45; }
+.collapsible-doc summary { cursor: pointer; color: var(--ink-soft); font-size: 0.88rem; font-weight: 500; margin-bottom: 0.35rem; }
 .collapsible-doc { margin-bottom: 0.75rem; }
 .tab-bar { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
-.tab-btn { background: #1a1a1a; border: 1px solid #333; color: #bbb; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
-.tab-btn.active { background: #2a3544; border-color: var(--accent); color: #fff; }
+.tab-btn { background: var(--panel-2); border: 1px solid var(--border); color: var(--ink-soft); padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+.tab-btn.active { background: var(--raised); border-color: var(--line-2); color: var(--ink); }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
-.modal-dialog { width: min(960px, 100%); }
-.badge-done { background: #333; color: #fff; }
-.badge-working { border-color: var(--accent); color: #fff; background: #1a2430; }
+.badge-done { background: var(--raised); color: var(--ok); border-color: #2c3e30; }
+.badge-working { border-color: #2c3a44; color: #bfe3f0; background: #141b20; }
 .commit-cell { font-size: 0.75rem; max-width: 14rem; }
 .commit-line { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin: 0.15rem 0; }
 .commit-msg-text { color: var(--muted); flex: 1 1 8rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.order-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: var(--accent); background: #1a2430; border: 1px solid #3a4a5a; border-radius: 4px; padding: 0.1rem 0.35rem; margin-right: 0.35rem; vertical-align: middle; }
+.order-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: var(--ink-soft); background: var(--raised); border: 1px solid var(--line-2); border-radius: 4px; padding: 0.1rem 0.35rem; margin-right: 0.35rem; vertical-align: middle; }
 .order-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
 .order-column-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-.order-column-head h3 { font-size: 0.88rem; margin: 0; font-weight: 600; color: #ccc; }
+.order-column-head h3 { font-size: 0.88rem; margin: 0; font-weight: 600; color: var(--ink-soft); }
 .order-list { list-style: none; padding: 0; margin: 0; }
 .order-item { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 4px; }
-.order-item:hover { background: #1a1a1a; }
-.order-num { font-weight: 700; color: var(--accent); min-width: 1.5rem; font-size: 0.88rem; }
+.order-item:hover { background: var(--panel-2); }
+.order-num { font-weight: 700; color: var(--ink-soft); min-width: 1.5rem; font-size: 0.88rem; }
 .order-slug { flex: 1 1 8rem; min-width: 0; }
 .order-hint { font-size: 0.78rem; margin: 0.5rem 0 0; }
 .order-unlisted { font-size: 0.75rem; margin: 0.35rem 0 0; }
-.order-badge-approved { border-color: #484; color: #9c9; }
-.order-badge-draft { border-color: #665; color: #cc9; }
-.order-badge-single { border-color: #555; color: #bbb; }
-.order-badge-unset { border-color: #444; color: #888; }
+.order-badge-approved { border-color: #2c3e30; color: var(--ok); }
+.order-badge-draft { border-color: #3a3322; color: var(--warn); }
+.order-badge-single { border-color: var(--line-2); color: var(--ink-soft); }
+.order-badge-unset { border-color: var(--border); color: var(--muted); }
 .work-card-name-row { display: flex; align-items: center; gap: 0.25rem; min-width: 0; flex: 1; }
 .work-card-name-row .work-card-name { flex: 1; min-width: 0; }
-.work-card-task.working-now { color: #fff; }
+.work-card-task.working-now { color: var(--ink); }
 .in-progress-list-root { margin-top: 0.5rem; }
 .in-progress-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.in-progress-item { background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.in-progress-item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .in-progress-item summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem 0.85rem; padding: 0.75rem 1rem; cursor: pointer; list-style: none; }
 .in-progress-item summary::-webkit-details-marker { display: none; }
 .in-progress-item summary::before { content: '▸'; color: var(--muted); font-size: 0.75rem; transition: transform 0.15s; flex-shrink: 0; margin-right: 0.15rem; }
@@ -131,46 +125,62 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .in-progress-body { padding: 0 1rem 1rem; border-top: 1px solid var(--border); }
 .in-progress-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0.5rem; align-items: center; }
 .in-progress-empty { text-align: center; padding: 1.25rem 1rem; border: 1px dashed var(--border); border-radius: 10px; margin: 0; }
-.guide-disclosure summary { cursor: pointer; font-size: 1.05rem; font-weight: 600; color: #eee; list-style: none; }
-.guide-disclosure summary::-webkit-details-marker { display: none; }
-.guide-disclosure summary::before { content: '▸'; color: var(--muted); margin-right: 0.45rem; display: inline-block; transition: transform 0.15s; }
-.guide-disclosure[open] summary::before { transform: rotate(90deg); }
 .guide-body { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border); }
+.guide>summary{cursor:pointer;font-weight:640;list-style:none;display:flex;align-items:center;gap:9px}
+.guide>summary::-webkit-details-marker{display:none}
+.guide>summary::before{content:"\25B8";color:var(--muted);font-size:12px;transition:transform .15s}
+.guide[open]>summary::before{transform:rotate(90deg)}
+.guide-hint{margin-left:8px;font-weight:400;font-size:12px}
+.cmd-list{margin:10px 0 4px}
+.cmd{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--border)}
+.cmd:first-child{border-top:none}
+.cmd code{background:#0c0c0e;border:1px solid var(--line-2);border-radius:6px;padding:4px 9px;min-width:118px;text-align:center;color:var(--ink)}
+.cmd .desc{flex:1;color:var(--ink-soft);font-size:13px}
+.copy-cmd{font:inherit;font-size:11.5px;font-weight:600;border:1px solid var(--line-2);background:transparent;color:var(--ink-soft);border-radius:6px;padding:4px 10px;cursor:pointer}
+.copy-cmd:hover{color:var(--ink)}
+.copy-cmd.done{background:var(--accent);color:#161616;border-color:var(--accent)}
 .guide-section { margin-bottom: 1.25rem; }
 .guide-section:last-child { margin-bottom: 0; }
-.guide-section h3 { font-size: 0.92rem; margin: 0 0 0.5rem; font-weight: 600; color: #ccc; }
+.guide-section h3 { font-size: 0.92rem; margin: 0 0 0.5rem; font-weight: 600; color: var(--ink-soft); }
 .guide-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 0.35rem 0 0.5rem; }
 .guide-table th, .guide-table td { border-bottom: 1px solid var(--border); padding: 0.45rem 0.5rem; text-align: left; vertical-align: top; }
 .guide-table th { color: var(--muted); font-weight: 500; font-size: 0.75rem; }
 .guide-table code { font-size: 0.78rem; }
-.guide-steps, .guide-list { margin: 0.35rem 0 0.5rem; padding-left: 1.25rem; font-size: 0.84rem; color: #ccc; }
+.guide-steps, .guide-list { margin: 0.35rem 0 0.5rem; padding-left: 1.25rem; font-size: 0.84rem; color: var(--ink-soft); }
 .guide-steps li, .guide-list li { margin-bottom: 0.35rem; }
 .guide-note { font-size: 0.8rem; margin: 0.35rem 0 0; }
-.kit-version-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; font-size: 0.84rem; margin-bottom: 1rem; padding: 0.65rem 0.85rem; background: #141820; border: 1px solid #334; border-radius: 8px; }
-.kit-version-strip.update-available { border-color: #6a5a3a; background: #1a1810; }
-.kit-version-badge { font-weight: 600; color: var(--accent); }
-.kit-update-hint { color: #cc9; font-size: 0.82rem; flex: 1 1 12rem; }
+.kit-version-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; font-size: 0.84rem; margin-bottom: 1rem; padding: 0.65rem 0.85rem; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+.kit-version-strip.update-available { border-color: #3a3322; background: var(--panel); }
+.kit-version-badge { font-weight: 600; color: var(--ink); }
+.kit-update-hint { color: var(--warn); font-size: 0.82rem; flex: 1 1 12rem; }
 .kit-update-hint code { font-size: 0.78rem; }
 .kit-upgrade-btn { font-size: 0.82rem; padding: 0.35rem 0.75rem; white-space: nowrap; }
 .kit-upgrade-msg { font-size: 0.8rem; color: var(--muted); }
+.view{display:none}.view.active{display:block}
+.back-btn{display:inline-flex;align-items:center;gap:7px;margin-bottom:22px;color:var(--ink-soft)}
+.back-btn:hover{color:var(--ink)}
+.fp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
+.fp-head h3{font-size:24px;font-weight:680;margin:0}
+.detail-section{margin:18px 0}
+.detail-section h4{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 
-.control-panel { border-color: #3a4a5a; }
+.control-panel { border-color: var(--line-2); }
 .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem 1.25rem; margin-top: 0.5rem; }
 .control-toggle { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.84rem; cursor: pointer; }
 .control-toggle input { margin-top: 0.2rem; }
 .control-toggle span { line-height: 1.35; }
-.control-status { font-size: 0.82rem; margin: 0.65rem 0 0; padding: 0.55rem 0.65rem; background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; }
-.control-status.warn { border-color: #665; color: #cc9; }
-.control-status.ok { border-color: #484; color: #9c9; }
+.control-status { font-size: 0.82rem; margin: 0.65rem 0 0; padding: 0.55rem 0.65rem; background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; }
+.control-status.warn { border-color: #3a3322; color: var(--warn); }
+.control-status.ok { border-color: #2c3e30; color: var(--ok); }
 .control-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; align-items: center; }
 .control-save-msg { font-size: 0.78rem; color: var(--muted); }
-.control-offline { border-color: #844; background: #1a1010; color: #daa; font-size: 0.82rem; padding: 0.55rem 0.65rem; border-radius: 8px; margin-bottom: 0.65rem; }
+.control-offline { border-color: var(--stop); background: var(--panel-2); color: var(--stop); font-size: 0.82rem; padding: 0.55rem 0.65rem; border-radius: 8px; margin-bottom: 0.65rem; }
 
 
-.workflow-panel { border-color: #4a3a5a; margin-top: 0; }
+.workflow-panel { border-color: var(--line-2); margin-top: 0; }
 .control-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.84rem; }
 .control-field label { color: var(--muted); font-size: 0.78rem; }
-.control-field select { background: #1a1a1a; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
+.control-field select { background: var(--panel-2); border: 1px solid var(--border); color: var(--ink); border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
 .workflow-hint { font-size: 0.78rem; color: var(--muted); margin: 0.5rem 0 0; }
 
 @media (max-width: 720px) {
@@ -180,9 +190,10 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 </style>
 </head>
 <body>
+  <div id="view-dashboard" class="view active">
   <h1>Mission Control v4</h1>
   <p class="subtitle">Orchestrator-driven pipeline — Project START and Add Feature. Drill into a card for spec, plans, mocks, journal, and tasks.</p>
-  <p class="top-meta">Generated 2026-05-24T21:45:31.020Z · All content embedded — open this file directly, no external links required.</p>
+  <p class="top-meta">Generated 2026-05-27T23:05:47.529Z · All content embedded — open this file directly, no external links required.</p>
 
   
 
@@ -248,9 +259,80 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
     <p class="workflow-hint" id="workflow-hint">Default: SDD + TDD with full review chain. Orchestrator confirms session intent at every <code>/mc</code> start.</p>
   </div>
 
-  <details class="guide-disclosure panel" open>
-    <summary>How to use Mission Control</summary>
+  <p class="notice">Tech stack not established — run <code>/mc-init</code> for an existing codebase, or <code>/mc-start</code> for a brand-new product.</p>
+
+  <div class="panel">
+    <h2>In progress</h2>
+    <p class="muted">0 items building · expand for tasks, commits, and pickup prompt</p>
+    <div class="stack-line"><strong>Stack:</strong> — · —</div>
+    <div id="in-progress-strip" class="in-progress-list-root"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Build order</h2>
+    <p class="muted">Recommended sequence from <code>/mc-portfolio</code> dependency analysis — build top to bottom.</p>
+    <div id="build-order-panel"><div class="order-columns"><div class="order-column">
+    <div class="order-column-head">
+      <h3>UX features</h3>
+      <span class="badge order-badge-unset">Not set</span>
+    </div>
+    <p class="muted">No build order yet — run &lt;code&gt;/mc-portfolio&lt;/code&gt; after 2+ approved specs.</p>
+    <p class="order-hint muted">Not set — run /mc-portfolio when you have 2+ approved specs</p><p class="order-unlisted muted">Not in order: <code>safe-upgrade</code></p></div><div class="order-column">
+    <div class="order-column-head"><h3>Tech setup</h3></div>
+    <p class="muted">No setup order — items appear as you add them via &lt;code&gt;/mc-init&lt;/code&gt; or &lt;code&gt;/mc-braindump&lt;/code&gt;.</p>
+    <p class="order-hint muted">Not set — add items via /mc-init or /mc-braindump</p></div></div></div>
+  </div>
+
+  <details class="handoff-collapsed panel">
+    <summary>Full session handoff (all features)</summary>
+    <pre class="handoff-pre" id="handoff-text"># Mission Control Handoff
+
+No active session. Run `/mc-start` for a new product or `/mc-feature` to add a capability.
+</pre>
+    <button type="button" class="btn" id="copy-handoff">Copy full handoff</button>
+  </details>
+
+  <div class="panel">
+    <h2>All work</h2>
+    <div class="toolbar">
+      <label>Search <input type="search" id="filter-search" placeholder="Feature name…" /></label>
+      <label>Type
+        <select id="filter-type">
+          <option value="all">All</option>
+          <option value="feature">Features</option>
+          <option value="tech-stack">Tech stack</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="filter-status">
+          <option value="all">All</option>
+          <option value="in-progress">In progress only</option>
+          <option value="build">Building</option>
+          <option value="plan">Plan</option>
+          <option value="layout">Layout</option>
+          <option value="spec">Spec</option>
+          <option value="done">Complete</option>
+        </select>
+      </label>
+      <label>Sort
+        <select id="filter-sort">
+          <option value="lastUpdated">Last updated</option>
+          <option value="id">Name</option>
+          <option value="stage">Status</option>
+          <option value="progress">Progress</option>
+          <option value="currentTask">Current task</option>
+          <option value="order">Build order</option>
+        </select>
+      </label>
+    </div>
+    <div id="mc-work-grid" class="work-grid"></div>
+  </div>
+
+  <details class="guide panel">
+    <summary>How to use Mission Control <span class="guide-hint muted">commands &amp; workflow reference</span></summary>
     <div class="guide-body">
+      <div class="cmd-list"><div class="cmd"><code>/mc-start</code><span class="desc">Brand-new product — market validation, stack, portfolio</span><button type="button" class="copy-cmd" data-cmd="/mc-start">Copy</button></div><div class="cmd"><code>/mc-init</code><span class="desc">Existing codebase — establish tech stack once (required before Add Feature)</span><button type="button" class="copy-cmd" data-cmd="/mc-init">Copy</button></div><div class="cmd"><code>/mc-feature</code><span class="desc">New capability — design, PRD, mock, plan, build</span><button type="button" class="copy-cmd" data-cmd="/mc-feature">Copy</button></div><div class="cmd"><code>/mc</code><span class="desc">Resume where disk left off</span><button type="button" class="copy-cmd" data-cmd="/mc">Copy</button></div><div class="cmd"><code>/mc-portfolio</code><span class="desc">Approve build order when multiple features exist</span><button type="button" class="copy-cmd" data-cmd="/mc-portfolio">Copy</button></div><div class="cmd"><code>/mc-handoff</code><span class="desc">Chat summary before /clear</span><button type="button" class="copy-cmd" data-cmd="/mc-handoff">Copy</button></div><div class="cmd"><code>/mc-upgrade</code><span class="desc">Update the kit</span><button type="button" class="copy-cmd" data-cmd="/mc-upgrade">Copy</button></div></div>
+      
       <section class="guide-section">
         <h3>Commands</h3>
         <table class="guide-table">
@@ -339,148 +421,39 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
       </section>
     </div>
   </details>
-
-  <p class="notice">Tech stack not established — run <code>/mc-init</code> for an existing codebase, or <code>/mc-start</code> for a brand-new product.</p>
-
-  <div class="panel">
-    <h2>In progress</h2>
-    <p class="muted">0 items building · expand for tasks, commits, and pickup prompt</p>
-    <div class="stack-line"><strong>Stack:</strong> — · —</div>
-    <div id="in-progress-strip" class="in-progress-list-root"></div>
   </div>
 
-  <div class="panel">
-    <h2>Build order</h2>
-    <p class="muted">Recommended sequence from <code>/mc-portfolio</code> dependency analysis — build top to bottom.</p>
-    <div id="build-order-panel"><div class="order-columns"><div class="order-column">
-    <div class="order-column-head">
-      <h3>UX features</h3>
-      <span class="badge order-badge-unset">Not set</span>
+  <div id="view-feature" class="view">
+    <button type="button" class="btn back-btn" id="detail-back">‹ Back to dashboard</button>
+    <div class="fp-head">
+      <h3 id="detail-title">—</h3>
+      <button type="button" class="btn btn-primary" id="detail-copy-pickup">Copy pickup prompt</button>
     </div>
-    <p class="muted">No build order yet — run &lt;code&gt;/mc-portfolio&lt;/code&gt; after 2+ approved specs.</p>
-    <p class="order-hint muted">Not set — run /mc-portfolio when you have 2+ approved specs</p><p class="order-unlisted muted">Not in order: <code>safe-upgrade</code></p></div><div class="order-column">
-    <div class="order-column-head"><h3>Tech setup</h3></div>
-    <p class="muted">No setup order — items appear as you add them via &lt;code&gt;/mc-init&lt;/code&gt; or &lt;code&gt;/mc-braindump&lt;/code&gt;.</p>
-    <p class="order-hint muted">Not set — add items via /mc-init or /mc-braindump</p></div></div></div>
-  </div>
-
-  <details class="handoff-collapsed panel">
-    <summary>Full session handoff (all features)</summary>
-    <pre class="handoff-pre" id="handoff-text"># Mission Control Handoff
-
-No active session. Run `/mc-start` for a new product or `/mc-feature` to add a capability.
-</pre>
-    <button type="button" class="btn" id="copy-handoff">Copy full handoff</button>
-  </details>
-
-  <div class="panel">
-    <h2>All work</h2>
-    <div class="toolbar">
-      <label>Search <input type="search" id="filter-search" placeholder="Feature name…" /></label>
-      <label>Type
-        <select id="filter-type">
-          <option value="all">All</option>
-          <option value="feature">Features</option>
-          <option value="tech-stack">Tech stack</option>
-        </select>
-      </label>
-      <label>Status
-        <select id="filter-status">
-          <option value="all">All</option>
-          <option value="in-progress">In progress only</option>
-          <option value="build">Building</option>
-          <option value="plan">Plan</option>
-          <option value="layout">Layout</option>
-          <option value="spec">Spec</option>
-          <option value="done">Complete</option>
-        </select>
-      </label>
-      <label>Sort
-        <select id="filter-sort">
-          <option value="lastUpdated">Last updated</option>
-          <option value="id">Name</option>
-          <option value="stage">Status</option>
-          <option value="progress">Progress</option>
-          <option value="currentTask">Current task</option>
-          <option value="order">Build order</option>
-        </select>
-      </label>
-    </div>
-    <div id="mc-work-grid" class="work-grid"></div>
-  </div>
-
-  <div id="mc-detail" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div>
-          <h3 id="detail-title">—</h3>
-          <p id="detail-meta" class="muted"></p>
-        </div>
-        <div class="detail-actions">
-          <button type="button" class="btn btn-primary" id="detail-copy-pickup">Copy pickup prompt</button>
-          <button type="button" class="btn" id="detail-close">Close</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p class="muted">Paste into the <strong>Orchestrator chat</strong> (same session if active, or <code>/mc</code> to resume):</p>
-        <pre class="pickup-pre" id="detail-pickup"></pre>
-        <div class="detail-section">
-          <h4>Pipeline steps</h4>
-          <div id="detail-steps"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Braindump</h4>
-          <div id="detail-braindump"></div>
-        </div>
-        <div class="detail-section">
-          <h4>PRD / Spec</h4>
-          <div id="detail-spec"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Exploration findings</h4>
-          <div id="detail-explore"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Skill findings</h4>
-          <p class="muted">Research, strategy, and interaction HTML layouts (self-contained selection-deck pages) — review before build when decision review is on.</p>
-          <div id="detail-skill-findings"></div>
-        </div>
-        <div class="detail-section" id="detail-wireframes-section">
-          <h4>UI mockups</h4>
-          <div id="detail-wireframes"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Layout notes</h4>
-          <div id="detail-layout-doc"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Implementation plans</h4>
-          <div id="detail-phases"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Build tasks</h4>
-          <div id="detail-tasks"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Subagent journal</h4>
-          <div id="detail-journal"></div>
-        </div>
-        <div class="detail-section" id="detail-screenshots-section">
-          <h4>E2E screenshots</h4>
-          <div id="detail-screenshots"></div>
-        </div>
-      </div>
-    </div>
+    <p id="detail-meta" class="muted"></p>
+    <p class="muted">Paste into the <strong>Orchestrator chat</strong> (same session if active, or <code>/mc</code> to resume):</p>
+    <pre class="pickup-pre" id="detail-pickup"></pre>
+    <div class="detail-section"><h4>Pipeline steps</h4><div id="detail-steps"></div></div>
+    <div class="detail-section"><h4>Braindump</h4><div id="detail-braindump"></div></div>
+    <div class="detail-section"><h4>PRD / Spec</h4><div id="detail-spec"></div></div>
+    <div class="detail-section"><h4>Exploration findings</h4><div id="detail-explore"></div></div>
+    <div class="detail-section"><h4>Skill findings</h4><p class="muted">Research, strategy, and interaction HTML layouts — review before build when decision review is on.</p><div id="detail-skill-findings"></div></div>
+    <div class="detail-section" id="detail-wireframes-section"><h4>UI mockups</h4><div id="detail-wireframes"></div></div>
+    <div class="detail-section"><h4>Layout notes</h4><div id="detail-layout-doc"></div></div>
+    <div class="detail-section"><h4>Implementation plans</h4><div id="detail-phases"></div></div>
+    <div class="detail-section"><h4>Build tasks</h4><div id="detail-tasks"></div></div>
+    <div class="detail-section"><h4>Subagent journal</h4><div id="detail-journal"></div></div>
+    <div class="detail-section" id="detail-screenshots-section"><h4>E2E screenshots</h4><div id="detail-screenshots"></div></div>
   </div>
 
   <p class="footer">Regenerate: <code>node docs/superpowers/control/scripts/generate-dashboard.mjs</code> · Control panel: <code>node docs/superpowers/control/scripts/dashboard-server.mjs</code></p>
 
-  <script>window.MC_ITEMS = [{"id":"safe-upgrade","workstream":"feature","type":"Feature","stage":"Complete","stageKey":"done","pipelineStage":"done","specStatus":"approved","layoutStatus":"—","targetCodebases":[],"stepTimeline":[{"id":"done","label":"Complete","status":"in-progress"}],"progress":{"done":13,"total":13,"pct":100},"lastUpdated":"2026-05-24T18:00:00.000Z","lastUpdatedDisplay":"2026-05-24","currentTaskId":"—","currentTaskTitle":"","workingTaskId":null,"workingTaskTitle":"","hasWorkingTask":false,"branch":"—","order":null,"inProgress":false,"isBuilding":false,"nextCommand":null,"pickupPrompt":"You are the ORCHESTRATOR. Do not implement code, PRDs, plans, or mock HTML yourself.\nYour job: read disk → confirm session intent (AskQuestion) → dispatch subagents → read journal files → update status → regenerate dashboard.\nSESSION START: Ask pipeline scope + decision review before first dispatch (SESSION-INTENT.md). Pickup paste does not skip this.\nCONTINUOUS RUN: advance through pipeline stages in THIS session — do not stop between stages or tell the user to start a new chat (unless sessionIntent.pipelineScope is planning-only at build gate).\n\nContinue Mission Control v3 — UX feature: safe-upgrade\n\nRead first:\n- docs/superpowers/control/ORCHESTRATOR.md\n- docs/superpowers/control/PIPELINE.md\n- docs/superpowers/control/JOURNAL-RULES.md\n- docs/superpowers/control/HANDOFF.md\n- docs/superpowers/control/WORKFLOW-CONTROLS.md\n- docs/superpowers/control/.mc/orchestrator-controls.json\n- docs/superpowers/control/features/safe-upgrade/status.json\n- docs/superpowers/control/features/safe-upgrade/journal/ (latest entries)\n\nPipeline stage: done (Complete)\n\nWorkflow controls (.mc/orchestrator-controls.json):\n- buildWorkflow.mode: sdd+tdd\n- buildWorkflow.reviewChain: full\n- planWorkflow.mode: subagent-driven\n- build vendor skills: subagent-driven-development, test-driven-development\nRead docs/superpowers/control/WORKFLOW-CONTROLS.md\nBuild: subagent-driven-development — fresh implementer per task; implementer MUST invoke test-driven-development.\nReview chain: implementer → spec reviewer → quality reviewer → gates → commit.\nPlan: mc-platform-plan subagent; build runs in same orchestrator session (subagent-driven).\n\nSession intent (.mc/orchestrator-controls.json → sessionIntent):\n- pipelineScope: full-pipeline — Advance through planning then dispatch build subagents in this session.\n- decisionReview: review-first — Pause after skill findings; summarize decisions and ask before proceeding.\nRead docs/superpowers/control/SESSION-INTENT.md\nFull pipeline: continuous run through build unless user pauses.\nReview-first: after skill stages, summarize key decisions in chat and AskQuestion before next dispatch.\n\nContinue the pipeline in this session — run /mc only if resuming after interruption.","tasks":[{"id":"1.1","title":"Upgrade manifest and preserve rules","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.2","title":"Upgrade engine CLI","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.3","title":"Wire install.sh and mc-upgrade skill","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.4","title":"Dashboard version strip","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.5","title":"Integration test spec survives upgrade","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"2.1","title":"Remote fetch from GitHub Releases","status":"done","updatedAt":"2026-05-24T15:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"2.2","title":"Run-Updater and upgrade.sh","status":"done","updatedAt":"2026-05-24T15:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"2.3","title":"Custom overlay dir + command cleanup","status":"done","updatedAt":"2026-05-24T15:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.1","title":"Release tarball builder","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.2","title":"GitHub Actions release workflow","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.3","title":"Windows Install vs Update HTA","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.4","title":"PUBLISH.md + manifest repo config","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.5","title":"Release bundle tests","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null}],"braindump":"# Safe upgrade mechanism\n\n**Slug:** `safe-upgrade`\n**Date:** 2026-05-24\n\n## Idea\n\nPublish Mission Control Kit v4 as a tool others can install. Users need a **programmatic upgrade path** that refreshes kit runtime (orchestrator docs, skills, scripts) without overwriting their specs, features, journals, or project state.\n\n## Target codebase\n\n- `mission-control-kit/` (this repo — kit source and dogfood target)\n- Installed projects: `docs/superpowers/control/` + `.claude/skills/` + kit folder in project root\n\n## Requirements (from product discussion)\n\n1. Built-in update mechanism — `mc upgrade` / `/mc-upgrade`\n2. User files, specs, features never overwritten\n3. Programmatic, testable (TDD)\n4. Non-dev friendly: dashboard update notice, chat command, installer \"Update\" mode\n5. Version stamp + migration hook for future schema changes\n6. Dry-run and backup before apply\n\n## Tech-stack path\n\nSkip mock/interaction — infrastructure feature, no UI mock beyond dashboard version strip.\n\n## Out of scope (v1)\n\n- Download from GitHub releases (local kit folder only)\n- Electron desktop app\n- `_kit/` vs `custom/` split (use preserve globs first)\n","spec":"# Safe upgrade — Mission Control Kit\n\n**Slug:** `safe-upgrade`\n**Status:** approved\n**Created:** 2026-05-24\n**Last updated:** 2026-05-24\n\n## Problem\n\nPublishing MC v4 requires users to upgrade the kit without losing work. Today `install.sh` overwrites the entire control plane; only three files are restored. Re-running install is unsafe for teams with specs, journals, and custom control edits.\n\n## Desired outcome\n\nA user (developer or PM) can run **`/mc-upgrade`** or click **Update** in the dashboard and get:\n\n- New orchestrator docs, skills, scripts, and dashboard template\n- Refreshed vendor skill bundles (pinned refs)\n- **Unchanged** feature specs, braindumps, explore findings, journals, phase plans, project artifacts, `state.json`, `HANDOFF.md`, and user `tech-stack/stack.json`\n- A backup before apply and a readable upgrade report\n- `npm test` proof the upgrader preserves user data\n\n## User stories\n\n### As a kit user, I want to upgrade safely\n\n```\nAs a kit user,\nI want to upgrade Mission Control without losing my feature specs,\nSo that I can adopt kit improvements while keeping my product work intact.\n\nAcceptance criteria:\n- Running upgrade on a project with features/*/spec.md leaves spec content byte-identical\n- state.json, HANDOFF.md, tech-stack/stack.json preserved\n- Kit docs (ROUTER.md, scripts/) updated to latest kit version\n- .mc/install.json records new kitVersion and migrationsApplied\n- Upgrade creates .mc/backups/{timestamp}/ before apply\n```\n\n### As a PM, I want a simple upgrade path\n\n```\nAs a PM using Mission Control,\nI want to see if an update is available in the dashboard,\nSo that I don't need terminal commands.\n\nAcceptance criteria:\n- Dashboard shows installed kit version\n- When kit version > installed version, show \"Update available\" with instructions\n- Guide disclosure mentions /mc-upgrade\n```\n\n### As a maintainer, I want programmatic migrations\n\n```\nAs a kit maintainer,\nI want schema migrations to run on upgrade,\nSo that status.json format changes don't break old projects.\n\nAcceptance criteria:\n- migrations/*.mjs run in order when kit version increases\n- Migrations only touch metadata (status.json, state.json keys) — never spec.md body\n- Dry-run lists migrations that would run\n```\n\n## Scope\n\n### In scope (v1)\n\n- `kit-manifest.json` at kit root (version, migrations list)\n- `lib/mc-upgrade.mjs` — preserve rules, sync, backup, migrate, report\n- `scripts/mc-upgrade.mjs` CLI (`--check`, `--dry-run`, `--install`)\n- `control/.mc/install.json` stamp written on install/upgrade\n- Refactor `install.sh` to delegate control sync to `mc-upgrade --install`\n- `/mc-upgrade` command + `mc-upgrade` skill\n- Dashboard version strip + update hint\n- TDD: unit + integration tests (user spec survives upgrade)\n\n### Out of scope\n\n- Remote download from GitHub releases\n- `_kit/` / `custom/` overlay filesystem\n- Auto-update without user action\n- Windows `.hta` Update button (document only in v1)\n\n## Technical considerations\n\n- **Preserve globs:** `features/*/` (except `_template`), `project/`, user tech-stack slugs, `.mc/backups/`\n- **Always sync:** control root docs, `control/scripts/`, templates, skills, commands\n- **Regenerate:** `dashboard.html` (never merge)\n- **Vendor:** re-run bundle script after kit sync\n\n## Decisions\n\n| Date | Decision | Rationale |\n|------|----------|-----------|\n| 2026-05-24 | Preserve globs over `_kit/` split | Smaller v1 diff; matches current install layout |\n| 2026-05-24 | install.sh calls mc-upgrade | Single code path for install and upgrade |\n| 2026-05-24 | Bump kit to 4.1.0 | First version with upgrade manifest |\n\n## Open questions\n\n- [x] Remote fetch — deferred; local kit folder only in v1\n","layoutDoc":null,"exploreDocs":[{"file":"kit.md","label":"kit","format":"html","html":"\u003c!DOCTYPE html>\n\u003chtml lang=\"en\">\n\u003chead>\n  \u003cmeta charset=\"utf-8\" />\n  \u003ctitle>Explore — kit\u003c/title>\n  \u003cstyle>/* Mission Control layout wireframes — structure only. Black / white / gray. No brand styling. */\r\n:root { color-scheme: light; }\r\n* { box-sizing: border-box; margin: 0; padding: 0; }\r\nbody {\r\n  font-family: ui-sans-serif, system-ui, sans-serif;\r\n  background: #f5f5f5; color: #111; font-size: 14px; line-height: 1.4;\r\n}\r\n.wf-page { max-width: 100%; min-height: 100vh; background: #fff; border: 2px solid #111; }\r\n.wf-label {\r\n  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;\r\n  color: #666; background: #eee; padding: 2px 6px; display: inline-block;\r\n}\r\n.wf-region {\r\n  border: 2px dashed #999; background: #fafafa; padding: 12px; position: relative;\r\n}\r\n.wf-region > .wf-label { position: absolute; top: 4px; left: 4px; }\r\n.wf-region-body { margin-top: 20px; min-height: 24px; color: #444; }\r\n.wf-bar { background: #e5e5e5; border-bottom: 2px solid #111; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }\r\n.wf-bar-dark { background: #222; color: #fff; }\r\n.wf-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #111; background: #ccc; }\r\n.wf-dot-close { background: #888; }\r\n.wf-nav-item { padding: 6px 10px; border: 1px solid #666; background: #fff; font-size: 12px; }\r\n.wf-nav-item-active { background: #ddd; font-weight: 600; }\r\n.wf-tab-bar { display: flex; border-top: 2px solid #111; background: #eee; }\r\n.wf-tab { flex: 1; text-align: center; padding: 10px 4px; border-right: 1px solid #999; font-size: 11px; }\r\n.wf-tab:last-child { border-right: none; }\r\n.wf-tab-active { background: #ccc; font-weight: 600; }\r\n.wf-sidebar { width: 200px; border-right: 2px solid #111; background: #f0f0f0; padding: 12px; flex-shrink: 0; }\r\n.wf-main { flex: 1; padding: 16px; overflow: auto; }\r\n.wf-row { display: flex; min-height: 100vh; }\r\n.wf-stack { display: flex; flex-direction: column; min-height: 100vh; }\r\n.wf-phone { max-width: 390px; margin: 0 auto; min-height: 100vh; border-left: 2px solid #111; border-right: 2px solid #111; }\r\n.wf-desktop { min-height: 100vh; }\r\n.wf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }\r\n.wf-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }\r\n.wf-hero { border: 2px solid #111; padding: 32px 24px; background: #eee; text-align: center; }\r\n.wf-hero h1 { font-size: 1.5rem; font-weight: 700; color: #111; }\r\n.wf-hero p { color: #555; margin-top: 8px; }\r\n.wf-card { border: 1px solid #666; padding: 12px; background: #fff; }\r\n.wf-btn { display: inline-block; padding: 8px 16px; border: 2px solid #111; background: #fff; font-size: 13px; }\r\n.wf-btn-primary { background: #333; color: #fff; }\r\n.wf-slot { border: 1px dotted #888; padding: 8px; min-height: 40px; color: #777; font-size: 12px; }\r\n\u003c/style>\n\u003c/head>\n\u003cbody>\n\u003cdiv class=\"wf-page wf-desktop\">\n  \u003csection class=\"wf-hero\">\u003cspan class=\"wf-label\">Research\u003c/span>\u003ch1 style=\"margin-top:16px\">Explore — kit\u003c/h1>\u003c/section>\n  \u003cdiv style=\"padding:24px\">\n    \u003csection class=\"wf-region\" style=\"margin-bottom:16px\">\u003cspan class=\"wf-label\">Summary\u003c/span>\u003cdiv class=\"wf-region-body\">\u003cdiv class=\"wf-card\">\u003cstrong>Overview\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">Explore — mission-control-kit\u003c/p>\u003c/div>\u003c/div>\u003c/section>\n\u003csection class=\"wf-region\" style=\"margin-bottom:16px\">\u003cspan class=\"wf-label\">Section\u003c/span>\u003cdiv class=\"wf-region-body\">\u003cdiv class=\"wf-card\">\u003cstrong>Current install (`install.sh`)\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">- `cp -R control/.` → project `docs/superpowers/control/` — **overwrites all control files**\n- Only restores: `state.json`, `HANDOFF.md`, `tech-stack/stack.json`\n- Skills/commands: full copy (overwrite)\n- Vendor: `bundle-vendor-skills.sh`\n- Dashboard: regenerated via `generate-dashboard.mjs`\n\n**Risk:** User edits to control docs, any `features/*/`, `project/`, journals, specs — all clobbered on reinstall.\u003c/p>\u003c/div>\u003c/div>\u003c/section>\n\u003csection class=\"wf-region\" style=\"margin-bottom:16px\">\u003cspan class=\"wf-label\">Section\u003c/span>\u003cdiv class=\"wf-region-body\">\u003cdiv class=\"wf-card\">\u003cstrong>Existing assets to reuse\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">| Asset | Role in upgrade |\n|-------|-------------------|\n| `vendor/manifest.json` | Pin vendor bundle refs |\n| `scripts/check-vendor-skills.mjs` | Post-upgrade verify |\n| `scripts/bundle-vendor-skills.sh` | Refresh vendor skills |\n| `control/scripts/generate-dashboard.mjs` | Regenerate dashboard |\n| `control/scripts/migrate-features-v3.mjs` | Pattern for migrations |\n| `package.json` + `tests/*.test.mjs` | BUILD-GATES |\n| `install.sh` backup/restore | Extend to preserve globs |\u003c/p>\u003c/div>\u003c/div>\u003c/section>\n\u003csection class=\"wf-region\" style=\"margin-bottom:16px\">\u003cspan class=\"wf-label\">Section\u003c/span>\u003cdiv class=\"wf-region-body\">\u003cdiv class=\"wf-card\">\u003cstrong>Kit layout\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">```\nmission-control-kit/\n  control/          → sync to project (with preserve rules)\n  claude-skills/    → .claude/skills/\n  skills/           → .cursor/skills/\n  commands/         → .cursor/commands/\n  scripts/          → stays in kit folder\n  lib/              → mc-router.mjs today; add mc-upgrade.mjs\n```\u003c/p>\u003c/div>\u003c/div>\u003c/section>\n\u003csection class=\"wf-region\" style=\"margin-bottom:16px\">\u003cspan class=\"wf-label\">Section\u003c/span>\u003cdiv class=\"wf-region-body\">\u003cdiv class=\"wf-card\">\u003cstrong>Test harness\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">- `sample-project/` — integration install target\n- `npm test` — 45+ tests; add upgrade tests\u003c/p>\u003c/div>\u003c/div>\u003c/section>\n\u003csection class=\"wf-region\" style=\"margin-bottom:16px\">\u003cspan class=\"wf-label\">Section\u003c/span>\u003cdiv class=\"wf-region-body\">\u003cdiv class=\"wf-card\">\u003cstrong>Gaps\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">- No `kit-manifest.json` or install stamp\n- No `mc-upgrade.mjs`\n- No `/mc-upgrade` command or skill\n- Dashboard has guide but no version/update strip\u003c/p>\u003c/div>\u003c/div>\u003c/section>\n  \u003c/div>\n\u003c/div>\n\u003c/body>\n\u003c/html>"}],"skillFindings":[],"phaseDocs":[{"file":"phase-1.md","label":"phase-1","content":"# Phase 1 — Safe upgrade core\n\n**Feature:** safe-upgrade\n**Goal:** Programmatic upgrade with user-data preservation and TDD proof.\n\n---\n\n### Task 1.1: Upgrade manifest and preserve rules\n\nAdd `kit-manifest.json` and `lib/mc-upgrade.mjs` with:\n- `shouldPreserve(relPath)` for control-plane paths\n- `getKitVersion()`, `readInstallStamp()`, `writeInstallStamp()`\n- Version compare helpers\n\n**Verify:** `node --test tests/upgrade.test.mjs` (preserve rules)\n\n---\n\n### Task 1.2: Upgrade engine CLI\n\nAdd `scripts/mc-upgrade.mjs`:\n- `--install` (first install stamp)\n- `--check` (exit 1 if update available)\n- `--dry-run` (print sync plan)\n- Default: backup → sync control (preserve user) → sync skills/commands → bundle vendors → migrations → regenerate dashboard → write report\n\n**Verify:** unit tests pass\n\n---\n\n### Task 1.3: Wire install.sh and mc-upgrade skill\n\n- `install.sh` calls `node scripts/mc-upgrade.mjs \"$PROJECT_ROOT\" --install`\n- Add `commands/mc-upgrade.md`, `claude-skills/mc-upgrade/SKILL.md`, `skills/mc-upgrade/SKILL.md`\n- Register in ROUTER.md and dashboard guide\n\n**Verify:** integration test\n\n---\n\n### Task 1.4: Dashboard version strip\n\nUpdate `dashboard-template.mjs` + `dashboard-guide.mjs`:\n- Show installed version from `.mc/install.json` when embedded at generate time\n- \"Update available\" when kit manifest version > installed\n\n**Verify:** dashboard-guide test updated\n\n---\n\n### Task 1.5: Integration test — spec survives upgrade\n\nTest flow:\n1. Install to temp project\n2. Write custom `features/test-feat/spec.md`\n3. Run upgrade\n4. Assert spec unchanged; ROUTER.md updated; install.json version bumped\n\n**Verify:** `npm test` all green\n\n---\n\n### Task 1.6: MC journals and status\n\nWrite journals for prd/plan/build/validate. Set `pipelineStage: done`, regenerate kit control dashboard if applicable.\n\n**Verify:** feature status.json updated\n"},{"file":"phase-2.md","label":"phase-2","content":"# Phase 2 — Publish & fetch\n\n**Feature:** safe-upgrade (continued)\n**Goal:** Remote release fetch, PM-friendly updater, custom overlays, v4 command cleanup.\n\n---\n\n### Task 2.1: GitHub release fetch\n\n`lib/fetch-kit-release.mjs` + `mc-upgrade --fetch --repo=owner/repo`\n\n### Task 2.2: User-Guide + Run-Updater\n\n`User-Guide.html` v4 with Install / Update sections. `Run-Updater.command`, `upgrade.sh`.\n\n### Task 2.3: custom/ overlay\n\nPreserve `control/custom/**` on upgrade; migration seeds README.\n\n### Task 2.4: Command cleanup\n\nThin `mc-braindump` alias; deprecate v3 stage commands; `commands/legacy/README.md`.\n\n### Task 2.5: Tests + bump 4.2.0\n\nfetch-release unit tests; integration stamp 4.2.0; full npm test.\n"},{"file":"phase-3.md","label":"phase-3","content":"# Phase 3 — Release automation & publish\n\n**Feature:** safe-upgrade (continued)\n**Kit version:** 4.3.0\n\n---\n\n### Task 3.1: Release tarball builder\n\n`scripts/build-release-tarball.mjs` → `dist/mission-control-kit-{version}.tar.gz`\n\nExcludes vendor clones, caches, sample-project skill copies.\n\n### Task 3.2: GitHub Actions workflow\n\n`.github/workflows/mc-kit-release.yml` on tag `mc-kit-v*`: test → build → gh release asset.\n\n### Task 3.3: Windows Install vs Update\n\n`Run-Installer.hta` — dialog with Install / Update buttons.\n`Run-Updater.hta`, `upgrade.bat`.\n\n### Task 3.4: PUBLISH.md + manifest repo\n\n`release.github`: `MalakHimse1f/Shape-Up-Docs`\n\n### Task 3.5: Tests\n\n`tests/release-bundle.test.mjs` — excludes + tarball smoke extract.\n"}],"journalEntries":[{"file":"001-prd.md","label":"prd","content":"---\nstep: prd\nsubagent: mc-prd\nstatus: DONE\nfeature: safe-upgrade\ncompletedAt: 2026-05-24T12:00:00.000Z\n---\n\n# PRD — safe-upgrade\n\n## Summary\n\nApproved spec for programmatic safe upgrade. prd-generator workflow applied via MC braindump + explore inputs. spec.md covers preserve rules, mc-upgrade CLI, dashboard version strip, and TDD acceptance.\n\n## Outputs\n\n- `features/safe-upgrade/spec.md`\n"},{"file":"002-build-phase-1.md","label":"build-phase-1","content":"---\nstep: build\nsubagent: implementer\nstatus: DONE\nfeature: safe-upgrade\ntaskId: 1.5\ncompletedAt: 2026-05-24T12:00:00.000Z\n---\n\n# Build — safe-upgrade phase 1\n\n## Summary\n\nImplemented lib/mc-upgrade.mjs, scripts/mc-upgrade.mjs, kit-manifest.json, migrations, install.sh delegation, /mc-upgrade command+skill, dashboard version strip.\n\n## Verification\n\n- test: `npm test` → all pass\n- integration: user spec preserved across upgrade in temp project\n"},{"file":"phase-3-build.md","label":"phase-3-build","content":"# Journal — safe-upgrade phase 3\n\n**Date:** 2026-05-24  \n**Kit version:** 4.3.0\n\n## Shipped\n\n- `scripts/build-release-tarball.mjs` — produces `dist/mission-control-kit-{version}.tar.gz` (273 files, ~0.23 MB)\n- `.github/workflows/mc-kit-release.yml` — tag `mc-kit-v*` → test → build → GitHub Release asset\n- `Run-Installer.hta` — Install / Update dialog; `Run-Updater.hta` + `upgrade.bat` for update-only\n- `PUBLISH.md` — tag format, checklist, manual `gh release create`\n- `kit-manifest.json` — `release.github`: `MalakHimse1f/Shape-Up-Docs`\n- `tests/release-bundle.test.mjs` — exclude rules + tarball extract smoke\n\n## Verification\n\n```\nnpm test → 70/70 pass\nnode scripts/build-release-tarball.mjs → dist/mission-control-kit-4.3.0.tar.gz\n```\n\n## Publish (when ready)\n\n```bash\ngit add mission-control-kit/ .github/workflows/mc-kit-release.yml\ngit commit -m \"Release Mission Control Kit v4.3.0\"\ngit tag mc-kit-v4.3.0\ngit push origin main\ngit push origin mc-kit-v4.3.0\n```\n\nActions uploads the tarball; users can `--fetch` or download from Releases.\n"},{"file":"phase-3-public-repo.md","label":"phase-3-public-repo","content":"# Journal — dedicated public repo\n\n**Date:** 2026-05-24\n\n## Shipped\n\n- Public repo: `MalakHimse1f/mission-control-kit`\n- Kit at repo root; tarball still extracts as `mission-control-kit/` in user projects\n- `release.github` → public repo\n- Shape-Up copy is mirror (`SOURCE.md`); releases publish from public repo only\n- Removed Shape-Up-specific `migrate-features-v3.mjs` from public copy\n- MIT LICENSE, updated README + PUBLISH.md\n"}],"wireframes":[],"screenshots":[]}];window.MC_DEFAULT_SORT = "lastUpdated";</script>
+  <script>window.MC_ITEMS = [{"id":"safe-upgrade","workstream":"feature","type":"Feature","stage":"Complete","stageKey":"done","pipelineStage":"done","specStatus":"approved","layoutStatus":"—","targetCodebases":[],"stepTimeline":[{"id":"done","label":"Complete","status":"in-progress"}],"progress":{"done":13,"total":13,"pct":100},"lastUpdated":"2026-05-24T18:00:00.000Z","lastUpdatedDisplay":"2026-05-24","currentTaskId":"—","currentTaskTitle":"","workingTaskId":null,"workingTaskTitle":"","hasWorkingTask":false,"branch":"—","order":null,"inProgress":false,"isBuilding":false,"nextCommand":null,"pickupPrompt":"You are the ORCHESTRATOR. Do not implement code, PRDs, plans, or mock HTML yourself.\nYour job: read disk → confirm session intent (AskQuestion) → dispatch subagents → read journal files → update status → regenerate dashboard.\nSESSION START: Ask pipeline scope + decision review before first dispatch (SESSION-INTENT.md). Pickup paste does not skip this.\nCONTINUOUS RUN: advance through pipeline stages in THIS session — do not stop between stages or tell the user to start a new chat (unless sessionIntent.pipelineScope is planning-only at build gate).\n\nContinue Mission Control v3 — UX feature: safe-upgrade\n\nRead first:\n- docs/superpowers/control/ORCHESTRATOR.md\n- docs/superpowers/control/PIPELINE.md\n- docs/superpowers/control/JOURNAL-RULES.md\n- docs/superpowers/control/HANDOFF.md\n- docs/superpowers/control/WORKFLOW-CONTROLS.md\n- docs/superpowers/control/.mc/orchestrator-controls.json\n- docs/superpowers/control/features/safe-upgrade/status.json\n- docs/superpowers/control/features/safe-upgrade/journal/ (latest entries)\n\nPipeline stage: done (Complete)\n\nWorkflow controls (.mc/orchestrator-controls.json):\n- buildWorkflow.mode: sdd+tdd\n- buildWorkflow.reviewChain: full\n- planWorkflow.mode: subagent-driven\n- build vendor skills: subagent-driven-development, test-driven-development\nRead docs/superpowers/control/WORKFLOW-CONTROLS.md\nBuild: subagent-driven-development — fresh implementer per task; implementer MUST invoke test-driven-development.\nReview chain: implementer → spec reviewer → quality reviewer → gates → commit.\nPlan: mc-platform-plan subagent; build runs in same orchestrator session (subagent-driven).\n\nSession intent (.mc/orchestrator-controls.json → sessionIntent):\n- pipelineScope: full-pipeline — Advance through planning then dispatch build subagents in this session.\n- decisionReview: review-first — Pause after skill findings; summarize decisions and ask before proceeding.\nRead docs/superpowers/control/SESSION-INTENT.md\nFull pipeline: continuous run through build unless user pauses.\nReview-first: after skill stages, summarize key decisions in chat and AskQuestion before next dispatch.\n\nContinue the pipeline in this session — run /mc only if resuming after interruption.","tasks":[{"id":"1.1","title":"Upgrade manifest and preserve rules","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.2","title":"Upgrade engine CLI","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.3","title":"Wire install.sh and mc-upgrade skill","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.4","title":"Dashboard version strip","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"1.5","title":"Integration test spec survives upgrade","status":"done","updatedAt":"2026-05-24T12:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"2.1","title":"Remote fetch from GitHub Releases","status":"done","updatedAt":"2026-05-24T15:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"2.2","title":"Run-Updater and upgrade.sh","status":"done","updatedAt":"2026-05-24T15:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"2.3","title":"Custom overlay dir + command cleanup","status":"done","updatedAt":"2026-05-24T15:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.1","title":"Release tarball builder","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.2","title":"GitHub Actions release workflow","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.3","title":"Windows Install vs Update HTA","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.4","title":"PUBLISH.md + manifest repo config","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null},{"id":"3.5","title":"Release bundle tests","status":"done","updatedAt":"2026-05-24T18:00:00.000Z","commit":null,"commitShort":null,"commitMessage":null,"journalFile":null}],"braindump":"# Safe upgrade mechanism\r\n\r\n**Slug:** `safe-upgrade`\r\n**Date:** 2026-05-24\r\n\r\n## Idea\r\n\r\nPublish Mission Control Kit v4 as a tool others can install. Users need a **programmatic upgrade path** that refreshes kit runtime (orchestrator docs, skills, scripts) without overwriting their specs, features, journals, or project state.\r\n\r\n## Target codebase\r\n\r\n- `mission-control-kit/` (this repo — kit source and dogfood target)\r\n- Installed projects: `docs/superpowers/control/` + `.claude/skills/` + kit folder in project root\r\n\r\n## Requirements (from product discussion)\r\n\r\n1. Built-in update mechanism — `mc upgrade` / `/mc-upgrade`\r\n2. User files, specs, features never overwritten\r\n3. Programmatic, testable (TDD)\r\n4. Non-dev friendly: dashboard update notice, chat command, installer \"Update\" mode\r\n5. Version stamp + migration hook for future schema changes\r\n6. Dry-run and backup before apply\r\n\r\n## Tech-stack path\r\n\r\nSkip mock/interaction — infrastructure feature, no UI mock beyond dashboard version strip.\r\n\r\n## Out of scope (v1)\r\n\r\n- Download from GitHub releases (local kit folder only)\r\n- Electron desktop app\r\n- `_kit/` vs `custom/` split (use preserve globs first)\r\n","spec":"# Safe upgrade — Mission Control Kit\r\n\r\n**Slug:** `safe-upgrade`\r\n**Status:** approved\r\n**Created:** 2026-05-24\r\n**Last updated:** 2026-05-24\r\n\r\n## Problem\r\n\r\nPublishing MC v4 requires users to upgrade the kit without losing work. Today `install.sh` overwrites the entire control plane; only three files are restored. Re-running install is unsafe for teams with specs, journals, and custom control edits.\r\n\r\n## Desired outcome\r\n\r\nA user (developer or PM) can run **`/mc-upgrade`** or click **Update** in the dashboard and get:\r\n\r\n- New orchestrator docs, skills, scripts, and dashboard template\r\n- Refreshed vendor skill bundles (pinned refs)\r\n- **Unchanged** feature specs, braindumps, explore findings, journals, phase plans, project artifacts, `state.json`, `HANDOFF.md`, and user `tech-stack/stack.json`\r\n- A backup before apply and a readable upgrade report\r\n- `npm test` proof the upgrader preserves user data\r\n\r\n## User stories\r\n\r\n### As a kit user, I want to upgrade safely\r\n\r\n```\r\nAs a kit user,\r\nI want to upgrade Mission Control without losing my feature specs,\r\nSo that I can adopt kit improvements while keeping my product work intact.\r\n\r\nAcceptance criteria:\r\n- Running upgrade on a project with features/*/spec.md leaves spec content byte-identical\r\n- state.json, HANDOFF.md, tech-stack/stack.json preserved\r\n- Kit docs (ROUTER.md, scripts/) updated to latest kit version\r\n- .mc/install.json records new kitVersion and migrationsApplied\r\n- Upgrade creates .mc/backups/{timestamp}/ before apply\r\n```\r\n\r\n### As a PM, I want a simple upgrade path\r\n\r\n```\r\nAs a PM using Mission Control,\r\nI want to see if an update is available in the dashboard,\r\nSo that I don't need terminal commands.\r\n\r\nAcceptance criteria:\r\n- Dashboard shows installed kit version\r\n- When kit version > installed version, show \"Update available\" with instructions\r\n- Guide disclosure mentions /mc-upgrade\r\n```\r\n\r\n### As a maintainer, I want programmatic migrations\r\n\r\n```\r\nAs a kit maintainer,\r\nI want schema migrations to run on upgrade,\r\nSo that status.json format changes don't break old projects.\r\n\r\nAcceptance criteria:\r\n- migrations/*.mjs run in order when kit version increases\r\n- Migrations only touch metadata (status.json, state.json keys) — never spec.md body\r\n- Dry-run lists migrations that would run\r\n```\r\n\r\n## Scope\r\n\r\n### In scope (v1)\r\n\r\n- `kit-manifest.json` at kit root (version, migrations list)\r\n- `lib/mc-upgrade.mjs` — preserve rules, sync, backup, migrate, report\r\n- `scripts/mc-upgrade.mjs` CLI (`--check`, `--dry-run`, `--install`)\r\n- `control/.mc/install.json` stamp written on install/upgrade\r\n- Refactor `install.sh` to delegate control sync to `mc-upgrade --install`\r\n- `/mc-upgrade` command + `mc-upgrade` skill\r\n- Dashboard version strip + update hint\r\n- TDD: unit + integration tests (user spec survives upgrade)\r\n\r\n### Out of scope\r\n\r\n- Remote download from GitHub releases\r\n- `_kit/` / `custom/` overlay filesystem\r\n- Auto-update without user action\r\n- Windows `.hta` Update button (document only in v1)\r\n\r\n## Technical considerations\r\n\r\n- **Preserve globs:** `features/*/` (except `_template`), `project/`, user tech-stack slugs, `.mc/backups/`\r\n- **Always sync:** control root docs, `control/scripts/`, templates, skills, commands\r\n- **Regenerate:** `dashboard.html` (never merge)\r\n- **Vendor:** re-run bundle script after kit sync\r\n\r\n## Decisions\r\n\r\n| Date | Decision | Rationale |\r\n|------|----------|-----------|\r\n| 2026-05-24 | Preserve globs over `_kit/` split | Smaller v1 diff; matches current install layout |\r\n| 2026-05-24 | install.sh calls mc-upgrade | Single code path for install and upgrade |\r\n| 2026-05-24 | Bump kit to 4.1.0 | First version with upgrade manifest |\r\n\r\n## Open questions\r\n\r\n- [x] Remote fetch — deferred; local kit folder only in v1\r\n","layoutDoc":null,"exploreDocs":[{"file":"kit.md","label":"kit","format":"html","html":"\u003c!DOCTYPE html>\n\u003chtml lang=\"en\">\n\u003chead>\n  \u003cmeta charset=\"utf-8\" />\n  \u003ctitle>Explore — kit\u003c/title>\n  \u003cstyle>\n    body { margin: 0; font-family: system-ui, sans-serif; background: #f5f5f5; }\n    .page { max-width: 900px; margin: 0 auto; padding: 24px; }\n    .hero { background: #1a1a2e; color: #fff; padding: 24px; margin-bottom: 24px; border-radius: 4px; }\n    .hero h1 { margin: 0; font-size: 1.5rem; }\n  \u003c/style>\n\u003c/head>\n\u003cbody>\n\u003cdiv class=\"page\">\n  \u003cdiv class=\"hero\">\u003ch1>Explore — kit\u003c/h1>\u003c/div>\n  \u003csection style=\"margin-bottom:16px\">\u003cspan style=\"font-size:.75rem;font-weight:600;text-transform:uppercase;color:#666\">Summary\u003c/span>\u003cdiv style=\"background:#fff;border:1px solid #ddd;border-radius:4px;padding:16px;margin-top:8px\">\u003cp>Explore — mission-control-kit\u003c/p>\u003c/div>\u003c/section>\n\u003csection style=\"margin-bottom:16px\">\u003cspan style=\"font-size:.75rem;font-weight:600;text-transform:uppercase;color:#666\">Section\u003c/span>\u003cdiv style=\"background:#fff;border:1px solid #ddd;border-radius:4px;padding:16px;margin-top:8px\">\u003cstrong>Current install (`install.sh`)\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">- `cp -R control/.` → project `docs/superpowers/control/` — **overwrites all control files**\r\n- Only restores: `state.json`, `HANDOFF.md`, `tech-stack/stack.json`\r\n- Skills/commands: full copy (overwrite)\r\n- Vendor: `bundle-vendor-skills.sh`\r\n- Dashboard: regenerated via `generate-dashboard.mjs`\r\n\r\n**Risk:** User edits to control docs, any `features/*/`, `project/`, journals, specs — all clobbered on reinstall.\u003c/p>\u003c/div>\u003c/section>\n\u003csection style=\"margin-bottom:16px\">\u003cspan style=\"font-size:.75rem;font-weight:600;text-transform:uppercase;color:#666\">Section\u003c/span>\u003cdiv style=\"background:#fff;border:1px solid #ddd;border-radius:4px;padding:16px;margin-top:8px\">\u003cstrong>Existing assets to reuse\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">| Asset | Role in upgrade |\r\n|-------|-------------------|\r\n| `vendor/manifest.json` | Pin vendor bundle refs |\r\n| `scripts/check-vendor-skills.mjs` | Post-upgrade verify |\r\n| `scripts/bundle-vendor-skills.sh` | Refresh vendor skills |\r\n| `control/scripts/generate-dashboard.mjs` | Regenerate dashboard |\r\n| `control/scripts/migrate-features-v3.mjs` | Pattern for migrations |\r\n| `package.json` + `tests/*.test.mjs` | BUILD-GATES |\r\n| `install.sh` backup/restore | Extend to preserve globs |\u003c/p>\u003c/div>\u003c/section>\n\u003csection style=\"margin-bottom:16px\">\u003cspan style=\"font-size:.75rem;font-weight:600;text-transform:uppercase;color:#666\">Section\u003c/span>\u003cdiv style=\"background:#fff;border:1px solid #ddd;border-radius:4px;padding:16px;margin-top:8px\">\u003cstrong>Kit layout\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">```\r\nmission-control-kit/\r\n  control/          → sync to project (with preserve rules)\r\n  claude-skills/    → .claude/skills/\r\n  skills/           → .cursor/skills/\r\n  commands/         → .cursor/commands/\r\n  scripts/          → stays in kit folder\r\n  lib/              → mc-router.mjs today; add mc-upgrade.mjs\r\n```\u003c/p>\u003c/div>\u003c/section>\n\u003csection style=\"margin-bottom:16px\">\u003cspan style=\"font-size:.75rem;font-weight:600;text-transform:uppercase;color:#666\">Section\u003c/span>\u003cdiv style=\"background:#fff;border:1px solid #ddd;border-radius:4px;padding:16px;margin-top:8px\">\u003cstrong>Test harness\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">- `sample-project/` — integration install target\r\n- `npm test` — 45+ tests; add upgrade tests\u003c/p>\u003c/div>\u003c/section>\n\u003csection style=\"margin-bottom:16px\">\u003cspan style=\"font-size:.75rem;font-weight:600;text-transform:uppercase;color:#666\">Section\u003c/span>\u003cdiv style=\"background:#fff;border:1px solid #ddd;border-radius:4px;padding:16px;margin-top:8px\">\u003cstrong>Gaps\u003c/strong>\u003cp style=\"margin-top:8px;color:#555\">- No `kit-manifest.json` or install stamp\r\n- No `mc-upgrade.mjs`\r\n- No `/mc-upgrade` command or skill\r\n- Dashboard has guide but no version/update strip\u003c/p>\u003c/div>\u003c/section>\n\u003c/div>\n\u003c/body>\n\u003c/html>"}],"skillFindings":[],"phaseDocs":[{"file":"phase-1.md","label":"phase-1","content":"# Phase 1 — Safe upgrade core\r\n\r\n**Feature:** safe-upgrade\r\n**Goal:** Programmatic upgrade with user-data preservation and TDD proof.\r\n\r\n---\r\n\r\n### Task 1.1: Upgrade manifest and preserve rules\r\n\r\nAdd `kit-manifest.json` and `lib/mc-upgrade.mjs` with:\r\n- `shouldPreserve(relPath)` for control-plane paths\r\n- `getKitVersion()`, `readInstallStamp()`, `writeInstallStamp()`\r\n- Version compare helpers\r\n\r\n**Verify:** `node --test tests/upgrade.test.mjs` (preserve rules)\r\n\r\n---\r\n\r\n### Task 1.2: Upgrade engine CLI\r\n\r\nAdd `scripts/mc-upgrade.mjs`:\r\n- `--install` (first install stamp)\r\n- `--check` (exit 1 if update available)\r\n- `--dry-run` (print sync plan)\r\n- Default: backup → sync control (preserve user) → sync skills/commands → bundle vendors → migrations → regenerate dashboard → write report\r\n\r\n**Verify:** unit tests pass\r\n\r\n---\r\n\r\n### Task 1.3: Wire install.sh and mc-upgrade skill\r\n\r\n- `install.sh` calls `node scripts/mc-upgrade.mjs \"$PROJECT_ROOT\" --install`\r\n- Add `commands/mc-upgrade.md`, `claude-skills/mc-upgrade/SKILL.md`, `skills/mc-upgrade/SKILL.md`\r\n- Register in ROUTER.md and dashboard guide\r\n\r\n**Verify:** integration test\r\n\r\n---\r\n\r\n### Task 1.4: Dashboard version strip\r\n\r\nUpdate `dashboard-template.mjs` + `dashboard-guide.mjs`:\r\n- Show installed version from `.mc/install.json` when embedded at generate time\r\n- \"Update available\" when kit manifest version > installed\r\n\r\n**Verify:** dashboard-guide test updated\r\n\r\n---\r\n\r\n### Task 1.5: Integration test — spec survives upgrade\r\n\r\nTest flow:\r\n1. Install to temp project\r\n2. Write custom `features/test-feat/spec.md`\r\n3. Run upgrade\r\n4. Assert spec unchanged; ROUTER.md updated; install.json version bumped\r\n\r\n**Verify:** `npm test` all green\r\n\r\n---\r\n\r\n### Task 1.6: MC journals and status\r\n\r\nWrite journals for prd/plan/build/validate. Set `pipelineStage: done`, regenerate kit control dashboard if applicable.\r\n\r\n**Verify:** feature status.json updated\r\n"},{"file":"phase-2.md","label":"phase-2","content":"# Phase 2 — Publish & fetch\r\n\r\n**Feature:** safe-upgrade (continued)\r\n**Goal:** Remote release fetch, PM-friendly updater, custom overlays, v4 command cleanup.\r\n\r\n---\r\n\r\n### Task 2.1: GitHub release fetch\r\n\r\n`lib/fetch-kit-release.mjs` + `mc-upgrade --fetch --repo=owner/repo`\r\n\r\n### Task 2.2: User-Guide + Run-Updater\r\n\r\n`User-Guide.html` v4 with Install / Update sections. `Run-Updater.command`, `upgrade.sh`.\r\n\r\n### Task 2.3: custom/ overlay\r\n\r\nPreserve `control/custom/**` on upgrade; migration seeds README.\r\n\r\n### Task 2.4: Command cleanup\r\n\r\nThin `mc-braindump` alias; deprecate v3 stage commands; `commands/legacy/README.md`.\r\n\r\n### Task 2.5: Tests + bump 4.2.0\r\n\r\nfetch-release unit tests; integration stamp 4.2.0; full npm test.\r\n"},{"file":"phase-3.md","label":"phase-3","content":"# Phase 3 — Release automation & publish\r\n\r\n**Feature:** safe-upgrade (continued)\r\n**Kit version:** 4.3.0\r\n\r\n---\r\n\r\n### Task 3.1: Release tarball builder\r\n\r\n`scripts/build-release-tarball.mjs` → `dist/mission-control-kit-{version}.tar.gz`\r\n\r\nExcludes vendor clones, caches, sample-project skill copies.\r\n\r\n### Task 3.2: GitHub Actions workflow\r\n\r\n`.github/workflows/mc-kit-release.yml` on tag `mc-kit-v*`: test → build → gh release asset.\r\n\r\n### Task 3.3: Windows Install vs Update\r\n\r\n`Run-Installer.hta` — dialog with Install / Update buttons.\r\n`Run-Updater.hta`, `upgrade.bat`.\r\n\r\n### Task 3.4: PUBLISH.md + manifest repo\r\n\r\n`release.github`: `MalakHimse1f/Shape-Up-Docs`\r\n\r\n### Task 3.5: Tests\r\n\r\n`tests/release-bundle.test.mjs` — excludes + tarball smoke extract.\r\n"}],"journalEntries":[{"file":"001-prd.md","label":"prd","content":"---\r\nstep: prd\r\nsubagent: mc-prd\r\nstatus: DONE\r\nfeature: safe-upgrade\r\ncompletedAt: 2026-05-24T12:00:00.000Z\r\n---\r\n\r\n# PRD — safe-upgrade\r\n\r\n## Summary\r\n\r\nApproved spec for programmatic safe upgrade. prd-generator workflow applied via MC braindump + explore inputs. spec.md covers preserve rules, mc-upgrade CLI, dashboard version strip, and TDD acceptance.\r\n\r\n## Outputs\r\n\r\n- `features/safe-upgrade/spec.md`\r\n"},{"file":"002-build-phase-1.md","label":"build-phase-1","content":"---\r\nstep: build\r\nsubagent: implementer\r\nstatus: DONE\r\nfeature: safe-upgrade\r\ntaskId: 1.5\r\ncompletedAt: 2026-05-24T12:00:00.000Z\r\n---\r\n\r\n# Build — safe-upgrade phase 1\r\n\r\n## Summary\r\n\r\nImplemented lib/mc-upgrade.mjs, scripts/mc-upgrade.mjs, kit-manifest.json, migrations, install.sh delegation, /mc-upgrade command+skill, dashboard version strip.\r\n\r\n## Verification\r\n\r\n- test: `npm test` → all pass\r\n- integration: user spec preserved across upgrade in temp project\r\n"},{"file":"phase-3-build.md","label":"phase-3-build","content":"# Journal — safe-upgrade phase 3\r\n\r\n**Date:** 2026-05-24  \r\n**Kit version:** 4.3.0\r\n\r\n## Shipped\r\n\r\n- `scripts/build-release-tarball.mjs` — produces `dist/mission-control-kit-{version}.tar.gz` (273 files, ~0.23 MB)\r\n- `.github/workflows/mc-kit-release.yml` — tag `mc-kit-v*` → test → build → GitHub Release asset\r\n- `Run-Installer.hta` — Install / Update dialog; `Run-Updater.hta` + `upgrade.bat` for update-only\r\n- `PUBLISH.md` — tag format, checklist, manual `gh release create`\r\n- `kit-manifest.json` — `release.github`: `MalakHimse1f/Shape-Up-Docs`\r\n- `tests/release-bundle.test.mjs` — exclude rules + tarball extract smoke\r\n\r\n## Verification\r\n\r\n```\r\nnpm test → 70/70 pass\r\nnode scripts/build-release-tarball.mjs → dist/mission-control-kit-4.3.0.tar.gz\r\n```\r\n\r\n## Publish (when ready)\r\n\r\n```bash\r\ngit add mission-control-kit/ .github/workflows/mc-kit-release.yml\r\ngit commit -m \"Release Mission Control Kit v4.3.0\"\r\ngit tag mc-kit-v4.3.0\r\ngit push origin main\r\ngit push origin mc-kit-v4.3.0\r\n```\r\n\r\nActions uploads the tarball; users can `--fetch` or download from Releases.\r\n"},{"file":"phase-3-public-repo.md","label":"phase-3-public-repo","content":"# Journal — dedicated public repo\r\n\r\n**Date:** 2026-05-24\r\n\r\n## Shipped\r\n\r\n- Public repo: `MalakHimse1f/mission-control-kit`\r\n- Kit at repo root; tarball still extracts as `mission-control-kit/` in user projects\r\n- `release.github` → public repo\r\n- Shape-Up copy is mirror (`SOURCE.md`); releases publish from public repo only\r\n- Removed Shape-Up-specific `migrate-features-v3.mjs` from public copy\r\n- MIT LICENSE, updated README + PUBLISH.md\r\n"}],"wireframes":[],"screenshots":[]}];window.MC_DEFAULT_SORT = "lastUpdated";</script>
   <script>
 (function () {
   const items = window.MC_ITEMS || [];
   const workGrid = document.getElementById("mc-work-grid");
-  const detail = document.getElementById("mc-detail");
+  const viewDashboard = document.getElementById("view-dashboard");
+  const viewFeature = document.getElementById("view-feature");
   const detailTitle = document.getElementById("detail-title");
   const detailMeta = document.getElementById("detail-meta");
   const detailTasks = document.getElementById("detail-tasks");
@@ -496,6 +469,11 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
   const detailPhases = document.getElementById("detail-phases");
   const detailJournal = document.getElementById("detail-journal");
   const detailLayoutDoc = document.getElementById("detail-layout-doc");
+  function setView(which){
+    viewDashboard.classList.toggle("active", which === "dashboard");
+    viewFeature.classList.toggle("active", which === "feature");
+    window.scrollTo(0,0);
+  }
   const strip = document.getElementById("in-progress-strip");
   const searchInput = document.getElementById("filter-search");
   const typeFilter = document.getElementById("filter-type");
@@ -765,8 +743,6 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
     const i = items.find((x) => x.id === id);
     if (!i) return;
     selectedId = id;
-    detail.classList.add("open");
-    document.body.classList.add("modal-open");
     detailTitle.textContent = i.id + " (" + i.type + ")";
     detailMeta.innerHTML = '<span class="' + stageClass(i.stageKey) + '">' + esc(i.stage) + '</span> · Pipeline: <code>' + esc(i.pipelineStage || i.stageKey) + '</code> · Last updated ' + esc(i.lastUpdatedDisplay) +
       (i.hasWorkingTask ? ' · <span class="badge badge-working">Working now</span> <code>' + esc(i.workingTaskId) + '</code>' + (i.workingTaskTitle ? ' — ' + esc(i.workingTaskTitle) : '') : '') +
@@ -790,14 +766,16 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
       detailTasks.innerHTML = renderTasksTable(i.tasks);
     }
     detailScreenshots.innerHTML = renderScreenshots(i);
-    renderWorkGrid();
-    detail.querySelector(".modal-body").scrollTop = 0;
+    setView("feature");
+    if (location.hash !== "#feature/" + encodeURIComponent(id)) {
+      history.pushState({ featureId: id }, "", "#feature/" + encodeURIComponent(id));
+    }
   }
 
-  function closeDetail() {
+  function goDashboard(){
     selectedId = null;
-    detail.classList.remove("open");
-    document.body.classList.remove("modal-open");
+    setView("dashboard");
+    if (location.hash) history.replaceState({}, "", location.pathname + location.search);
     renderWorkGrid();
   }
 
@@ -862,17 +840,13 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
   document.getElementById("detail-copy-pickup").addEventListener("click", () => {
     if (selectedId) copyPickup(selectedId);
   });
-  document.getElementById("detail-close").addEventListener("click", closeDetail);
-  detail.addEventListener("click", (e) => {
-    if (e.target === detail) { closeDetail(); return; }
+  document.getElementById("detail-back").addEventListener("click", goDashboard);
+  viewFeature.addEventListener("click", (e) => {
     const copyBtn = e.target.closest(".copy-value");
     if (copyBtn && copyBtn.dataset.copy) {
       e.stopPropagation();
       copyText(copyBtn.dataset.copy, copyBtn);
     }
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && detail.classList.contains("open")) closeDetail();
   });
 
   const handoffBtn = document.getElementById("copy-handoff");
@@ -885,7 +859,26 @@ No active session. Run `/mc-start` for a new product or `/mc-feature` to add a c
     });
   }
 
+  function copyCmd(btn){
+    var text = btn.getAttribute("data-cmd");
+    function ok(){ var t=btn.textContent; btn.textContent="Copied ✓"; btn.classList.add("done"); setTimeout(function(){btn.textContent=t;btn.classList.remove("done");},1200); }
+    function fallback(){
+      var code = btn.parentNode.querySelector("code");
+      if(code){ var r=document.createRange(); r.selectNodeContents(code); var s=window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+      try{ document.execCommand("copy"); ok(); }catch(e){ btn.textContent="Press ⌘/Ctrl+C"; }
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(ok).catch(fallback); } else { fallback(); }
+  }
+  document.addEventListener("click", function(e){ var b=e.target.closest && e.target.closest(".copy-cmd"); if(b) copyCmd(b); });
+
   renderWorkGrid();
+  function routeFromHash(){
+    var m = (location.hash || "").match(/^#feature\/(.+)$/);
+    if (m) { var fid = decodeURIComponent(m[1]); if (items.some(function(x){return x.id===fid;})) { openDetail(fid); return; } }
+    setView("dashboard");
+  }
+  window.addEventListener("popstate", routeFromHash);
+  routeFromHash();
 })();
 </script>
   <script>

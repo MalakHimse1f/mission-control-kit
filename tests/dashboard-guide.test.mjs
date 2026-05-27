@@ -5,7 +5,7 @@ import { renderUserGuideDisclosure } from '../control/scripts/dashboard-guide.mj
 describe('dashboard user guide', () => {
   it('renders disclosure with v4 commands and workflows', () => {
     const html = renderUserGuideDisclosure();
-    assert.ok(html.includes('guide-disclosure'));
+    assert.ok(html.includes('class="guide panel"'));
     assert.ok(html.includes('How to use Mission Control'));
     assert.ok(html.includes('/mc-start'));
     assert.ok(html.includes('/mc-init'));
