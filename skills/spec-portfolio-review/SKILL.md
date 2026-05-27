@@ -1,50 +1,96 @@
 ---
 name: spec-portfolio-review
-description: Reviews all approved feature specs in mission control holistically for overlap, contradictions, dependencies, and build order. Use when the user has two or more specs in control/features/, asks for a portfolio review, holistic spec review, or before planning multiple features. Writes SPEC-PORTFOLIO-REVIEW.md in the control root.
+description: "Mission Control v5 — cross-feature analysis subagent. Reads all control/v5/features/*/spec.md + status.json, produces a structured portfolio review (inventory, dependencies, recommended build order, decisions needed) and writes it to control/v5/SPEC-PORTFOLIO-REVIEW.md. Dispatched by mc-portfolio; not user-invocable directly."
 user-invocable: false
 ---
 
+# Spec Portfolio Review — v5 Subagent
+
+**You are the v5 cross-feature analysis subagent.** You are dispatched by `mc-portfolio`. Your sole job is to read every feature's spec and status, analyze the portfolio holistically, and write a structured review file to disk.
+
+## Inputs (provided by the dispatcher)
+
+- List of feature slugs under `control/v5/features/` (exclude `_template`)
+- Context root: `control/v5/`
+
+## Step 1 — Read all feature data
+
+For each slug in `control/v5/features/` (excluding `_template`):
+
+1. Read `control/v5/features/{slug}/spec.md`
+2. Read `control/v5/features/{slug}/status.json`
+
+Include **every** feature on disk. Do not skip slugs that were not mentioned in the dispatch prompt. The inventory must be complete.
+
+## Step 2 — Analyze the portfolio
+
+Evaluate the full feature set for:
+
+1. **Overlap** — features that duplicate functionality or solve the same user need
+2. **Contradictions** — specs that conflict in behavior, data model, or navigation
+3. **Dependencies** — for each pair: does B require A? Does A produce data B consumes? Do they share auth, models, or navigation entry points? Look for "assumes Feature X exists" language.
+4. **Shared data / contracts** — API contracts, data models, or auth surfaces shared across two or more features
+5. **Recommended build order** — derive from the dependency graph; position 1 = build first. Provide a one-line rationale per position explaining why that feature must come before the next.
+6. **Decisions needed** — open questions that must be resolved before planning can begin (scope, ownership, integration points)
+
+Build order is the primary deliverable. Analyze rigorously; do not produce a generic ranking.
+
+## Step 3 — Write the review file
+
+Write `control/v5/SPEC-PORTFOLIO-REVIEW.md` with the following sections:
+
+```markdown
 # Spec Portfolio Review
 
-Cross-feature review before planning. One spec = use brainstorming instead.
+Generated: {ISO timestamp}
 
-## Paths (customize per project)
+## Feature Inventory
 
-| Setting | Default |
-|---------|---------|
-| **CONTROL_ROOT** | `docs/superpowers/control/` |
-| **ROADMAP_SPECS** | `docs/superpowers/specs/` |
-| **RULES** | `docs/superpowers/IMPLEMENTATION_RULES.md` |
+| Slug | Stage | Description |
+|------|-------|-------------|
+| … | … | … |
 
-## When to invoke
+## Findings
 
-- 2+ features with `specStatus: "approved"`
-- "review all specs", "portfolio review", "holistic spec review"
+### Overlap
+…
 
-## Read
+### Contradictions
+…
 
-All `{CONTROL_ROOT}/features/{slug}/spec.md` (approved), status.json files, roadmap specs, RULES.
+### Dependencies
 
-**Portfolio rule:** Feature inventory and `buildOrder` must include **every** slug under `features/` (exclude `_template`). See `{CONTROL_ROOT}AGENT-DATA-RULES.md`. Never write a review that drops existing features because chat context only mentioned one.
+| Feature | Blocks | Requires | Shared Data |
+|---------|--------|----------|-------------|
+| … | … | … | … |
 
-## Checklist
+## Recommended Build Order
 
-1. Overlap 2. Contradictions 3. **Dependencies** (blocks / requires / shares data) 4. **Build order** (sequence from dependency graph) 5. Roadmap alignment 6. Open questions 7. Gaps
+1. `<slug>` — <one-line rationale>
+2. `<slug>` — <one-line rationale>
+…
 
-**Build order is the primary deliverable.** Analyze each spec pair for: shared auth, data models, navigation entry points, API contracts, and "Feature B assumes Feature A exists" language. Produce a **numbered recommended order** with one-line rationale per position.
+## Decisions Needed Before Planning
 
-## Output
+- …
 
-Write `{CONTROL_ROOT}/SPEC-PORTFOLIO-REVIEW.md` with: Summary, Feature inventory, Findings, **Recommended build order** (numbered list with dependency rationale), Decisions needed, Next action.
+## Next Action
 
-## After
+Present this order to the user for approval. On approval, mc-portfolio will
+reorder features[] in control/v5/state.json (position 0 = build first).
+```
 
-1. Ask user to approve **build order** before planning — use `AskQuestion` (Cursor) or `AskUserQuestion` (Claude Code). See `{CONTROL_ROOT}USER-QUESTIONS.md`. Present slugs in recommended order; allow reorder if they pick a different sequence.
-2. On approval, persist to `{CONTROL_ROOT}/state.json` (**read → merge → write**):
-   - `buildOrder`: array of feature slugs in approved order (e.g. `["auth", "dashboard"]`)
-   - `portfolioReviewStatus`: `"approved"`
-   - `portfolioReviewAt`: ISO timestamp
-   - `phase`: `"portfolio-review"` (until planning starts)
-3. Update `HANDOFF.md`, regenerate dashboard (`node {CONTROL_ROOT}scripts/generate-dashboard.mjs`).
+## Data rules
 
-**HARD GATE:** No writing-plans until user acknowledges review (unless only one spec).
+- This subagent is **read-only** for all feature data. Do NOT write to `decisions.json`, `status.json`, or `state.json`.
+- The only file this subagent writes is `control/v5/SPEC-PORTFOLIO-REVIEW.md`.
+- `controlRoot` is the PROJECT ROOT (the directory containing `control/v5/`), never `control/v5/` itself.
+- Include every slug found on disk. Never omit a feature because chat context only mentioned one.
+
+## Never
+
+- Write code, specs, or phase plans
+- Modify any feature's `decisions.json` or `status.json`
+- Modify `control/v5/state.json`
+- Skip features that are not yet fully spec'd — include them in the inventory with their actual `status.json` stage
+- Ask the user for the build order approval — that step belongs to `mc-portfolio`
