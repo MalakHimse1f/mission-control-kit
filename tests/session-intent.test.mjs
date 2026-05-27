@@ -17,17 +17,6 @@ import { mergeOrchestratorControls, DEFAULT_ORCHESTRATOR_CONTROLS } from '../con
 import { collectSkillFindings } from '../control/scripts/dashboard-content.mjs';
 import { collectItemRow, buildPickupPrompt } from '../control/scripts/dashboard-data.mjs';
 import { buildDashboardHtml } from '../control/scripts/dashboard-template.mjs';
-import { buildResearchPage, cardSection } from '../control/lib/research-layout.mjs';
-
-const kitControlRoot = path.join(process.cwd(), 'control');
-
-function setupTmpControl(tmp) {
-  fs.mkdirSync(path.join(tmp, 'layout'), { recursive: true });
-  fs.copyFileSync(
-    path.join(kitControlRoot, 'layout/wireframe.css'),
-    path.join(tmp, 'layout/wireframe.css'),
-  );
-}
 
 describe('session-intent', () => {
   it('suggests planning-only during early planning stages', () => {
@@ -162,7 +151,6 @@ describe('collectItemRow skillFindings integration', () => {
 
   beforeEach(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-row-skill-'));
-    setupTmpControl(tmp);
     const slugDir = path.join(tmp, 'features', 'demo');
     fs.mkdirSync(slugDir, { recursive: true });
     fs.writeFileSync(
@@ -171,17 +159,11 @@ describe('collectItemRow skillFindings integration', () => {
     );
     fs.writeFileSync(
       path.join(slugDir, 'research.html'),
-      buildResearchPage({
-        title: 'Research',
-        sections: [cardSection({ title: 'Finding', body: 'Findings here.' })],
-      }),
+      "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>.x{}</style></head><body><p>Findings here.</p></body></html>",
     );
     fs.writeFileSync(
       path.join(slugDir, 'interaction.html'),
-      buildResearchPage({
-        title: 'Interaction',
-        sections: [cardSection({ title: 'Flow', body: 'Flows defined.' })],
-      }),
+      "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>.x{}</style></head><body><p>Flows defined.</p></body></html>",
     );
   });
 
@@ -337,7 +319,6 @@ describe('collectSkillFindings legacy markdown fallback', () => {
 
   beforeEach(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mc-skill-findings-'));
-    setupTmpControl(tmp);
     const slugDir = path.join(tmp, 'features', 'demo');
     fs.mkdirSync(slugDir, { recursive: true });
     fs.writeFileSync(path.join(slugDir, 'research.md'), '# Research\nPersonas defined.');
