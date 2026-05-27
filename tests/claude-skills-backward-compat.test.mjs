@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -19,7 +19,16 @@ test("every shipped skill is present in generated claude-skills/", () => {
 });
 
 test("claude-skills carries no references to the retired wireframe system", () => {
-  // structural guard: the generated tree must not point at deleted assets
-  // (checked here as a presence test; deep grep is covered by C4)
-  assert.ok(existsSync(join(root, "claude-skills", "mc-mock", "SKILL.md")));
+  const dir = join(root, "claude-skills");
+  const bad = /wireframe\.css|layout\/primitives|layout\/skeletons|RESEARCH-LAYOUT|layout\/CATALOG\.md/;
+  const offenders = [];
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    if (!ent.isDirectory()) continue;
+    const skillDir = join(dir, ent.name);
+    for (const f of readdirSync(skillDir)) {
+      if (!f.endsWith(".md")) continue;
+      if (bad.test(readFileSync(join(skillDir, f), "utf8"))) offenders.push(`${ent.name}/${f}`);
+    }
+  }
+  assert.deepEqual(offenders, [], `stale wireframe refs in: ${offenders.join(", ")}`);
 });

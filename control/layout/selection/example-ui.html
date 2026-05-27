@@ -286,8 +286,18 @@
     document.getElementById('count').textContent = n+" of "+qs.length+" answered";
   }
   function resetCopy(){ var b=document.getElementById('copybtn'); b.textContent='Copy all'; b.classList.remove('done'); }
-  function copyAll(){ navigator.clipboard.writeText(document.getElementById('ans').textContent).then(function(){
-      var b=document.getElementById('copybtn'); b.textContent='Copied ✓'; b.classList.add('done'); }); }
+  function copyAll(){
+    var pre=document.getElementById('ans'), b=document.getElementById('copybtn');
+    function ok(){ b.textContent='Copied ✓'; b.classList.add('done'); }
+    function fallback(){
+      var r=document.createRange(); r.selectNodeContents(pre);
+      var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      try{ document.execCommand('copy'); ok(); }catch(e){ b.textContent='Press ⌘/Ctrl+C'; }
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(pre.textContent).then(ok).catch(fallback);
+    } else { fallback(); }
+  }
   render();
 </script>
 </body>
