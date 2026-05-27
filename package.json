@@ -1,6 +1,6 @@
 {
   "name": "mission-control-kit",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "private": false,
   "type": "module",
   "scripts": {

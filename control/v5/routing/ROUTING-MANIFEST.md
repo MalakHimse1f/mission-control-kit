@@ -4,6 +4,32 @@ Maps task types to the documents a subagent needs, so dispatch packets contain o
 
 The router lives at `lib/v5/mc-router.mjs`. Context packet assembly lives at `lib/v5/context-packet.mjs`.
 
+Every dispatch packet carries two layers of instructions in this order:
+
+1. **Universal protocols** — apply to every route, every phase. Declared in `lib/v5/mc-router.mjs` as `UNIVERSAL_INSTRUCTIONS` and prepended to `packet.instructions[]` by `lib/v5/context-packet.mjs` so they show up even on deferred routes.
+2. **Per-route `usageNote`** — task-type-specific rule (e.g. the visual-fragment contract for decision-producing routes).
+
+A subagent that only reads the head of the packet still sees the universal rules.
+
+---
+
+## Universal protocols
+
+These rules apply to every dispatch — UX, UI, Architecture, Build, Research, Brainstorm. They are declared in `lib/v5/mc-router.mjs` (canonical source) and surfaced on every packet via `UNIVERSAL_INSTRUCTIONS`.
+
+### Ask-the-user protocol
+
+> **When you need information, a decision, or a clarification from the user, you MUST surface the question through a structured ask and pause until the user responds.** Do not guess, do not assume, do not proceed with placeholders. In Claude Code, use the `AskUserQuestion` tool. In Cursor or other harnesses without a dedicated question tool, stop execution and ask the user directly in the conversation before continuing. Hiding questions in long prose, or shipping an assumption you should have verified, is a routing failure.
+
+**Why this exists.** Subagents that proceed on assumptions produce work the user has to throw away. Subagents that bury questions in long prose lose them entirely. The structured ask forces a pause point and a clear answer to record back into `decisions.json` / `status.json`.
+
+**How to apply it.**
+
+- *Claude Code:* call `AskUserQuestion` with 1–4 mutually exclusive options. Use it for every "should we…" / "which of these…" / "is X true?" before writing code or markdown that depends on the answer.
+- *Cursor / other harnesses:* emit a top-level question line in chat (`Question: …`), do not call any other tool until the user responds.
+- *Inside the v5 decision flow:* if the question is itself a decision (a `ux` / `ui` / `engineering` choice), record it through `lib/v5/decisions.mjs` after the user answers — that path produces a visual fragment via the CLI, see the visual-fragment contract below.
+- *Backtracked questions:* if the question belongs to a later phase (e.g., an architecture concern surfaces during UX), call `deferQuestion(slug, question, raisedDuring)` from `lib/v5/decisions.mjs` instead of dropping it.
+
 ---
 
 ## Visual fragment contract
@@ -250,7 +276,12 @@ const packet = await buildPacket({
       { path: 'control/v5/features/settings-panel/layout/wireframes/',            scope: 'wireframes',      optional: true,  exists: false },
     ],
   },
-  instructions:   [ /* per-route usageNote strings */ ],
+  instructions: [
+    // [0] UNIVERSAL_INSTRUCTIONS — applied to every route, every phase
+    'When you need information, a decision, or a clarification from the user, you MUST surface the question through a structured ask … (truncated)',
+    // [1+] Per-route usageNote(s) — e.g. visual-fragment contract for decision routes
+    'You MUST NOT write HTML for a decision card by hand … (truncated)',
+  ],
   deferred:       false,
   deferredReason: null,
 }

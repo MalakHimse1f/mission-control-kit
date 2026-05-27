@@ -32,6 +32,8 @@ import {
   resolveRoute,
   stageToDefaultTaskType,
   listTaskTypes,
+  USER_QUESTION_RULE,
+  UNIVERSAL_INSTRUCTIONS,
 } from '../lib/v5/mc-router.mjs';
 import { buildPacket } from '../lib/v5/context-packet.mjs';
 
@@ -126,6 +128,90 @@ test('buildPacket for every canonical phase produces a non-empty instructions[]'
       `packet for ${stage} should have at least one instruction`,
     );
   }
+});
+
+test('every dispatch packet carries the ask-user-question universal rule, on every taskType, even when deferred', async () => {
+  // The ask-user-question rule lives in UNIVERSAL_INSTRUCTIONS in
+  // lib/v5/mc-router.mjs and is prepended to packet.instructions[] by
+  // context-packet.mjs. This test pins:
+  //   1. The rule appears verbatim in the canonical UNIVERSAL_INSTRUCTIONS export.
+  //   2. The rule shows up on every route the router exposes.
+  //   3. The rule shows up FIRST (subagents that only skim the head still see it).
+  //   4. The rule survives the deferred-route short-circuit.
+  assert.ok(
+    UNIVERSAL_INSTRUCTIONS.includes(USER_QUESTION_RULE),
+    'UNIVERSAL_INSTRUCTIONS must include the canonical USER_QUESTION_RULE',
+  );
+  assert.match(
+    USER_QUESTION_RULE,
+    /AskUserQuestion/,
+    'USER_QUESTION_RULE must name the Claude Code AskUserQuestion tool by name',
+  );
+  assert.match(
+    USER_QUESTION_RULE,
+    /Cursor|other harnesses/i,
+    'USER_QUESTION_RULE must address the non-Claude-Code harness too',
+  );
+
+  for (const taskType of listTaskTypes()) {
+    const route = await resolveRoute({ taskType, slug: 'demo' });
+    const packet = await buildPacket({
+      task: 'universal-rule check',
+      route,
+      stage: null,
+      slug: 'demo',
+      controlRoot: PROJECT_ROOT_FOR_SAMPLE,
+    });
+    assert.equal(
+      packet.instructions[0],
+      USER_QUESTION_RULE,
+      `packet.instructions[0] for ${taskType} must be the ask-user-question rule`,
+    );
+  }
+
+  // Deferred routes still surface the rule. Use architecture-during-UX,
+  // the one deferred pair the router currently enforces.
+  const deferredRoute = await resolveRoute({
+    taskType: 'architecture',
+    stage: 'ux',
+    slug: 'demo',
+  });
+  assert.equal(deferredRoute.deferred, true);
+  const deferredPacket = await buildPacket({
+    task: 'universal-rule check (deferred)',
+    route: deferredRoute,
+    stage: 'ux',
+    slug: 'demo',
+    controlRoot: PROJECT_ROOT_FOR_SAMPLE,
+  });
+  assert.equal(
+    deferredPacket.instructions[0],
+    USER_QUESTION_RULE,
+    'deferred packets must still carry the ask-user-question rule',
+  );
+});
+
+test('routing manifest documents the ask-user-question universal protocol', async () => {
+  // Static drift guard: if someone removes the section from the manifest
+  // doc, this fails so the doc and the code stay in sync.
+  const manifestPath = path.join(
+    REPO_ROOT,
+    'control',
+    'v5',
+    'routing',
+    'ROUTING-MANIFEST.md',
+  );
+  const body = await fs.readFile(manifestPath, 'utf8');
+  assert.match(
+    body,
+    /Ask-the-user protocol/i,
+    'ROUTING-MANIFEST.md must include the Ask-the-user protocol section',
+  );
+  assert.match(
+    body,
+    /AskUserQuestion/,
+    'ROUTING-MANIFEST.md must name the AskUserQuestion tool',
+  );
 });
 
 test('decision-producing routes carry the visual-fragment hard rule', async () => {

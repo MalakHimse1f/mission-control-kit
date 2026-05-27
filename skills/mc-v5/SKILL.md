@@ -13,6 +13,17 @@ description: "Mission Control v5 — Orchestrator hub. Reads status/decisions fr
 READ status/decisions → RESOLVE route → DISPATCH narrow context → READ journal → GATE advance → NEXT
 ```
 
+## Asking the user (mandatory)
+
+When you need information, a decision, or a clarification from the user, you MUST surface the question through a structured ask and pause until the user responds. Do not guess, do not assume, do not proceed with placeholders.
+
+- **Claude Code:** call the `AskUserQuestion` tool with 1–4 mutually exclusive options. Use it for every "should we…" / "which of these…" / "is X true?" before writing code or markdown that depends on the answer.
+- **Cursor / other harnesses:** stop execution and ask the user directly in the conversation before continuing — do not call any other tool until the user responds.
+- **If the question is itself a decision** (a `ux` / `ui` / `engineering` choice), record the answer via `lib/v5/decisions.mjs` after the user responds, then run `node lib/v5/cli/build-decision.mjs <slug> <decision-id>` to produce the visual fragment.
+- **If the question belongs to a later phase** (e.g., an architecture concern surfaces during UX), call `deferQuestion(slug, question, raisedDuring)` from `lib/v5/decisions.mjs` instead of dropping it.
+
+This rule is auto-injected into every dispatch packet's `instructions[]` (see `UNIVERSAL_INSTRUCTIONS` in `lib/v5/mc-router.mjs`). Dispatched subagents are expected to honor it too — if a subagent needs more context, it should refuse the dispatch with a `Question:` line rather than guess.
+
 ## Visual rules
 
 Decision cards on the feature page are generated artifacts, not chat
