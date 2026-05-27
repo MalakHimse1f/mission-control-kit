@@ -1,83 +1,59 @@
 ---
 name: mc-validate
-description: "Mission Control stage 5 — phase validation gate. Usage: /mc-validate <slug> <phase-N>"
-disable-model-invocation: true
-argument-hint: [feature-slug] [phase-N]
+description: "Mission Control — orchestrator-internal validation gate. Usage: /mc-validate <slug> <phase-N>"
 ---
 
-# Mission Control — Stage 5: Validate
+# Mission Control — Validate (orchestrator-internal)
 
-**First:** Load the `mission-control` skill, then load the Superpowers `verification-before-completion` skill (Skill tool).
+**The orchestrator runs this inline** after phase-end e2e — not in a separate user session.
+
+**MUST invoke:** `mission-control` skill + **`superpowers:verification-before-completion`**
+
+**MUST read:** `tech-stack/E2E-TOOLS.md`
 
 ## Args
 
-$ARGUMENTS
+$ARGUMENTS — parse as `{slug}` and `{phase-N}` (e.g. `billing-portal phase-1`).
 
-Parse as `{slug}` and `{phase-N}` (e.g. `billing-portal phase-1`).
+## Validation gate
 
-## This session
-
-Run the validation gate from `IMPLEMENTATION_RULES.md` for the affected workspace(s):
+Run from `IMPLEMENTATION_RULES.md` for affected workspace(s):
 
 - unit tests — exit 0
 - build — exit 0
 - lint — exit 0
-- e2e — exit 0 (real UI per rules)
+- **e2e — exit 0 for every `layoutTarget`** (see `E2E-TOOLS.md`)
 
 Show command output as evidence. Do not claim pass without running commands.
 
+### E2e — platform-mandated, real UI, real DB
+
+1. Read `tech-stack/stack.json` → `layoutTargets[]`. Empty → e2e N/A.
+2. For each `layoutTarget`, run e2e via MCP in `E2E-TOOLS.md`.
+3. Real built app + real database + seeded test credentials. No mocks.
+4. If `captureE2eScreenshots: true`, save PNGs to `features/{slug}/artifacts/phase-N/{platform}/` and regenerate dashboard.
+5. Any platform e2e non-zero = validation failed.
+
 ## On failure
 
-When **any** check fails (unit, build, lint, or e2e):
-
-1. **Short failure report** in chat — which check failed, command run, key error lines. Do **not** update phase as validated.
-2. **Fix loop** — repeat until **all** checks exit 0:
-   1. **Dispatch code quality reviewer** subagent (Task tool) — failure output + relevant changed files; concrete fix guidance required.
-   2. **Dispatch implementer/patcher** subagent (Task tool) — apply fix only; no new scope.
-   3. Re-run the full validation gate (or at minimum the failed check(s) plus e2e if UI-related).
-3. After each failed attempt, report pass/fail briefly before the next loop iteration.
-
-If fix loop is **BLOCKED** after reasonable attempts, use session boundary below — do not claim validation passed.
+1. Short failure report — which check failed, command, key errors.
+2. Fix loop until all checks exit 0 (reviewer → patcher → re-run).
+3. If **BLOCKED** after reasonable attempts → stop and report blocker. Do not claim validation passed.
 
 ## On success
 
-Update `status.json`, `HANDOFF.md`, regenerate dashboard.
+1. Update `status.json` — mark validate step done for phase N, set `ValidatedAt` if applicable.
+2. Update `HANDOFF.md`, regenerate dashboard.
+3. **Continue in same session** — do not tell user to start new chat:
 
-## Session boundary — MUST tell the user
+| Next | Orchestrator action |
+|------|---------------------|
+| More phases remain, next phase not planned | Dispatch `mc-platform-plan` for phase N+1 → build |
+| More phases remain, plan exists | Set `pipelineStage: build` → dispatch build for phase N+1 |
+| Feature complete | Set `pipelineStage: done` → report success |
 
-If more phases remain:
+## Do NOT
 
-```
-Phase {N} validation passed for `{slug}`.
-
-Start a NEW session:
-  /mc-plan {slug}     (if next phase not yet planned)
-  /mc-build           (if next phase plan already exists)
-```
-
-If feature complete:
-
-```
-Feature `{slug}` complete.
-
-Start a NEW session for the next feature:
-  /mc-plan <next-slug>  or  /mc-build
-```
-
-Optional: /mc-handoff
-
-## Session boundary — validation still failing
-
-```
-Validation failed for `{slug}` phase {N}.
-
-Failed check(s): [list]
-Fix loop: [in progress | blocked]
-
-Start a NEW session and run:
-  /mc-validate {slug} phase-{N}
-
-Or continue fixes in this chat if the agent is still active.
-```
-
-Optional: /mc-handoff
+- Emit "Start a NEW chat" on success or between phases
+- Stop after validate when more work remains
+- Ask user to run `/mc-plan` or `/mc-build` in a separate session

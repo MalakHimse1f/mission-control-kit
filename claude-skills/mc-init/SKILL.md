@@ -1,7 +1,6 @@
 ---
 name: mc-init
 description: "Mission Control — establish tech stack context (required before braindump). Usage: /mc-init"
-disable-model-invocation: true
 ---
 
 # Mission Control — Init (tech stack context)
@@ -67,8 +66,7 @@ UX features after relevant tech setup:
 
 Existing project: /mc-braindump for the next tech or UX item.
 
-Start a NEW session for the next step.
-Optional: /mc-handoff
+Continue in this session — run /mc-braindump or /mc to start the next feature. Optional: /mc-handoff
 ```
 
 ## Do NOT

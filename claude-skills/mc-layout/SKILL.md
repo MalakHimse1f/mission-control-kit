@@ -2,7 +2,6 @@
 name: mc-layout
 description: "Mission Control — wireframe layout after spec, before plan. Usage: /mc-layout <feature-slug>"
 disable-model-invocation: true
-user-invocable: false
 ---
 
 # Mission Control — Layout
