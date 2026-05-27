@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Example — UX flow selection deck</title>
+<style>
+  :root{ --ink:#141414; --ink-soft:#555; --line:#d9d9d9; --line2:#c4c4c4; --bg:#f4f4f4; --panel:#fff; --muted:#8a8a8a; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);
+    color:var(--ink);line-height:1.5;padding:40px 24px 64px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1040px}
+  .deck-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .pager{display:flex;align-items:center;gap:8px}
+  .dots{display:flex;gap:6px}
+  .dot-nav{width:8px;height:8px;border-radius:50%;background:#cfcfcf;border:none;padding:0;cursor:pointer}
+  .dot-nav.on{background:var(--ink)} .dot-nav.answered{background:#9a9a9a}
+  .navbtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;cursor:pointer}
+  .navbtn:disabled{opacity:.35;cursor:default}
+  h1{font-size:25px;font-weight:680;letter-spacing:-.01em;margin:14px 0 4px}
+  .sub{color:var(--ink-soft);font-size:15px;max-width:62ch;margin-bottom:26px}
+  .question{display:none}.question.active{display:block}
+  .grid{display:grid;gap:18px}
+  .grid[data-count="2"]{grid-template-columns:1fr 1fr}
+  .grid[data-count="3"]{grid-template-columns:repeat(3,1fr)}
+  .grid[data-count="4"]{grid-template-columns:1fr 1fr}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;
+    transition:border-color .12s,box-shadow .12s;position:relative;display:flex;flex-direction:column;gap:12px}
+  .card:hover{border-color:#9a9a9a}
+  .card.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+  .badge{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;background:transparent}
+  .card.sel .badge{background:var(--ink);border-color:var(--ink)}
+  .opt-key{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .card h3{font-size:15px;font-weight:650}
+  .card p{font-size:13px;color:var(--ink-soft)}
+
+  /* flow-sequence schematic (UX) */
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid #c4c4c4;border-radius:9px;background:#fafafa;padding:12px;min-height:120px}
+  .screen{flex:1;min-width:0;background:#fff;border:1px solid #cfcfcf;border-radius:6px;padding:6px;font-size:8px;color:#3a3a3a}
+  .screen .cap{font-weight:700;font-size:8px;color:#1c1c1c;margin-bottom:5px}
+  .screen .ln{height:6px;background:#ededed;border-radius:3px;margin-bottom:4px}
+  .screen .ln.s{width:60%}
+  .screen.branch{border-style:dashed;border-color:#9a9a9a}
+  .arrow{flex:0 0 auto;color:#9a9a9a;font-size:13px;line-height:1}
+
+  .answer{margin-top:34px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+  .answer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);background:#fafafa}
+  .answer-head .lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .count{font-size:12px;color:var(--muted);font-weight:600}
+  .copybtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--ink);background:#fff;border-radius:7px;padding:6px 14px;cursor:pointer}
+  .copybtn.done{background:var(--ink);color:#fff}
+  .answer pre{padding:16px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;color:var(--ink);white-space:pre-wrap;margin:0}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="deck-head">
+    <span class="eyebrow">UX flow · Import contacts</span>
+    <div class="pager">
+      <button class="navbtn" id="prev" onclick="go(-1)">‹ Back</button>
+      <div class="dots" id="dots"></div>
+      <button class="navbtn" id="next" onclick="go(1)">Next ›</button>
+    </div>
+  </div>
+
+  <!-- ============ Q1 — 3 options: entry flow ============ -->
+  <section class="question active" data-qid="entry-flow" data-q="What is the first step of the import flow?">
+    <h1>What is the first step of the import flow?</h1>
+    <p class="sub">Every import starts somewhere. The entry point shapes how much friction users feel before they see any results.</p>
+    <div class="grid" data-count="3">
+
+      <div class="card sel" data-key="A" data-label="Upload file first" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option A</div>
+        <div class="flow">
+          <div class="screen"><div class="cap">Upload CSV</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Map columns</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Review</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Done</div><div class="ln"></div><div class="ln s"></div></div>
+        </div>
+        <div><h3>Upload file first</h3><p>User picks a file immediately; no account connection needed upfront, but manual column mapping follows.</p></div>
+      </div>
+
+      <div class="card" data-key="B" data-label="Connect account first" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option B</div>
+        <div class="flow">
+          <div class="screen"><div class="cap">Choose source</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Authorize</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Pull contacts</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Review</div><div class="ln"></div><div class="ln s"></div></div>
+        </div>
+        <div><h3>Connect account first</h3><p>User authorizes a source (e.g. Google, HubSpot) upfront; no file needed but the OAuth step adds friction.</p></div>
+      </div>
+
+      <div class="card" data-key="C" data-label="Pick a template first" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option C</div>
+        <div class="flow">
+          <div class="screen"><div class="cap">Pick template</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Upload CSV</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Auto-mapped</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Done</div><div class="ln"></div><div class="ln s"></div></div>
+        </div>
+        <div><h3>Pick a template first</h3><p>User selects a known schema before uploading; columns map automatically but adds a template-selection step.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Q2 — 2 options: error flow ============ -->
+  <section class="question" data-qid="error-flow" data-q="What happens when rows fail validation?">
+    <h1>What happens when rows fail validation?</h1>
+    <p class="sub">Some rows will always have bad data. How the system handles them determines whether the import feels safe or frustrating.</p>
+    <div class="grid" data-count="2">
+
+      <div class="card" data-key="A" data-label="Block until fixed" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option A</div>
+        <div class="flow">
+          <div class="screen"><div class="cap">Import</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Errors found</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Fix inline</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen branch"><div class="cap">Re-run</div><div class="ln"></div><div class="ln s"></div></div>
+        </div>
+        <div><h3>Block until fixed</h3><p>Nothing imports until all errors are resolved inline; data stays consistent but large error sets can stop progress entirely.</p></div>
+      </div>
+
+      <div class="card" data-key="B" data-label="Import valid, report rest" onclick="pick(this)">
+        <span class="badge">✓</span><div class="opt-key">Option B</div>
+        <div class="flow">
+          <div class="screen"><div class="cap">Import</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Valid rows saved</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Error report</div><div class="ln"></div><div class="ln s"></div></div>
+          <span class="arrow">›</span>
+          <div class="screen"><div class="cap">Download skipped</div><div class="ln"></div><div class="ln s"></div></div>
+        </div>
+        <div><h3>Import valid, report rest</h3><p>Good rows land immediately and a report surfaces bad ones; faster for large files but partial imports need careful reconciliation.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="answer">
+    <div class="answer-head">
+      <span class="lbl">Your answers — paste back in chat</span>
+      <span class="count" id="count"></span>
+      <button class="copybtn" id="copybtn" onclick="copyAll()">Copy all</button>
+    </div>
+    <pre id="ans"></pre>
+  </div>
+  <p class="hint">Standalone file — no server. Page through the decisions, then copy everything at once.</p>
+</div>
+
+<script>
+  var qs = Array.prototype.slice.call(document.querySelectorAll('.question'));
+  var idx = 0; var dotsEl = document.getElementById('dots');
+  qs.forEach(function(q,i){ var b=document.createElement('button'); b.className='dot-nav'+(i===0?' on':'');
+    b.onclick=function(){idx=i;render();}; dotsEl.appendChild(b); });
+  function pick(el){ var q=el.closest('.question');
+    q.querySelectorAll('.card').forEach(function(x){x.classList.remove('sel')}); el.classList.add('sel'); resetCopy(); render(); }
+  function go(d){ idx=Math.max(0,Math.min(qs.length-1, idx+d)); render(); }
+  function render(){
+    qs.forEach(function(q,i){ q.classList.toggle('active', i===idx); });
+    document.getElementById('prev').disabled = idx===0;
+    document.getElementById('next').disabled = idx===qs.length-1;
+    Array.prototype.forEach.call(dotsEl.children, function(d,i){
+      d.classList.toggle('on', i===idx);
+      d.classList.toggle('answered', !!qs[i].querySelector('.card.sel') && i!==idx); });
+    var lines=[], n=0;
+    qs.forEach(function(q){ var sel=q.querySelector('.card.sel');
+      if(sel){ n++; lines.push("Q: "+q.dataset.q+"\nA: Option "+sel.dataset.key+" — "+sel.dataset.label); }
+      else { lines.push("Q: "+q.dataset.q+"\n[ not answered yet ]"); } });
+    document.getElementById('ans').textContent = lines.join("\n\n");
+    document.getElementById('count').textContent = n+" of "+qs.length+" answered";
+  }
+  function resetCopy(){ var b=document.getElementById('copybtn'); b.textContent='Copy all'; b.classList.remove('done'); }
+  function copyAll(){ navigator.clipboard.writeText(document.getElementById('ans').textContent).then(function(){
+      var b=document.getElementById('copybtn'); b.textContent='Copied ✓'; b.classList.add('done'); }); }
+  render();
+</script>
+</body>
+</html>
