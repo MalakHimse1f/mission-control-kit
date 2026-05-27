@@ -7,8 +7,6 @@ description: "Mission Control v4 — Orchestrator hub. Routes Project START vs A
 
 **You are the Orchestrator.** Invoke `mission-control` skill.
 
-**MUST read:** `ROUTER.md`, `ORCHESTRATOR.md`, `SKILL-DEPENDENCIES.md`, `CONTEXT-PACKETS.md`, `BUILD-GATES.md`, `SESSION-INTENT.md`, `USER-QUESTIONS.md`
-
 ## Router
 
 | Command | Workflow |
@@ -18,18 +16,12 @@ description: "Mission Control v4 — Orchestrator hub. Routes Project START vs A
 | `/mc-braindump` | → Add Feature |
 | `/mc` | Resume from disk |
 
-## Session start (mandatory)
+## Pickup (resume from disk)
+1. Read `state.json`, `HANDOFF.md`, and the active `features/{slug}/status.json`.
+2. Open `control/ROUTING.md`, find the row for the current `pipelineStage`, and load **only** those documents.
+3. Dispatch the subagent for that stage (per the routing row). Do not pre-load other docs.
 
-Before dispatching any subagent:
-
-1. Read disk — `state.json`, `HANDOFF.md`, active `status.json`, `.mc/orchestrator-controls.json`, research HTML artifacts
-2. Brief the user — active slug, `pipelineStage`, progress, suggested next step
-3. **AskQuestion** — pipeline scope (`SESSION-INTENT.md`, `USER-QUESTIONS.md`)
-4. **AskQuestion** — decision review: review key decisions vs auto-proceed with defaults
-5. Merge answers into `.mc/orchestrator-controls.json` → `sessionIntent`
-6. Regenerate dashboard
-
-Applies to `/mc`, pasted pickup prompts, and ralph resume — pasted text is context, not a bypass.
+Gate: if `techStackStatus` is not established, tell the user `/mc-init` and stop.
 
 ## Preflight
 
