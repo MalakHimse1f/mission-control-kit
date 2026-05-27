@@ -3,10 +3,10 @@ import { BUILD_MODES } from '../lib/workflow-controls.mjs';
 import { PIPELINE_SCOPES, DECISION_REVIEW_MODES } from '../lib/session-intent.mjs';
 
 export const WORKFLOW_PANEL_CSS = `
-.workflow-panel { border-color: #4a3a5a; margin-top: 0; }
+.workflow-panel { border-color: var(--line-2); margin-top: 0; }
 .control-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.84rem; }
 .control-field label { color: var(--muted); font-size: 0.78rem; }
-.control-field select { background: #1a1a1a; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
+.control-field select { background: var(--panel-2); border: 1px solid var(--border); color: var(--ink); border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
 .workflow-hint { font-size: 0.78rem; color: var(--muted); margin: 0.5rem 0 0; }
 `;
 
