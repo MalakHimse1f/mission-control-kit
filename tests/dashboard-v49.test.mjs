@@ -47,3 +47,8 @@ test("guide is at the bottom of the dashboard view, collapsed, with copy buttons
   assert.ok(!/class="guide[^"]*"[^>]*\sopen/.test(html), "guide must be collapsed (no open attr)");
   assert.ok(html.includes("copy-cmd"), "guide missing copy buttons");
 });
+
+test("feature embeds still use iframe srcdoc", () => {
+  const html = sampleHtml();
+  assert.ok(html.includes('srcdoc='), "expected iframe srcdoc embedding code in client JS");
+});
