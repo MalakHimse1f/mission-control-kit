@@ -1,5 +1,5 @@
 ---
-name: mc-v5-decide
+name: mc-decide
 description: "Mission Control v5 — Canonical decision-encoding flow. Prompt the user for a decision, write it to decisions.json (atomic), generate the visual fragment via lib/v5/cli/build-decision.mjs, and surface the result by opening the dashboard. Usage: orchestrator invokes whenever a UX / UI / architecture decision needs to be captured."
 when: "Use whenever a v5 feature needs to encode a single decision (a question, 3-4 options, and a selected option) into decisions.json and produce its visual fragment. This is the *only* sanctioned flow for capturing decisions; do not write decisions.json or fragment HTML from anywhere else."
 ---
@@ -119,7 +119,7 @@ node lib/v5/cli/build-decision.mjs '{slug}' '{decision-id}'
 Multiple decisions can be encoded in parallel **only when each touches a
 different fragment file** (i.e., different `id`s). Since the CLI writes
 one file per id, parallel dispatch is safe. See
-`skills/mc-v5/parallel-execution.md` for the orchestrator's parallel
+`skills/mc/parallel-execution.md` for the orchestrator's parallel
 dispatch rules.
 
 Note: `writeDecisions` reads-modifies-writes `decisions.json`, so two

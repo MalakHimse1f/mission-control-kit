@@ -1,11 +1,11 @@
 ---
-name: mc-v5-review
+name: mc-review
 description: "Mission Control v5 — auto-launch the dashboard for review when a visual artifact is created or the user asks to see something. Orchestrator-internal; not user-invoked."
 ---
 
 # Mission Control v5 — Auto-Launch Dashboard for Review
 
-**Audience:** the v5 orchestrator. Not a slash command — the user never types `/mc-v5-review`. The orchestrator decides when to call it.
+**Audience:** the v5 orchestrator. Not a slash command — the user never types `/mc-review`. The orchestrator decides when to call it.
 
 **Goal:** When a dashboard-worthy moment happens, ensure the v5 dashboard server is running, open the user's browser to the relevant page, and tell the user in chat with the URL.
 

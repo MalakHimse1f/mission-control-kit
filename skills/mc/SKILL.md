@@ -22,6 +22,8 @@ READ status/decisions → RESOLVE route → DISPATCH narrow context → READ jou
 | `/mc feature <description>` | `mc-feature` skill | Scaffold + run pipeline for a new feature |
 | `/mc braindump` | `mc-braindump` skill | Brainstorm a feature |
 | `/mc portfolio` | `mc-portfolio` skill | Cross-feature review |
+| `/mc validate` | `mc-validate` skill | Run the phase gate (tests + e2e) |
+| `/mc handoff` | `mc-handoff` skill | Emit a pickup prompt + summary before `/clear` |
 | `/mc resume <slug>` or pasted pickup prompt | Read `control/v5/features/<slug>/status.json` + `decisions.json`, then continue | Resume an in-progress feature |
 
 ## Asking the user (mandatory — pick the right path)
