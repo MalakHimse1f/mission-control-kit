@@ -20,7 +20,6 @@ export const DASHBOARD_CSS = `
   --border:#2a2c31; --line-2:#3a3d44; --accent:#e8e8ea;
   --ok:#7fb38a; --warn:#c9a86a; --stop:#c98a8a; }
 * { box-sizing: border-box; }
-body.modal-open { overflow: hidden; }
 body { font-family: ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--ink); margin: 0; padding: 1.25rem 1.5rem 2rem; line-height: 1.45; }
 h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .subtitle { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 1.25rem; }
@@ -57,12 +56,6 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .progress-bar { height: 5px; background: #0c0c0e; border-radius: 3px; overflow: hidden; margin-top: 0.2rem; }
 .progress-fill { height: 100%; background: var(--ink-soft); border-radius: 3px; }
 .progress-fill-tech { background: var(--ink-soft); }
-.modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.72); padding: 1rem; overflow-y: auto; }
-.modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
-.modal-dialog { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: min(920px, 100%); max-height: calc(100vh - 2rem); display: flex; flex-direction: column; margin: auto; }
-.modal-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.75rem; padding: 1rem 1.15rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.modal-header h3 { margin: 0; font-size: 1.15rem; }
-.modal-body { overflow-y: auto; padding: 0 1.15rem 1.15rem; flex: 1; min-height: 0; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .pickup-pre { background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; white-space: pre-wrap; margin: 0.75rem 0; max-height: 12rem; overflow: auto; }
 .task-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -73,8 +66,6 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .handoff-pre { white-space: pre-wrap; font-size: 0.8rem; background: #0c0c0e; border: 1px solid var(--border); padding: 0.65rem; border-radius: 8px; max-height: 10rem; overflow: auto; }
 .stack-line { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 0.5rem; }
 .footer { margin-top: 1.5rem; font-size: 0.72rem; color: var(--muted); }
-.detail-section { margin-top: 1.25rem; }
-.detail-section h4 { font-size: 0.92rem; margin: 0 0 0.5rem; font-weight: 600; color: var(--ink-soft); }
 .visual-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
 .wireframe-card, .shot-card { margin: 0; flex: 1 1 280px; max-width: 420px; background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .wireframe-card iframe { display: block; width: 100%; height: 360px; border: none; background: #fff; }
@@ -107,7 +98,6 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .tab-btn.active { background: var(--raised); border-color: var(--line-2); color: var(--ink); }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
-.modal-dialog { width: min(960px, 100%); }
 .badge-done { background: var(--raised); color: var(--ok); border-color: #2c3e30; }
 .badge-working { border-color: #2c3a44; color: #bfe3f0; background: #141b20; }
 .commit-cell { font-size: 0.75rem; max-width: 14rem; }
@@ -166,6 +156,13 @@ h1 { font-size: 1.45rem; margin: 0 0 0.25rem; font-weight: 600; }
 .kit-update-hint code { font-size: 0.78rem; }
 .kit-upgrade-btn { font-size: 0.82rem; padding: 0.35rem 0.75rem; white-space: nowrap; }
 .kit-upgrade-msg { font-size: 0.8rem; color: var(--muted); }
+.view{display:none}.view.active{display:block}
+.back-btn{display:inline-flex;align-items:center;gap:7px;margin-bottom:22px;color:var(--ink-soft)}
+.back-btn:hover{color:var(--ink)}
+.fp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
+.fp-head h3{font-size:24px;font-weight:680;margin:0}
+.detail-section{margin:18px 0}
+.detail-section h4{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 ${CONTROL_PANEL_CSS}
 ${WORKFLOW_PANEL_CSS}
 @media (max-width: 720px) {
@@ -619,6 +616,7 @@ export function buildDashboardHtml({
   <style>${DASHBOARD_CSS}</style>
 </head>
 <body>
+  <div id="view-dashboard" class="view active">
   <h1>Mission Control v4</h1>
   <p class="subtitle">Orchestrator-driven pipeline — Project START and Add Feature. Drill into a card for spec, plans, mocks, journal, and tasks.</p>
   <p class="top-meta">${isMock ? "<strong>Preview mock</strong> · " : ""}Generated ${escapeHtml(generatedAt)} · All content embedded — open this file directly, no external links required.</p>
@@ -687,69 +685,28 @@ export function buildDashboardHtml({
     </div>
     <div id="mc-work-grid" class="work-grid"></div>
   </div>
+  </div>
 
-  <div id="mc-detail" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div>
-          <h3 id="detail-title">—</h3>
-          <p id="detail-meta" class="muted"></p>
-        </div>
-        <div class="detail-actions">
-          <button type="button" class="btn btn-primary" id="detail-copy-pickup">Copy pickup prompt</button>
-          <button type="button" class="btn" id="detail-close">Close</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p class="muted">Paste into the <strong>Orchestrator chat</strong> (same session if active, or <code>/mc</code> to resume):</p>
-        <pre class="pickup-pre" id="detail-pickup"></pre>
-        <div class="detail-section">
-          <h4>Pipeline steps</h4>
-          <div id="detail-steps"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Braindump</h4>
-          <div id="detail-braindump"></div>
-        </div>
-        <div class="detail-section">
-          <h4>PRD / Spec</h4>
-          <div id="detail-spec"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Exploration findings</h4>
-          <div id="detail-explore"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Skill findings</h4>
-          <p class="muted">Research, strategy, and interaction HTML layouts — review before build when decision review is on.</p>
-          <div id="detail-skill-findings"></div>
-        </div>
-        <div class="detail-section" id="detail-wireframes-section">
-          <h4>UI mockups</h4>
-          <div id="detail-wireframes"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Layout notes</h4>
-          <div id="detail-layout-doc"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Implementation plans</h4>
-          <div id="detail-phases"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Build tasks</h4>
-          <div id="detail-tasks"></div>
-        </div>
-        <div class="detail-section">
-          <h4>Subagent journal</h4>
-          <div id="detail-journal"></div>
-        </div>
-        <div class="detail-section" id="detail-screenshots-section">
-          <h4>E2E screenshots</h4>
-          <div id="detail-screenshots"></div>
-        </div>
-      </div>
+  <div id="view-feature" class="view">
+    <button type="button" class="btn back-btn" id="detail-back">‹ Back to dashboard</button>
+    <div class="fp-head">
+      <h3 id="detail-title">—</h3>
+      <button type="button" class="btn btn-primary" id="detail-copy-pickup">Copy pickup prompt</button>
     </div>
+    <p id="detail-meta" class="muted"></p>
+    <p class="muted">Paste into the <strong>Orchestrator chat</strong> (same session if active, or <code>/mc</code> to resume):</p>
+    <pre class="pickup-pre" id="detail-pickup"></pre>
+    <div class="detail-section"><h4>Pipeline steps</h4><div id="detail-steps"></div></div>
+    <div class="detail-section"><h4>Braindump</h4><div id="detail-braindump"></div></div>
+    <div class="detail-section"><h4>PRD / Spec</h4><div id="detail-spec"></div></div>
+    <div class="detail-section"><h4>Exploration findings</h4><div id="detail-explore"></div></div>
+    <div class="detail-section"><h4>Skill findings</h4><p class="muted">Research, strategy, and interaction HTML layouts — review before build when decision review is on.</p><div id="detail-skill-findings"></div></div>
+    <div class="detail-section" id="detail-wireframes-section"><h4>UI mockups</h4><div id="detail-wireframes"></div></div>
+    <div class="detail-section"><h4>Layout notes</h4><div id="detail-layout-doc"></div></div>
+    <div class="detail-section"><h4>Implementation plans</h4><div id="detail-phases"></div></div>
+    <div class="detail-section"><h4>Build tasks</h4><div id="detail-tasks"></div></div>
+    <div class="detail-section"><h4>Subagent journal</h4><div id="detail-journal"></div></div>
+    <div class="detail-section" id="detail-screenshots-section"><h4>E2E screenshots</h4><div id="detail-screenshots"></div></div>
   </div>
 
   <p class="footer">${isMock ? "Preview file — " : ""}Regenerate: <code>node docs/superpowers/control/scripts/generate-dashboard.mjs</code> · Control panel: <code>node docs/superpowers/control/scripts/dashboard-server.mjs</code></p>
