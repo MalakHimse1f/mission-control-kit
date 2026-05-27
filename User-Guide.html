@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mission Control v4 — User Guide</title>
+  <title>Mission Control v5 — User Guide</title>
   <style>
     :root { color-scheme: dark; }
     body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0a0a0a; color: #e5e5e5; margin: 0; padding: 1.5rem; line-height: 1.55; max-width: 52rem; }
@@ -27,13 +27,13 @@
 </head>
 <body data-kit-folder="mission-control-kit">
 
-  <h1>Mission Control v4</h1>
+  <h1>Mission Control v5</h1>
   <p class="subtitle">Install, upgrade, and run the orchestrator. Works with <strong>Cursor</strong> and <strong>Claude Code</strong>.</p>
 
   <nav class="nav">
     <a href="#install">Install</a>
     <a href="#update">Update</a>
-    <a href="control/dashboard.html">Dashboard</a>
+    <a href="#dashboard">Dashboard</a>
     <a href="#commands">Commands</a>
     <a href="control/INDEX.md">Docs index</a>
   </nav>
@@ -88,20 +88,33 @@
     <p>Check only: <code>--check</code> · Preview: <code>--dry-run</code> · Fetch release: <code>--fetch</code></p>
   </div>
 
+  <h2 id="dashboard">Dashboard</h2>
+  <p>The v5 dashboard is a live server — launch it from the terminal at your project root:</p>
+  <div class="card">
+    <code>node mission-control-kit/control/scripts/v5/dashboard-server.mjs .</code>
+  </div>
+
   <h2 id="commands">Commands</h2>
   <table>
     <thead><tr><th>Command</th><th>When</th></tr></thead>
     <tbody>
-      <tr><td><code>/mc-start</code></td><td>New product</td></tr>
+      <tr><td><code>/mc</code></td><td>Mission Control hub — routes any input to the right workflow</td></tr>
+      <tr><td><code>/mc-start</code></td><td>New product — establishes tech stack and seeds first feature</td></tr>
       <tr><td><code>/mc-init</code></td><td>Existing codebase — set tech stack once</td></tr>
       <tr><td><code>/mc-feature</code></td><td>New feature in established product</td></tr>
-      <tr><td><code>/mc</code></td><td>Resume from disk</td></tr>
+      <tr><td><code>/mc-braindump</code></td><td>Run the brainstorm flow for the active feature</td></tr>
+      <tr><td><code>/mc-layout</code></td><td>Wireframe + layout step — produces HTML mocks</td></tr>
+      <tr><td><code>/mc-plan</code></td><td>Generate phased implementation plan from approved spec</td></tr>
+      <tr><td><code>/mc-build</code></td><td>Dispatch the build subagent</td></tr>
+      <tr><td><code>/mc-validate</code></td><td>Validation gate between pipeline phases</td></tr>
+      <tr><td><code>/mc-handoff</code></td><td>End-of-session handoff — run before /clear</td></tr>
+      <tr><td><code>/mc-resume &lt;slug&gt;</code></td><td>Resume a feature where you left off</td></tr>
+      <tr><td><code>/mc-portfolio</code></td><td>Multi-feature build order review</td></tr>
       <tr><td><code>/mc-upgrade</code></td><td>Safe kit update</td></tr>
-      <tr><td><code>/mc-portfolio</code></td><td>Multi-feature build order</td></tr>
     </tbody>
   </table>
 
-  <p class="tip">Open <a href="control/dashboard.html">dashboard.html</a> after install — it includes a getting-started guide and version strip.</p>
+  <p class="tip">Launch the live dashboard with <code>node mission-control-kit/control/scripts/v5/dashboard-server.mjs .</code> — it includes a getting-started guide and version strip.</p>
 
 </body>
 </html>
