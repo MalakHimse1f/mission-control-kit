@@ -565,3 +565,330 @@ body.mc-diagram {
 .mc-toast.error { border-left-color: var(--mc-danger); }
 .mc-toast .check { color: var(--mc-accent); font-weight: 700; margin-right: 6px; }
 .mc-toast.error .check { color: var(--mc-danger); }
+
+/* =========================================================================
+ * v5.1 — Diagram atom catalog
+ *
+ * The classes above (mc-mini-frame / mc-arch-node / mc-flow-step etc.)
+ * are the legacy "preset" primitives. The classes below are the
+ * compositional atoms the agent uses when describing per-feature
+ * diagrams via decisions/{id}.visual.json. Both vocabularies coexist —
+ * presets render through the same option-card surface.
+ * ========================================================================= */
+
+/* ---------- Generic icon glyph (single-letter abstraction) ---------- */
+.mc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--mc-text-3, #999);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ---------- UX flow node kinds (extend .mc-flow-step) ---------- */
+.mc-flow-step.start .mc-flow-circle {
+  background: var(--mc-accent-soft);
+  border-color: var(--mc-accent);
+  color: var(--mc-accent);
+}
+.mc-flow-step.end .mc-flow-circle {
+  background: var(--mc-green, #355948);
+  border-color: var(--mc-green, #5dd6a2);
+  color: #b9d4be;
+}
+.mc-flow-step.decision .mc-flow-circle {
+  border-color: var(--mc-warn, #d4a85a);
+  color: #d4bba1;
+  border-radius: 4px;
+  transform: rotate(45deg);
+}
+.mc-flow-step.decision .mc-flow-circle > * {
+  transform: rotate(-45deg);
+}
+.mc-flow-timeline[data-swimlane="user"]   { border-left: 2px solid var(--mc-accent); padding-left: 6px; }
+.mc-flow-timeline[data-swimlane="system"] { border-left: 2px solid var(--mc-violet, #9b6dd4); padding-left: 6px; }
+
+/* ---------- UI screen mockup atoms ---------- */
+.mc-screen {
+  width: 100%;
+  max-width: 220px;
+  margin-inline: auto;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: var(--mc-radius-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--mc-text-2, #ddd);
+  font-size: 8px;
+  line-height: 1.2;
+}
+.mc-screen.phone   { aspect-ratio: 4 / 6; }
+.mc-screen.desktop { aspect-ratio: 5 / 3; max-width: 260px; }
+.mc-screen.modal   { aspect-ratio: 5 / 4; max-width: 200px; background: #f5f5f5; color: #333; }
+.mc-screen.card    { aspect-ratio: 4 / 3; background: #fff; color: #333; }
+
+.mc-screen-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 9px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.mc-screen.modal .mc-screen-header,
+.mc-screen.card  .mc-screen-header { border-bottom-color: #ddd; }
+.mc-screen-back { color: var(--mc-text-3, #888); margin-right: 2px; }
+.mc-screen-title { flex: 1; }
+.mc-screen-title.placeholder {
+  display: block;
+  height: 4px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 2px;
+  max-width: 40%;
+}
+.mc-screen-actions { display: flex; gap: 3px; }
+
+.mc-screen-body {
+  flex: 1;
+  padding: 5px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mc-screen-footer {
+  display: flex;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 4px 5px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.mc-screen.modal .mc-screen-footer,
+.mc-screen.card  .mc-screen-footer { border-top-color: #ddd; }
+.mc-screen-footer.tab-bar { justify-content: space-around; padding: 4px 2px; }
+.mc-screen-footer.action-bar { justify-content: flex-end; }
+
+.mc-tab {
+  font-size: 7px;
+  color: var(--mc-text-3, #888);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+.mc-tab.active { color: var(--mc-accent); background: var(--mc-accent-soft); }
+
+/* ---------- UI body element atoms ---------- */
+.mc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mc-list-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+}
+.mc-screen.modal .mc-list-item,
+.mc-screen.card  .mc-list-item { background: rgba(0,0,0,0.04); }
+.mc-list-title  { flex: 1; font-size: 8px; }
+.mc-list-sub    { font-size: 7px; opacity: 0.6; }
+
+.mc-grid {
+  display: grid;
+  gap: 3px;
+}
+.mc-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
+.mc-grid[data-cols="3"] { grid-template-columns: repeat(3, 1fr); }
+.mc-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  min-height: 22px;
+}
+.mc-screen.modal .mc-grid-item,
+.mc-screen.card  .mc-grid-item { background: rgba(0,0,0,0.05); }
+.mc-grid-label { font-size: 7px; }
+
+.mc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mc-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mc-form-label { font-size: 7px; opacity: 0.7; }
+.mc-form-input {
+  height: 10px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+}
+.mc-screen.modal .mc-form-input,
+.mc-screen.card  .mc-form-input { background: rgba(0,0,0,0.08); }
+.mc-form-field[data-kind="toggle"] .mc-form-input {
+  height: 8px;
+  width: 16px;
+  background: var(--mc-accent);
+  border-radius: 8px;
+  align-self: flex-start;
+}
+.mc-form-field[data-kind="select"] .mc-form-input::after {
+  content: "▾";
+  float: right;
+  font-size: 7px;
+  margin: -1px 3px 0 0;
+  opacity: 0.6;
+}
+
+.mc-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px;
+  text-align: center;
+}
+.mc-hero .mc-icon {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  background: var(--mc-accent-soft);
+  color: var(--mc-accent);
+}
+.mc-hero-title { font-size: 9px; font-weight: 600; }
+.mc-hero-sub   { font-size: 7px; opacity: 0.7; }
+
+.mc-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+.mc-button {
+  font-size: 7px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  color: var(--mc-text-2, #ddd);
+}
+.mc-button.primary { background: var(--mc-accent); color: #fff; }
+.mc-screen.modal .mc-button,
+.mc-screen.card  .mc-button { background: rgba(0,0,0,0.08); color: #333; }
+.mc-screen.modal .mc-button.primary,
+.mc-screen.card  .mc-button.primary { background: var(--mc-accent); color: #fff; }
+
+.mc-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mc-text-placeholder {
+  height: 4px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+}
+.mc-text-placeholder.lg { width: 100%; }
+.mc-text-placeholder.md { width: 75%; }
+.mc-text-placeholder.sm { width: 50%; }
+.mc-screen.modal .mc-text-placeholder,
+.mc-screen.card  .mc-text-placeholder { background: rgba(0,0,0,0.12); }
+
+.mc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  flex: 1;
+  opacity: 0.55;
+}
+.mc-empty .mc-icon {
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+  background: transparent;
+  border: 1px dashed currentColor;
+}
+.mc-empty-label { font-size: 7px; }
+
+/* ---------- Architecture node kinds (extend .mc-arch-node) ---------- */
+.mc-arch-node.client   { border-color: var(--mc-accent);  color: var(--mc-accent); }
+.mc-arch-node.service  { border-color: var(--mc-violet, #9b6dd4); color: #c5b4d4; }
+.mc-arch-node.db       { border-color: var(--mc-green, #5dd6a2); color: #b9d4be;
+  border-radius: 14px 14px 6px 6px / 18px 18px 4px 4px; }
+.mc-arch-node.queue    { border-color: var(--mc-warn, #d4a85a); color: #d4bba1;
+  border-style: dashed; }
+.mc-arch-node.cache    { border-color: var(--mc-warn, #d4a85a); color: #d4bba1;
+  border-radius: 8px; box-shadow: 2px 2px 0 rgba(212,168,90,0.18); }
+.mc-arch-node.edge     { border-color: var(--mc-accent-2, #5fa9e8); color: #b3d2ea;
+  border-radius: 14px; }
+.mc-arch-node.worker   { border-color: var(--mc-danger, #d46a6a); color: #d4a1a1; }
+.mc-arch-node.external { border-color: var(--mc-text-3, #888);    color: var(--mc-text-3, #888);
+  border-style: dotted; }
+.mc-arch-node.actor    { border-color: var(--mc-text-2, #ddd); color: var(--mc-text-2, #ddd);
+  border-radius: 50%; }
+.mc-arch-node.function { border-color: var(--mc-violet, #9b6dd4); color: #c5b4d4;
+  border-radius: 4px; border-style: dashed; }
+
+/* ---------- Architecture edge kinds (.mc-arch-edge — new for v5.1) ---------- */
+.mc-arch-edge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  font-size: 8px;
+  color: var(--mc-text-3, #888);
+}
+.mc-arch-edge .line {
+  flex: 1;
+  min-width: 18px;
+  height: 1px;
+  background: currentColor;
+  position: relative;
+}
+.mc-arch-edge .line::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-left: 5px solid currentColor;
+}
+.mc-arch-edge .label {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 7px;
+  padding: 0 3px;
+  background: var(--mc-panel-3, #0a0a0a);
+}
+.mc-arch-edge.async .line  { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px); }
+.mc-arch-edge.data         { color: var(--mc-green, #5dd6a2); }
+.mc-arch-edge.dep .line    { background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px); opacity: 0.6; }

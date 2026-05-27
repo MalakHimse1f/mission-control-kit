@@ -1,0 +1,38 @@
+{
+  "id": "ux-source-picker-pattern",
+  "options": {
+    "Stepped wizard (pick source → authenticate/upload → review → confirm)": {
+      "diagram": {
+        "kind": "flow",
+        "steps": [
+          { "label": "Pick source",  "kind": "start" },
+          { "label": "Authenticate", "kind": "step" },
+          { "label": "Review items", "kind": "decision" },
+          { "label": "Confirm",      "kind": "end",   "icon": "check" }
+        ]
+      }
+    },
+    "Unified dropzone that auto-detects file type": {
+      "diagram": {
+        "kind": "flow",
+        "steps": [
+          { "label": "Drop file",   "kind": "start", "icon": "upload" },
+          { "label": "Detect type", "kind": "decision" },
+          { "label": "Map fields",  "kind": "step" },
+          { "label": "Done",        "kind": "end",   "icon": "check" }
+        ]
+      }
+    },
+    "Flat source list with per-source CTA buttons": {
+      "diagram": {
+        "kind": "flow",
+        "steps": [
+          { "label": "Browse sources", "kind": "start", "icon": "library" },
+          { "label": "Tap source",     "kind": "step" },
+          { "label": "Auth + import",  "kind": "step" },
+          { "label": "Confirm",        "kind": "end",   "icon": "check" }
+        ]
+      }
+    }
+  }
+}

@@ -110,18 +110,101 @@ and produces it deterministically from the decision data.
 decision and runs the CLI for each. The overview diagram lives at the
 feature root; per-decision fragments live in `features/{slug}/decisions/`.
 
-## Patterns the orchestrator should reach for
+## Composing a feature-specific visual (v5.1)
 
-| Situation | Pattern | Visual |
-|-----------|---------|--------|
-| User picks one of several flows | flow-per-option grid | `mc-flow-timeline` |
-| User confirms a destructive action | dialog-with-preview | `mc-mini-frame` + flow step |
-| Multi-step onboarding | sequenced steps | `mc-flow-timeline` with progress dots |
-| Error recovery | conditional branch | `mc-flow-timeline` with a fork node |
+Hardcoded presets don't fit every feature. Write a sidecar JSON file
+alongside `decisions.json` to describe each option's visual in terms the
+feature actually uses. The CLI reads it, validates it, and renders.
 
-Each of these is encoded by `decision-visual-builder.mjs`. The orchestrator
-selects the right shape implicitly by setting `category: 'ux'`; the CLI
-chooses the per-option timeline structure.
+**File path:** `control/v5/features/<slug>/decisions/<decision-id>.visual.json`
+
+Three sources per option, tried in order:
+
+1. **`preset`** — named flow from the catalog below. Cheapest. Pick this
+   when your option's flow is close to a generic pattern.
+2. **`diagram`** — structured atoms. Use this when the flow is
+   feature-specific. The agent describes step labels and kinds; never
+   writes HTML.
+3. **`raw`** — verbatim HTML. Escape hatch for unusual cases. Avoid unless
+   the structured atoms can't represent your flow.
+
+If a sidecar is missing or an option has no entry, the legacy rotation
+fills in — so v5.0 decisions keep rendering unchanged.
+
+### UX preset catalog
+
+| Preset | Steps |
+|--------|-------|
+| `wizard-3step`     | Start → Configure → Confirm |
+| `wizard-4step`     | Open → Configure → Submit → Done |
+| `approval`         | Trigger → Review (decision) → Approve |
+| `browse-select`    | Browse → Select → Detail → Apply |
+| `onboarding`       | Welcome → Profile → Permissions → Done |
+| `search-flow`      | Search → Filter → Result → Detail |
+| `import-flow`      | Source → Map → Preview (decision) → Import |
+| `share-flow`       | Pick → Compose → Send → Confirm |
+| `signup`           | Form → Verify (decision) → Profile → Done |
+| `signin`           | Credentials → 2FA (decision) → Home |
+| `decision-tree`    | Question → Branch (decision) → Outcome |
+| `error-recovery`   | Error → Diagnose (decision) → Retry → Success |
+
+### Structured `diagram` shape for `category: "ux"`
+
+```json
+{
+  "kind": "flow",
+  "steps": [
+    { "label": "Paste link",       "kind": "start"    },
+    { "label": "Validate source",  "kind": "decision" },
+    { "label": "Import",           "kind": "step"     },
+    { "label": "Confirm",          "kind": "end"      }
+  ],
+  "swimlane": "user"
+}
+```
+
+Field rules:
+- `steps[].kind` ∈ `"start" | "step" | "decision" | "end"` (defaults to `"step"`)
+- `steps[].label` is the visible text
+- `steps[].icon` (optional) is one of `book | film | tv | game | music | user | users | search | settings | home | library | inbox | star | heart | tag | clock | lock | globe | plus | check | x | play | pause | download | upload | sync | edit | trash`
+- `swimlane` (optional) ∈ `"user" | "system"` — left border tint
+
+### Worked example: feature-specific import flow
+
+`decisions/ux-import-source-picker.visual.json`:
+
+```json
+{
+  "id": "ux-import-source-picker",
+  "options": {
+    "Stepped wizard (pick source → authenticate/upload → review → confirm)": {
+      "diagram": {
+        "kind": "flow",
+        "steps": [
+          { "label": "Pick source",    "kind": "start" },
+          { "label": "Authenticate",   "kind": "step" },
+          { "label": "Review",         "kind": "decision" },
+          { "label": "Confirm",        "kind": "end" }
+        ]
+      }
+    },
+    "Unified dropzone that auto-detects file type": {
+      "diagram": {
+        "kind": "flow",
+        "steps": [
+          { "label": "Drop file",    "kind": "start", "icon": "upload" },
+          { "label": "Detect type",  "kind": "decision" },
+          { "label": "Map fields",   "kind": "step" },
+          { "label": "Done",         "kind": "end",   "icon": "check" }
+        ]
+      }
+    },
+    "Flat source list with per-source CTA buttons": { "preset": "browse-select" }
+  }
+}
+```
+
+Then run the CLI as before — it picks the sidecar up automatically.
 
 ## The hard rule
 

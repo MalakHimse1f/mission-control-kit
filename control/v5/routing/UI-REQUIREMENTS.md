@@ -114,18 +114,91 @@ from the spec; decision fragments are referenced from the feature page's
 Decisions section. Both can coexist. Neither is a substitute for the
 other.
 
-## Patterns the orchestrator should reach for
+## Composing a feature-specific screen (v5.1)
 
-| Situation | Pattern | Visual |
-|-----------|---------|--------|
-| Where does a surface live? | placement options grid | `mc-mini-frame` per placement |
-| How is a panel anchored? | anchor options grid | `mc-mini-frame` with anchored fg |
-| Inline vs. modal vs. drawer | container shape grid | `mc-mini-frame` per container |
-| Tab vs. accordion vs. list | navigation shape grid | `mc-mini-frame` per shape |
+The legacy `mc-mini-frame` rotation (dialog / drawer / sheet) can't show
+a Library list or a search-results screen. Use a sidecar JSON file to
+describe each option as a real screen mockup the user will recognize.
 
-Each of these is encoded by `decision-visual-builder.mjs`. The orchestrator
-sets `category: 'ui'`; the CLI chooses the per-option mini-frame
-foreground.
+**File path:** `control/v5/features/<slug>/decisions/<decision-id>.visual.json`
+
+Three sources per option, tried in order: **`preset`** → **`diagram`** →
+**`raw`** (see [ROUTING-MANIFEST.md](./ROUTING-MANIFEST.md#decisions-vs-clarifying-questions)).
+
+### UI preset catalog
+
+| Preset | Shape |
+|--------|-------|
+| `list-detail`      | Phone, header + list body |
+| `grid-gallery`     | Phone, header + 3-col grid |
+| `form-screen`      | Phone, header + form + Save button |
+| `dashboard`        | Desktop, header nav + 3-col grid |
+| `settings`         | Phone, header + toggle/select list |
+| `search-results`   | Phone, search header + result list |
+| `dialog-confirm`   | Modal, hero icon + Cancel/Confirm buttons |
+| `bottom-sheet`     | Phone, sheet-style list |
+| `side-drawer`      | Phone, nav drawer + tab bar |
+| `empty-state`      | Phone, empty placeholder |
+| `loading-state`    | Phone, skeleton lines |
+| `hero-cta`         | Phone, hero + primary CTA |
+
+### Structured `diagram` shape for `category: "ui"`
+
+```json
+{
+  "frame": "phone",
+  "header": { "title": "Library", "back": true, "actions": ["search"] },
+  "body": [
+    { "kind": "list", "items": [
+      { "icon": "book", "title": "1984", "subtitle": "Orwell" },
+      { "icon": "film", "title": "Blade Runner", "subtitle": "1982" }
+    ]}
+  ],
+  "footer": { "kind": "tab-bar", "items": ["Home","Library","Me"] }
+}
+```
+
+Field rules:
+- `frame` ∈ `"phone" | "desktop" | "modal" | "card"` (defaults to `"phone"`)
+- `header.actions[]` are icon names (same vocabulary as UX `steps[].icon`)
+- `body[]` is an ordered list of body elements; each `{ kind, ... }` is one of:
+  - `{ "kind": "list",    "items": [{ icon?, title, subtitle? }, ...] }`
+  - `{ "kind": "grid",    "items": [{ icon?, label }, ...], "cols"?: 2|3 }`
+  - `{ "kind": "form",    "fields": [{ "kind": "text"|"select"|"toggle", "label" }, ...] }`
+  - `{ "kind": "hero",    "title", "subtitle"?, "icon"? }`
+  - `{ "kind": "text",    "lines": number }`
+  - `{ "kind": "buttons", "items": [{ "label", "primary"? }, ...] }`
+  - `{ "kind": "empty",   "label"? }`
+- `footer.kind` ∈ `"tab-bar" | "action-bar"`
+
+### Worked example: feature-specific UI placement
+
+`decisions/ui-surface-placement.visual.json`:
+
+```json
+{
+  "id": "ui-surface-placement",
+  "options": {
+    "Full-page route under /library/import": {
+      "diagram": {
+        "frame": "phone",
+        "header": { "title": "Import library", "back": true },
+        "body": [
+          { "kind": "form", "fields": [
+            { "kind": "select", "label": "Source" },
+            { "kind": "text",   "label": "Account email" }
+          ]},
+          { "kind": "buttons", "items": [{ "label": "Continue", "primary": true }] }
+        ]
+      }
+    },
+    "Modal dialog launched from the library header": { "preset": "dialog-confirm" },
+    "Side drawer that pins next to the library list": { "preset": "side-drawer" }
+  }
+}
+```
+
+Then run the CLI as before — it picks the sidecar up automatically.
 
 ## The hard rule
 

@@ -166,6 +166,117 @@ test('buildVisualFragment keeps plain hyphens in labels (no aggressive splitting
   assert.ok(html.includes('<div class="mc-card-label">Manual upload only</div>'));
 });
 
+// ---------------------------------------------------------------------------
+// v5.1 — sidecar (preset / diagram / raw) resolution
+// ---------------------------------------------------------------------------
+
+test('buildVisualFragment resolves a sidecar preset per option', () => {
+  const decision = {
+    id: 'ux-onboarding',
+    category: 'ux',
+    question: 'Onboarding shape?',
+    options: ['Wizard', 'Approval'],
+  };
+  const html = buildVisualFragment(decision, {
+    optionVisuals: {
+      Wizard: { preset: 'wizard-3step' },
+      Approval: { preset: 'approval' },
+    },
+  });
+  // Both option cards should be backed by a flow-timeline preset.
+  assert.equal((html.match(/mc-flow-timeline/g) || []).length, 2);
+  // wizard-3step ends with "Confirm"; approval ends with "Approve".
+  assert.match(html, />Confirm</);
+  assert.match(html, />Approve</);
+});
+
+test('buildVisualFragment resolves a sidecar structured diagram per option', () => {
+  const decision = {
+    id: 'arch-import',
+    category: 'engineering',
+    question: 'Import backend?',
+    options: ['Direct', 'Queued'],
+  };
+  const html = buildVisualFragment(decision, {
+    optionVisuals: {
+      Direct: {
+        diagram: {
+          nodes: [
+            { id: 'client', kind: 'client', label: 'Client' },
+            { id: 'api', kind: 'service', label: 'API' },
+            { id: 'db', kind: 'db', label: 'Store' },
+          ],
+          edges: [
+            { from: 'client', to: 'api', kind: 'sync' },
+            { from: 'api', to: 'db', kind: 'data' },
+          ],
+        },
+      },
+      Queued: {
+        diagram: {
+          nodes: [
+            { id: 'client', kind: 'client', label: 'Client' },
+            { id: 'q', kind: 'queue', label: 'Jobs' },
+            { id: 'worker', kind: 'worker', label: 'Worker' },
+            { id: 'db', kind: 'db', label: 'Store' },
+          ],
+          edges: [
+            { from: 'client', to: 'q', kind: 'async' },
+            { from: 'q', to: 'worker', kind: 'async' },
+            { from: 'worker', to: 'db', kind: 'data' },
+          ],
+        },
+      },
+    },
+  });
+  // Each option is its own diagram surface; together that's 2 surfaces, 7 nodes.
+  assert.equal((html.match(/mc-diagram-surface/g) || []).length, 2);
+  assert.match(html, /mc-arch-node queue/);
+  assert.match(html, /mc-arch-node worker/);
+  assert.match(html, /mc-arch-edge async/);
+});
+
+test('buildVisualFragment accepts a sidecar raw escape hatch', () => {
+  const decision = {
+    id: 'ui-custom',
+    category: 'ui',
+    question: 'Custom?',
+    options: ['Special'],
+  };
+  const html = buildVisualFragment(decision, {
+    optionVisuals: {
+      Special: { raw: '<div class="bespoke-svg-thing">x</div>' },
+    },
+  });
+  assert.match(html, /<div class="bespoke-svg-thing">x<\/div>/);
+});
+
+test('buildVisualFragment falls back to legacy rotation when sidecar is empty', () => {
+  // No optionVisuals at all — should not throw, should fall back to mockups.
+  const decision = {
+    id: 'ui-no-sidecar',
+    category: 'ui',
+    question: 'Q?',
+    options: ['A', 'B'],
+  };
+  const html = buildVisualFragment(decision);
+  assert.match(html, /mc-mini-frame/, 'legacy mockup variant should still render');
+});
+
+test('buildVisualFragment falls back to legacy when sidecar entry has unknown preset', () => {
+  const decision = {
+    id: 'ux-unknown-preset',
+    category: 'ux',
+    question: 'Q?',
+    options: ['One'],
+  };
+  const html = buildVisualFragment(decision, {
+    optionVisuals: { One: { preset: 'no-such-preset' } },
+  });
+  // Falls through to defaultUxVisual (mc-flow-timeline) — still renders.
+  assert.match(html, /mc-flow-timeline/);
+});
+
 test('escapeHtml escapes all five HTML special chars', () => {
   assert.equal(escapeHtml('<>&"\''), '&lt;&gt;&amp;&quot;&#39;');
   assert.equal(escapeHtml(null), '');

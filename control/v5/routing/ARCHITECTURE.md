@@ -93,6 +93,91 @@ transport (direct PUT vs. proxied stream vs. queue + worker).
 You do not write that HTML. The CLI uses `lib/v5/decision-visual-builder.mjs`
 and produces it deterministically from the decision data.
 
+### Composing a feature-specific topology (v5.1)
+
+The legacy rotation (`App → DB`, `Client → Service → Store`, ...) ignores
+your actual stack. Use a sidecar JSON file to describe each option as the
+real topology — your services, your transports, your stores.
+
+**File path:** `control/v5/features/<slug>/decisions/<decision-id>.visual.json`
+
+Three sources per option, tried in order: **`preset`** → **`diagram`** →
+**`raw`** (see [ROUTING-MANIFEST.md](./ROUTING-MANIFEST.md#decisions-vs-clarifying-questions)).
+
+#### Architecture preset catalog
+
+| Preset | Topology |
+|--------|----------|
+| `client-server`    | Client → Service → DB |
+| `crud-stack`       | Client → API → Store |
+| `worker-queue`     | Client → API → Queue → Worker → Store |
+| `pubsub`           | Publisher → Topic → Subscriber |
+| `cdn-edge`         | Browser → CDN → Origin → Store |
+| `microservices`    | Gateway → Service A → Service B → Store |
+| `stream-pipeline`  | Source → Stream → Processor → Sink |
+| `cache-aside`      | Client → Cache → Store |
+| `read-replica`     | Client → API → Primary / Replica |
+| `event-sourced`    | Client → Command → Event Log → Projection |
+| `static-site`      | Build → Storage → CDN → Browser |
+| `serverless`       | Trigger → Function → Storage |
+
+#### Structured `diagram` shape for `category: "engineering"`
+
+```json
+{
+  "nodes": [
+    { "id": "browser", "kind": "client",  "label": "Browser" },
+    { "id": "api",     "kind": "service", "label": "Import API" },
+    { "id": "q",       "kind": "queue",   "label": "Upload jobs" },
+    { "id": "worker",  "kind": "worker",  "label": "Chunk worker" },
+    { "id": "store",   "kind": "db",      "label": "S3 bucket" }
+  ],
+  "edges": [
+    { "from": "browser", "to": "api",    "kind": "sync",  "label": "POST" },
+    { "from": "api",     "to": "q",      "kind": "async", "label": "enqueue" },
+    { "from": "q",       "to": "worker", "kind": "async" },
+    { "from": "worker",  "to": "store",  "kind": "data",  "label": "writes" }
+  ]
+}
+```
+
+Field rules:
+- `nodes[].id` must be unique within the diagram (referenced by edges).
+- `nodes[].kind` ∈ `"client" | "service" | "db" | "queue" | "cache" | "edge" | "worker" | "external" | "actor" | "function"`. Each kind has a visually distinct shape — pick the closest match.
+- `edges[].kind` ∈ `"sync" | "async" | "data" | "dep"` (defaults to `"sync"`). `async` draws a dashed line, `data` is tinted green, `dep` is faint dots.
+- The renderer orders nodes topologically (sources first, sinks last) and inserts one edge between each adjacent pair.
+
+#### Worked example: feature-specific transport
+
+`decisions/arch-transport.visual.json`:
+
+```json
+{
+  "id": "arch-transport",
+  "options": {
+    "Direct browser → S3 pre-signed PUT": {
+      "diagram": {
+        "nodes": [
+          { "id": "browser", "kind": "client",   "label": "Browser" },
+          { "id": "api",     "kind": "service",  "label": "Signer" },
+          { "id": "s3",      "kind": "external", "label": "S3" }
+        ],
+        "edges": [
+          { "from": "browser", "to": "api", "kind": "sync", "label": "ask for URL" },
+          { "from": "browser", "to": "s3",  "kind": "data", "label": "PUT" }
+        ]
+      }
+    },
+    "Browser uploads to API, API streams to storage": { "preset": "client-server" },
+    "Browser uploads chunks to a queue, worker drains queue into storage": {
+      "preset": "worker-queue"
+    }
+  }
+}
+```
+
+Then run the CLI as before — it picks the sidecar up automatically.
+
 ### Where this fits alongside MVVM
 
 `ARCHITECTURE-MVVM.md` governs the *code* inside a feature: how Model,

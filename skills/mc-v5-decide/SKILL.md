@@ -26,7 +26,7 @@ ready to be locked in.
    - `ux` — user-journey ordering, flow choices. Renders with
      `mc-flow-timeline`. See `control/v5/routing/UX-PATTERNS.md`.
    - `ui` — surface placement, component shape. Renders with
-     `mc-mini-frame`. See `control/v5/routing/UI-REQUIREMENTS.md`.
+     `mc-screen` / `mc-mini-frame`. See `control/v5/routing/UI-REQUIREMENTS.md`.
    - `engineering` — service / transport / storage choices. Renders with
      `mc-arch-node` / `mc-diagram-surface`. See
      `control/v5/routing/ARCHITECTURE.md`.
@@ -35,20 +35,58 @@ ready to be locked in.
    atomic (tmp + rename) and validates against the schema. Read first,
    append the new decision to the right `phases.<category>.decisions[]`,
    then write.
-4. **Generate the visual fragment.** Run from the project root:
+4. **Compose the per-option visuals (v5.1+).** Write a sidecar JSON file
+   alongside `decisions.json` so the rendered cards actually relate to the
+   feature, not a generic rotation. **This step is mandatory for any
+   decision you are creating fresh.** Skipping it falls back to the
+   legacy rotation, which is a routing failure for new decisions.
+
+   **File path:**
+   `control/v5/features/<slug>/decisions/<decision-id>.visual.json`
+
+   **Shape:**
+
+   ```json
+   {
+     "id": "<decision-id>",
+     "options": {
+       "<option-string-verbatim>": {
+         "preset": "wizard-4step"
+       },
+       "<another-option-verbatim>": {
+         "diagram": { "kind": "flow", "steps": [...] }
+       },
+       "<third-option-verbatim>": {
+         "raw": "<svg>…</svg>"
+       }
+     }
+   }
+   ```
+
+   For each option, pick ONE source in order of preference:
+   1. **`preset`** — named preset from the catalog (cheapest, fastest)
+   2. **`diagram`** — structured atoms (use when the preset doesn't fit)
+   3. **`raw`** — verbatim HTML (last resort)
+
+   Preset catalogs + structured atom schemas:
+   - **UX:** `control/v5/routing/UX-PATTERNS.md` → "UX preset catalog"
+   - **UI:** `control/v5/routing/UI-REQUIREMENTS.md` → "UI preset catalog"
+   - **Architecture:** `control/v5/routing/ARCHITECTURE.md` → "Architecture preset catalog"
+
+5. **Generate the visual fragment.** Run from the project root:
 
    ```bash
    node lib/v5/cli/build-decision.mjs <slug> <decision-id>
    ```
 
-   The CLI writes
+   The CLI reads the sidecar (if present), validates it, and writes
    `control/v5/features/<slug>/decisions/<decision-id>.html`. Do NOT
    write that file by hand.
-5. **Open the dashboard** to surface the result. Call
+6. **Open the dashboard** to surface the result. Call
    `openDashboard({ slug, anchor: 'decisions', controlRoot })` from
    `lib/v5/auto-launch.mjs`. It ensures the v5 server is running, opens
    the user's default browser, and returns the URL.
-6. **Tell the user.** Say verbatim (substituting the URL):
+7. **Tell the user.** Say verbatim (substituting the URL):
    > I've saved the decision and opened the dashboard at: {url}
 
 ## Concrete one-liner

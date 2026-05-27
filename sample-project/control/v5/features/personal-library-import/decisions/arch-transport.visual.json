@@ -1,0 +1,52 @@
+{
+  "id": "arch-transport",
+  "options": {
+    "OAuth redirect with per-provider client credentials": {
+      "diagram": {
+        "nodes": [
+          { "id": "user",     "kind": "actor",    "label": "User" },
+          { "id": "app",      "kind": "client",   "label": "MediaFlow" },
+          { "id": "provider", "kind": "external", "label": "Provider OAuth" },
+          { "id": "api",      "kind": "service",  "label": "Importer" },
+          { "id": "db",       "kind": "db",       "label": "Library" }
+        ],
+        "edges": [
+          { "from": "user",     "to": "app",      "kind": "sync", "label": "click Connect" },
+          { "from": "app",      "to": "provider", "kind": "sync", "label": "OAuth" },
+          { "from": "provider", "to": "api",      "kind": "sync", "label": "token" },
+          { "from": "api",      "to": "db",       "kind": "data", "label": "writes" }
+        ]
+      }
+    },
+    "User pastes a long-lived API token": {
+      "diagram": {
+        "nodes": [
+          { "id": "user", "kind": "actor",   "label": "User" },
+          { "id": "app",  "kind": "client",  "label": "MediaFlow" },
+          { "id": "api",  "kind": "service", "label": "Importer" },
+          { "id": "db",   "kind": "db",      "label": "Library" }
+        ],
+        "edges": [
+          { "from": "user", "to": "app", "kind": "sync", "label": "paste token" },
+          { "from": "app",  "to": "api", "kind": "sync", "label": "POST token" },
+          { "from": "api",  "to": "db",  "kind": "data", "label": "writes" }
+        ]
+      }
+    },
+    "User uploads an export file only (no live auth at all)": {
+      "diagram": {
+        "nodes": [
+          { "id": "user", "kind": "actor",  "label": "User" },
+          { "id": "app",  "kind": "client", "label": "MediaFlow" },
+          { "id": "fn",   "kind": "function", "label": "Parser" },
+          { "id": "db",   "kind": "db",     "label": "Library" }
+        ],
+        "edges": [
+          { "from": "user", "to": "app", "kind": "data", "label": "upload CSV" },
+          { "from": "app",  "to": "fn",  "kind": "sync" },
+          { "from": "fn",   "to": "db",  "kind": "data" }
+        ]
+      }
+    }
+  }
+}

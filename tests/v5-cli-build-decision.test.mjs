@@ -290,6 +290,156 @@ test('CLI subprocess: exits 1 with stderr on unknown decision id', async () => {
   );
 });
 
+// ---------------------------------------------------------------------------
+// v5.1 — sidecar (decisions/{id}.visual.json)
+// ---------------------------------------------------------------------------
+
+test('reads decisions/{id}.visual.json sidecar and routes per-option preset', async () => {
+  const { controlRoot, featureDir, slug } = await makeTmpControlRoot();
+  const decisionId = 'ux-flow';
+  const decisionsDir = path.join(featureDir, 'decisions');
+  await fs.mkdir(decisionsDir, { recursive: true });
+  await fs.writeFile(
+    path.join(decisionsDir, `${decisionId}.visual.json`),
+    JSON.stringify({
+      id: decisionId,
+      options: {
+        'Stepped wizard with explicit Next buttons': { preset: 'wizard-4step' },
+        'Single page with inline confirmation': { preset: 'approval' },
+        'Modal flow over the main view': { preset: 'browse-select' },
+      },
+    }, null, 2),
+    'utf8',
+  );
+  const { fragment } = await buildDecisionFragment({
+    slug,
+    decisionId,
+    controlRoot,
+  });
+  // Each option becomes a flow timeline from a distinct preset.
+  assert.equal((fragment.match(/mc-flow-timeline/g) || []).length, 3);
+  // wizard-4step ends with "Done"; approval ends with "Approve"; browse-select ends with "Apply".
+  assert.match(fragment, />Done</);
+  assert.match(fragment, />Approve</);
+  assert.match(fragment, />Apply</);
+});
+
+test('sidecar diagram spec renders feature-specific arch nodes', async () => {
+  const { controlRoot, featureDir, slug } = await makeTmpControlRoot();
+  const decisionId = 'arch-store';
+  const decisionsDir = path.join(featureDir, 'decisions');
+  await fs.mkdir(decisionsDir, { recursive: true });
+  await fs.writeFile(
+    path.join(decisionsDir, `${decisionId}.visual.json`),
+    JSON.stringify({
+      id: decisionId,
+      options: {
+        'SQLite — embedded, single-file, no service': {
+          diagram: {
+            nodes: [
+              { id: 'app', kind: 'client', label: 'App' },
+              { id: 'sqlite', kind: 'db', label: 'SQLite' },
+            ],
+            edges: [{ from: 'app', to: 'sqlite', kind: 'data', label: 'file' }],
+          },
+        },
+        'Postgres — managed service with migrations': {
+          diagram: {
+            nodes: [
+              { id: 'app', kind: 'client', label: 'App' },
+              { id: 'api', kind: 'service', label: 'API' },
+              { id: 'pg', kind: 'db', label: 'Postgres' },
+            ],
+            edges: [
+              { from: 'app', to: 'api', kind: 'sync' },
+              { from: 'api', to: 'pg', kind: 'data' },
+            ],
+          },
+        },
+      },
+    }, null, 2),
+    'utf8',
+  );
+  const { fragment } = await buildDecisionFragment({
+    slug,
+    decisionId,
+    controlRoot,
+  });
+  assert.match(fragment, />SQLite</);
+  assert.match(fragment, />Postgres</);
+  assert.match(fragment, />API</);
+  // Each of the 3 options renders its own surface — 2 from the sidecar
+  // (SQLite, Postgres) plus 1 from the legacy rotation for the
+  // third option (KV store), which uses the same surface wrapper.
+  assert.ok((fragment.match(/mc-diagram-surface/g) || []).length >= 2);
+});
+
+test('sidecar raw escape hatch lands verbatim in the fragment', async () => {
+  const { controlRoot, featureDir, slug } = await makeTmpControlRoot();
+  const decisionId = 'ui-placement';
+  const decisionsDir = path.join(featureDir, 'decisions');
+  await fs.mkdir(decisionsDir, { recursive: true });
+  await fs.writeFile(
+    path.join(decisionsDir, `${decisionId}.visual.json`),
+    JSON.stringify({
+      id: decisionId,
+      options: {
+        'Dedicated page reachable from nav': { raw: '<svg class="ad-hoc-icon"></svg>' },
+      },
+    }),
+    'utf8',
+  );
+  const { fragment } = await buildDecisionFragment({
+    slug,
+    decisionId,
+    controlRoot,
+  });
+  assert.match(fragment, /<svg class="ad-hoc-icon"><\/svg>/);
+});
+
+test('sidecar with malformed JSON rejects with a clear error', async () => {
+  const { controlRoot, featureDir, slug } = await makeTmpControlRoot();
+  const decisionId = 'arch-store';
+  const decisionsDir = path.join(featureDir, 'decisions');
+  await fs.mkdir(decisionsDir, { recursive: true });
+  await fs.writeFile(
+    path.join(decisionsDir, `${decisionId}.visual.json`),
+    '{not valid json',
+    'utf8',
+  );
+  await assert.rejects(
+    buildDecisionFragment({ slug, decisionId, controlRoot }),
+    /not valid JSON/i,
+  );
+});
+
+test('sidecar with mismatched id rejects with a clear error', async () => {
+  const { controlRoot, featureDir, slug } = await makeTmpControlRoot();
+  const decisionId = 'arch-store';
+  const decisionsDir = path.join(featureDir, 'decisions');
+  await fs.mkdir(decisionsDir, { recursive: true });
+  await fs.writeFile(
+    path.join(decisionsDir, `${decisionId}.visual.json`),
+    JSON.stringify({ id: 'arch-something-else', options: {} }),
+    'utf8',
+  );
+  await assert.rejects(
+    buildDecisionFragment({ slug, decisionId, controlRoot }),
+    /sidecar.+id "arch-something-else".+expected "arch-store"/,
+  );
+});
+
+test('missing sidecar is fine — legacy rotation still produces a fragment', async () => {
+  // No sidecar file at all. This is the v5.0 path; v5.1 must not regress it.
+  const { controlRoot, slug } = await makeTmpControlRoot();
+  const { fragment } = await buildDecisionFragment({
+    slug,
+    decisionId: 'arch-store',
+    controlRoot,
+  });
+  assert.match(fragment, /mc-diagram-surface/);
+});
+
 test('CLI subprocess: exits 1 with usage on missing args', async () => {
   await assert.rejects(
     execFileAsync(process.execPath, [CLI_PATH]),
